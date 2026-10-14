@@ -59,15 +59,15 @@ _Lighthouse (mobile, build de prod) sur la page de connexion : performance 97, a
 - [x] Contraste AA vérifié dans les deux thèmes (axe), Lighthouse sans GPU : perf 97, a11y 100
 
 ## Phase 7 — Enrichissements (migration `0002_enrichissements.sql`)
-- [ ] Migration 0002 (récurrences, revenus, jours off, quantités, liens objectifs, done_at des jalons)
-- [ ] Todo : saisie en langage naturel, report en un geste, récurrence, listes/projets, objectif lié
-- [ ] Budget : saisie en langage naturel, rythme (projection + variation), revenus et solde, récurrences, suppression de catégorie
-- [ ] Habitudes : jours précis, jours off, habitudes chiffrées, suppression avec annulation
-- [ ] Notes : cases à cocher dans l'aperçu, note du jour
-- [ ] Objectifs : todos/habitudes liées, prochain jalon sur l'accueil
-- [ ] Palette de commandes `Cmd/Ctrl+K`
-- [ ] Revue de la semaine
-- [ ] Tests (unitaires, e2e, axe dans les deux thèmes), Lighthouse
+- [x] Migration 0002 (récurrences, revenus, jours off, quantités, liens objectifs, done_at des jalons)
+- [x] Todo : saisie en langage naturel, report en un geste, récurrence, listes/projets, objectif lié
+- [x] Budget : saisie en langage naturel, rythme (projection + variation), revenus et solde, récurrences, suppression de catégorie
+- [x] Habitudes : jours précis, jours off, habitudes chiffrées, suppression avec annulation
+- [x] Notes : cases à cocher dans l'aperçu, note du jour
+- [x] Objectifs : todos/habitudes liées, prochain jalon sur l'accueil
+- [x] Palette de commandes `Cmd/Ctrl+K`
+- [x] Revue de la semaine
+- [x] Tests (unitaires, e2e, axe dans les deux thèmes), Lighthouse
 
 ## Backlog (idées, ne pas implémenter sans validation)
 - PWA installable (hors-ligne léger)

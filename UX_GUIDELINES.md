@@ -21,13 +21,13 @@ Minimaliste, calme, rapide. Direction visuelle **« Liquid glass »** (à la App
 - Purement décoratif (`aria-hidden`) : aucune information ne doit en dépendre
 
 ## Règles d'interaction
-1. **Ajout rapide partout** : champ inline, Entrée pour valider, le champ reste focus pour enchaîner.
+1. **Ajout rapide partout** : champ inline, Entrée pour valider, le champ reste focus pour enchaîner. Saisie en langage naturel (« Payer le loyer demain ! #maison », « 12,50 resto hier ») avec aperçu de ce qui est compris.
 2. **Pas de modales** sauf confirmation destructrice ; préférer l'édition inline ou un panneau latéral.
 3. **Pas de bouton « Enregistrer »** : sauvegarde automatique avec mise à jour optimiste.
-4. **Annuler plutôt que confirmer** : suppression/cochage = toast avec « Annuler » (5 s).
+4. **Annuler plutôt que confirmer** : suppression/cochage = toast avec « Annuler » (5 s). Tout élément créé est modifiable et supprimable ; une annulation qui enchaîne plusieurs écritures (ex. recréer une liste puis y rattacher ses todos) les fait dans une seule requête, pour aboutir même si l'écran change.
 5. **Valeurs par défaut intelligentes** : date = aujourd'hui, dernière catégorie utilisée pré-sélectionnée.
 6. **Raccourcis clavier** (desktop) : `n` nouveau, `/` recherche, `g` puis `t/n/h/o/b` pour naviguer, `Esc` fermer. Liste affichée avec `?`.
-7. **Palette de commandes** (`Cmd/Ctrl+K`) : aller à un onglet, créer un item (v1.1).
+7. **Palette de commandes** (`Cmd/Ctrl+K`) : aller à un onglet, rechercher dans tout, créer depuis la saisie.
 8. **États vides utiles** : une phrase + le champ d'ajout, jamais d'écran vide muet.
 9. **Feedback immédiat** : pas de spinner bloquant ; skeletons discrets ; erreurs réseau avec « Réessayer ».
 10. **Mobile first** : zones tactiles ≥ 44px, actions principales à portée de pouce, tab bar en bas.

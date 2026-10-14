@@ -22,6 +22,31 @@ Les tests e2e n'utilisent pas votre base : les appels à Supabase sont servis pa
 (`e2e/fakeSupabase.ts`). Avant la première exécution : `pnpm exec playwright install chromium`
 (ou `PLAYWRIGHT_CHROMIUM_PATH=/chemin/vers/chromium` si Chromium est déjà installé).
 
+## Mettre à jour la base (phase 7)
+
+Cette version ajoute des colonnes et des tables (récurrences, revenus, jours off, habitudes chiffrées,
+liens avec les objectifs). **Avant d'ouvrir la nouvelle version**, exécutez dans l'éditeur SQL Supabase :
+
+```
+supabase/migrations/0002_enrichissements.sql
+```
+
+La migration ne fait qu'ajouter : aucune donnée existante n'est modifiée ni supprimée.
+
+## Fonctionnalités en bref
+
+- **Saisie en langage naturel** : « Payer le loyer demain ! #maison tous les mois » (todo),
+  « 12,50 resto hier » ou « +2400 salaire » (budget), « Boire 8 verres d'eau » (habitude chiffrée).
+- **Palette `⌘K` / `Ctrl+K`** : aller à un onglet, rechercher dans tout, créer depuis ce qu'on tape.
+- **Todo** : report en un geste, récurrence, listes/projets, objectif lié.
+- **Budget** : projection de fin de mois, variation vs mois précédent, revenus et solde,
+  dépenses/revenus récurrents générés automatiquement.
+- **Habitudes** : jours précis, jours off (vacances), objectifs chiffrés.
+- **Notes** : cases `- [ ]` cochables dans l'aperçu, note du jour.
+- **Objectifs** : todos et habitudes liées, prochains jalons sur l'accueil.
+- **Revue de la semaine** (`#/revue`, ou la carte de l'accueil le dimanche et le lundi).
+- Tout élément créé est modifiable et supprimable, avec « Annuler ».
+
 ## Design « Liquid glass »
 
 Panneaux de verre dépoli sur un fond animé three.js (orbe irisé + aurore), thème clair/sombre
@@ -33,7 +58,7 @@ Panneaux de verre dépoli sur un fond animé three.js (orbe irisé + aurore), th
 
 ## Raccourcis clavier (desktop)
 
-`n` ajout rapide (todo, note, dépense) · `/` rechercher dans les notes · `g` puis `a` `o` `n` `h` `t` `b`
+`⌘K` / `Ctrl+K` palette · `n` ajout rapide (todo, note, dépense) · `/` rechercher dans les notes · `g` puis `a` `o` `n` `h` `t` `b`
 pour changer d'onglet · `?` liste des raccourcis · `Échap` fermer.
 
 ## Données
