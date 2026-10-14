@@ -1,19 +1,47 @@
 import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { BudgetIcon, GoalsIcon, HabitsIcon, TodoIcon, useToast } from '@/components/ui'
+import { BudgetIcon, GoalsIcon, HabitsIcon, TodayIcon, TodoIcon, useToast } from '@/components/ui'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { useBudget } from '@/features/budget/useBudget'
+import {
+  average,
+  FIELD_NAMES,
+  formatDiff,
+  formatScore,
+  habitLinks,
+  LABELS,
+} from '@/features/checkins/checkinLogic'
+import { EnergyBars, MoodFace } from '@/features/checkins/MoodEnergy'
+import type { DayCheckin } from '@/features/checkins/types'
+import { useCheckins } from '@/features/checkins/useCheckins'
 import { useExpensesBetween } from '@/features/budget/useBudgetExtras'
 import { useGoals } from '@/features/goals/useGoals'
 import { useDaysOff, useHabits } from '@/features/habits/useHabits'
 import { useTodos } from '@/features/todos/useTodos'
-import { addDays, formatDayMonth, monthOf, startOfWeek, todayISO } from '@/lib/dates'
+import {
+  addDays,
+  formatDayMonth,
+  formatWeekdayShort,
+  monthOf,
+  startOfWeek,
+  todayISO,
+} from '@/lib/dates'
 import { formatCents } from '@/lib/money'
 import { defaultReviewWeek, summarizeWeek, type HabitWeek } from './reviewLogic'
 
-function Card({ title, icon, children }: { title: string; icon: ReactNode; children: ReactNode }) {
+function Card({
+  title,
+  icon,
+  className = '',
+  children,
+}: {
+  title: string
+  icon: ReactNode
+  className?: string
+  children: ReactNode
+}) {
   return (
-    <section aria-label={title} className="card flex flex-col gap-2 p-5">
+    <section aria-label={title} className={`card flex flex-col gap-2 p-5 ${className}`}>
       <h2 className="flex items-center gap-2 font-semibold">
         <span className="text-accent">{icon}</span>
         {title}
@@ -44,6 +72,92 @@ function HabitDots({ habit }: { habit: HabitWeek }) {
   )
 }
 
+/** Humeur et énergie de la semaine, et liens simples avec les habitudes (8 dernières semaines). */
+function MoodCard({
+  monday,
+  checkins,
+  links,
+}: {
+  monday: string
+  checkins: DayCheckin[]
+  links: ReturnType<typeof habitLinks>
+}) {
+  const sunday = addDays(monday, 6)
+  const byDay = new Map(checkins.map((c) => [c.day, c]))
+  const week = Array.from({ length: 7 }, (_, i) => addDays(monday, i))
+  const mood = average(checkins, 'mood', monday, sunday)
+  const energy = average(checkins, 'energy', monday, sunday)
+
+  return (
+    <Card
+      title="Humeur et énergie"
+      icon={<TodayIcon width={18} height={18} />}
+      className="md:col-span-2"
+    >
+      {mood === null && energy === null ? (
+        <p className="text-muted">
+          Aucune saisie cette semaine.{' '}
+          <Link to="/" className="text-accent">
+            Noter mon humeur
+          </Link>
+        </p>
+      ) : (
+        <>
+          <p>
+            {(['mood', 'energy'] as const)
+              .map((field) => {
+                const value = field === 'mood' ? mood : energy
+                return value === null ? null : `${FIELD_NAMES[field]} ${formatScore(value)} / 5`
+              })
+              .filter(Boolean)
+              .join(' · ')}
+          </p>
+          <ul className="grid grid-cols-7 gap-1 text-center">
+            {week.map((day) => {
+              const c = byDay.get(day)
+              const parts = [
+                c?.mood ? `humeur ${LABELS.mood[c.mood - 1]}` : null,
+                c?.energy ? `énergie ${LABELS.energy[c.energy - 1]}` : null,
+              ].filter(Boolean)
+              return (
+                <li key={day} className="flex flex-col items-center gap-0.5">
+                  <span className="text-xs text-muted">{formatWeekdayShort(day)}</span>
+                  <span className={c?.mood ? 'text-accent' : 'text-muted opacity-30'}>
+                    <MoodFace value={c?.mood ?? 3} size={18} />
+                  </span>
+                  <span className={c?.energy ? 'text-accent' : 'text-muted opacity-30'}>
+                    <EnergyBars value={c?.energy ?? 0} size={18} />
+                  </span>
+                  <span className="sr-only">
+                    {formatDayMonth(day)} : {parts.length > 0 ? parts.join(', ') : 'pas de saisie'}
+                  </span>
+                </li>
+              )
+            })}
+          </ul>
+        </>
+      )}
+      {links.length > 0 && (
+        <div className="mt-1 flex flex-col gap-1 border-t border-border pt-2">
+          <ul className="flex flex-col gap-1 text-sm">
+            {links.map((l) => (
+              <li key={`${l.habitId}-${l.field}`}>
+                Les jours de « {l.habit} », {FIELD_NAMES[l.field].toLowerCase()}{' '}
+                <span className={l.diff > 0 ? 'font-semibold text-accent' : 'font-semibold'}>
+                  {formatDiff(l.diff)}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p className="text-xs text-muted">
+            Sur les 8 dernières semaines : des constats, pas des causes.
+          </p>
+        </div>
+      )}
+    </Card>
+  )
+}
+
 /** Revue de la semaine (lundi → dimanche) : todos, habitudes, dépenses, jalons. */
 export default function ReviewPage() {
   const toast = useToast()
@@ -59,6 +173,14 @@ export default function ReviewPage() {
   const { goals, milestones } = useGoals({ onError })
   const { categories } = useBudget(monthOf(monday), { onError })
   const { expenses, isLoading } = useExpensesBetween(monday, sunday)
+  const { checkins } = useCheckins({ onError })
+  const links = habitLinks({
+    checkins,
+    habits,
+    entries,
+    offDays,
+    to: sunday < today ? sunday : today,
+  })
 
   const review = summarizeWeek({
     monday,
@@ -191,6 +313,7 @@ export default function ReviewPage() {
             </ul>
           )}
         </Card>
+        <MoodCard monday={monday} checkins={checkins} links={links} />
       </div>
     </>
   )

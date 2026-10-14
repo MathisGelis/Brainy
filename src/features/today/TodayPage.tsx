@@ -12,6 +12,7 @@ import {
 import { PageHeader } from '@/components/ui/PageHeader'
 import { projectMonthEnd } from '@/features/budget/recurringLogic'
 import { useBudget } from '@/features/budget/useBudget'
+import { MoodEnergy } from '@/features/checkins/MoodEnergy'
 import { useNotes } from '@/features/notes/useNotes'
 import { goalProgress, milestonesOf, nextMilestone } from '@/features/goals/goalLogic'
 import type { Goal, Milestone } from '@/features/goals/types'
@@ -251,6 +252,9 @@ export default function TodayPage() {
         <DailyNoteButton today={today} onError={onError} />
       </div>
       <TopThree day={today} onError={onError} />
+      <section aria-label="Humeur et énergie du jour" className="card mb-4 p-4">
+        <MoodEnergy day={today} onError={onError} title="Comment ça va ?" />
+      </section>
       {parisHour() >= 18 && eveningRitualDoneOn() !== today && (
         <Link
           to="/rituel"

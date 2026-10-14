@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button, useToast } from '@/components/ui'
 import { PageHeader } from '@/components/ui/PageHeader'
+import { MoodEnergy } from '@/features/checkins/MoodEnergy'
 import { nextMonday } from '@/features/todos/TodoItem'
 import { filterTodos } from '@/features/todos/todoLogic'
 import { useTodos } from '@/features/todos/useTodos'
@@ -64,6 +65,10 @@ export default function RitualPage() {
   const [step, setStep] = useState(0)
 
   const steps = [
+    {
+      title: 'Comment s’est passée la journée ?',
+      body: <MoodEnergy day={today} onError={onError} />,
+    },
     { title: 'Vos habitudes du jour', body: <TodayHabits today={today} onError={onError} /> },
     { title: 'Ce qui reste aujourd’hui', body: <Leftovers today={today} onError={onError} /> },
     {

@@ -3,6 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { ToastProvider } from '@/components/ui'
+import * as checkinsApi from '@/features/checkins/checkinsApi'
 import * as habitsApi from '@/features/habits/habitsApi'
 import * as todosApi from '@/features/todos/todosApi'
 import type { Todo } from '@/features/todos/types'
@@ -10,6 +11,7 @@ import { addDays, todayISO } from '@/lib/dates'
 import { eveningRitualDoneOn } from '@/lib/ritual'
 import RitualPage from './RitualPage'
 
+vi.mock('@/features/checkins/checkinsApi')
 vi.mock('@/features/todos/todosApi')
 vi.mock('@/features/habits/habitsApi')
 
@@ -47,6 +49,7 @@ function renderPage() {
 
 describe('RitualPage', () => {
   beforeEach(() => {
+    vi.mocked(checkinsApi.fetchCheckins).mockResolvedValue([])
     localStorage.clear()
     vi.mocked(todosApi.fetchTodos).mockResolvedValue([todo])
     vi.mocked(todosApi.fetchLists).mockResolvedValue([])
@@ -57,7 +60,15 @@ describe('RitualPage', () => {
   })
 
   it('enchaîne les étapes : reporter le reste, puis choisir le Top 3 de demain', async () => {
+    vi.mocked(checkinsApi.upsertCheckin).mockResolvedValue()
     renderPage()
+    expect(
+      screen.getByRole('heading', { name: 'Comment s’est passée la journée ?' }),
+    ).toBeInTheDocument()
+    await userEvent.click(await screen.findByRole('button', { name: 'Énergie : basse (2 sur 5)' }))
+    expect(checkinsApi.upsertCheckin).toHaveBeenCalledWith({ day: today, mood: null, energy: 2 })
+    await userEvent.click(screen.getByRole('button', { name: 'Suivant' }))
+
     expect(screen.getByRole('heading', { name: 'Vos habitudes du jour' })).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Suivant' }))
 
@@ -81,8 +92,9 @@ describe('RitualPage', () => {
 
   it('« Terminer » marque le rituel comme fait et revient à l’accueil', async () => {
     renderPage()
-    await userEvent.click(screen.getByRole('button', { name: 'Suivant' }))
-    await userEvent.click(screen.getByRole('button', { name: 'Suivant' }))
+    for (let i = 0; i < 3; i++) {
+      await userEvent.click(screen.getByRole('button', { name: 'Suivant' }))
+    }
     await userEvent.click(screen.getByRole('button', { name: 'Terminer' }))
 
     expect(await screen.findByText('Accueil')).toBeInTheDocument()

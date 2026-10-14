@@ -11,6 +11,12 @@ export const EXPORTED_TABLES = [
   'todos',
   'expense_categories',
   'expenses',
+  'habit_days_off',
+  'recurring_entries',
+  'incomes',
+  'day_checkins',
+  'savings_goals',
+  'savings_moves',
 ] as const
 
 export type ExportedTable = (typeof EXPORTED_TABLES)[number]

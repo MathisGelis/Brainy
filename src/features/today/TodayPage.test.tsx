@@ -3,6 +3,7 @@ import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { ToastProvider } from '@/components/ui'
+import * as checkinsApi from '@/features/checkins/checkinsApi'
 import * as budgetApi from '@/features/budget/budgetApi'
 import * as habitsApi from '@/features/habits/habitsApi'
 import * as notesApi from '@/features/notes/notesApi'
@@ -11,6 +12,7 @@ import * as todosApi from '@/features/todos/todosApi'
 import { addDays, todayISO } from '@/lib/dates'
 import TodayPage from './TodayPage'
 
+vi.mock('@/features/checkins/checkinsApi')
 vi.mock('@/features/todos/todosApi')
 vi.mock('@/features/habits/habitsApi')
 vi.mock('@/features/budget/budgetApi')
@@ -46,6 +48,7 @@ function renderPage() {
 
 describe('TodayPage', () => {
   beforeEach(() => {
+    vi.mocked(checkinsApi.fetchCheckins).mockResolvedValue([])
     vi.mocked(todosApi.fetchTodos).mockResolvedValue([
       { ...baseTodo, id: 't1', title: 'Payer le loyer', due_date: today },
       { ...baseTodo, id: 't2', title: 'Plus tard', due_date: addDays(today, 3) },

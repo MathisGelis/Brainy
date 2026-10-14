@@ -3,6 +3,7 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { ToastProvider } from '@/components/ui'
+import * as checkinsApi from '@/features/checkins/checkinsApi'
 import * as budgetApi from '@/features/budget/budgetApi'
 import * as goalsApi from '@/features/goals/goalsApi'
 import * as habitsApi from '@/features/habits/habitsApi'
@@ -11,6 +12,7 @@ import { addDays, todayISO } from '@/lib/dates'
 import { defaultReviewWeek } from './reviewLogic'
 import ReviewPage from './ReviewPage'
 
+vi.mock('@/features/checkins/checkinsApi')
 vi.mock('@/features/todos/todosApi')
 vi.mock('@/features/habits/habitsApi')
 vi.mock('@/features/goals/goalsApi')
@@ -33,6 +35,7 @@ function renderPage() {
 
 describe('ReviewPage', () => {
   beforeEach(() => {
+    vi.mocked(checkinsApi.fetchCheckins).mockResolvedValue([])
     vi.mocked(todosApi.fetchTodos).mockResolvedValue([
       {
         id: 't1',
@@ -87,5 +90,49 @@ describe('ReviewPage', () => {
       addDays(monday, -1),
     )
     expect(await screen.findByText(/0 todo terminée/)).toBeInTheDocument()
+  })
+
+  it('montre humeur et énergie, et les liens avec les habitudes', async () => {
+    const sunday = addDays(monday, 6)
+    const end = sunday < todayISO() ? sunday : todayISO()
+    const days = Array.from({ length: 28 }, (_, i) => addDays(end, -i))
+    vi.mocked(habitsApi.fetchHabits).mockResolvedValue([
+      {
+        id: 'h1',
+        name: 'Course',
+        target_per_week: 3,
+        days: null,
+        goal_amount: null,
+        unit: null,
+        goal_id: null,
+        archived: false,
+        position: 0,
+        created_at: '',
+      },
+    ])
+    vi.mocked(habitsApi.fetchLogs).mockResolvedValue(
+      days
+        .filter((_, i) => i % 2 === 0)
+        .map((day) => ({ id: day, habit_id: 'h1', day, amount: null })),
+    )
+    vi.mocked(checkinsApi.fetchCheckins).mockResolvedValue(
+      days.map((day, i) => ({ day, mood: 4, energy: i % 2 === 0 ? 4 : 3 })),
+    )
+    renderPage()
+    const card = await screen.findByRole('region', { name: 'Humeur et énergie' })
+    expect(
+      await within(card).findByText(/Humeur 4,0 \/ 5 · Énergie \d,\d \/ 5/),
+    ).toBeInTheDocument()
+    expect(within(card).getByText(/Les jours de « Course », énergie/)).toHaveTextContent('+1,0')
+    expect(within(card).queryByText(/Course », humeur/)).toBeNull()
+  })
+
+  it('invite à noter son humeur quand la semaine est vide', async () => {
+    renderPage()
+    const card = await screen.findByRole('region', { name: 'Humeur et énergie' })
+    expect(within(card).getByRole('link', { name: 'Noter mon humeur' })).toHaveAttribute(
+      'href',
+      '/',
+    )
   })
 })
