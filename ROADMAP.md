@@ -3,13 +3,13 @@
 Avancer phase par phase. Cocher les tâches au fur et à mesure. Chaque phase doit se terminer avec un build qui passe et une app déployable.
 
 ## Phase 0 — Fondations
-- [ ] Init Vite + React + TS strict + Tailwind + ESLint/Prettier + Vitest
-- [ ] Thème (tokens clair/sombre) + primitives UI (Button, Input, Checkbox, Toast, Layout)
-- [ ] Layout : sidebar desktop / tab bar mobile, HashRouter, 6 routes vides
-- [ ] Projet Supabase + migration `0001_init.sql` + RLS
-- [ ] Client Supabase, auth (login, session persistée, route protégée), inscriptions désactivées
-- [ ] Workflow GitHub Actions → GitHub Pages ; vérifier le déploiement
-- [ ] `.env.example`, README minimal
+- [x] Init Vite + React + TS strict + Tailwind + ESLint/Prettier + Vitest
+- [x] Thème (tokens clair/sombre) + primitives UI (Button, Input, Checkbox, Toast, Layout)
+- [x] Layout : sidebar desktop / tab bar mobile, HashRouter, 6 routes vides
+- [ ] Projet Supabase + migration `0001_init.sql` + RLS _(migration écrite ; création du projet et application : manuel, voir README)_
+- [x] Client Supabase, auth (login, session persistée, route protégée), inscriptions désactivées _(à désactiver côté dashboard Supabase)_
+- [ ] Workflow GitHub Actions → GitHub Pages ; vérifier le déploiement _(workflow écrit ; déploiement à vérifier après ajout des secrets)_
+- [x] `.env.example`, README minimal
 
 ## Phase 1 — Todo (le plus simple, pose les patterns)
 - [ ] Hook `useTodos` (TanStack Query, optimiste)
