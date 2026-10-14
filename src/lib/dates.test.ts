@@ -1,4 +1,15 @@
-import { todayISO } from './dates'
+import {
+  addDays,
+  addMonths,
+  daysBetween,
+  formatDue,
+  formatMonthLabel,
+  lastNDays,
+  monthBounds,
+  parisHour,
+  startOfWeek,
+  todayISO,
+} from './dates'
 
 describe('todayISO', () => {
   it('formate en YYYY-MM-DD', () => {
@@ -10,8 +21,6 @@ describe('todayISO', () => {
     expect(todayISO(new Date('2026-03-10T23:30:00Z'))).toBe('2026-03-11')
   })
 })
-
-import { addDays, addMonths, formatMonthLabel, lastNDays, monthBounds, startOfWeek } from './dates'
 
 describe('calculs de dates', () => {
   it('ajoute des jours à travers un changement de mois et d’heure', () => {
@@ -38,8 +47,6 @@ describe('calculs de dates', () => {
   })
 })
 
-import { daysBetween, formatDue } from './dates'
-
 describe('échéances lisibles', () => {
   const today = '2026-10-14'
   it.each([
@@ -54,5 +61,12 @@ describe('échéances lisibles', () => {
   it('compte les jours', () => {
     expect(daysBetween('2026-10-14', '2026-11-14')).toBe(31)
     expect(daysBetween('2026-03-28', '2026-03-30')).toBe(2)
+  })
+})
+
+describe('parisHour', () => {
+  it('donne l’heure de Paris (UTC+2 en été, UTC+1 en hiver)', () => {
+    expect(parisHour(new Date('2026-07-01T16:30:00Z'))).toBe(18)
+    expect(parisHour(new Date('2026-01-01T23:30:00Z'))).toBe(0)
   })
 })

@@ -73,3 +73,30 @@ export function reorderPositions(
     .filter((u) => u.changed)
     .map(({ id, position }) => ({ id, position }))
 }
+
+/** Nombre maximal de priorités du jour */
+export const FOCUS_MAX = 3
+
+/** Top 3 d'un jour (faites comprises), dans l'ordre manuel. */
+export function focusOf(todos: Todo[], day: string): Todo[] {
+  return todos.filter((t) => t.focus_on === day).sort(byPosition)
+}
+
+/**
+ * Suggestions pour le Top 3 : todos ouvertes hors Top 3, en retard ou dues d'abord,
+ * puis priorité haute, puis échéances proches, puis l'ordre manuel.
+ */
+export function focusCandidates(todos: Todo[], day: string): Todo[] {
+  const rank = (t: Todo) =>
+    (t.due_date !== null && t.due_date <= day ? 0 : 4) +
+    (t.priority === 'high' ? 0 : 2) +
+    (t.due_date !== null ? 0 : 1)
+  return todos
+    .filter((t) => !t.done && t.focus_on !== day)
+    .sort(
+      (a, b) =>
+        rank(a) - rank(b) ||
+        (a.due_date ?? '9999').localeCompare(b.due_date ?? '9999') ||
+        byPosition(a, b),
+    )
+}

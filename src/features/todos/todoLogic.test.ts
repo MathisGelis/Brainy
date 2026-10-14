@@ -1,4 +1,4 @@
-import { filterTodos, nextPosition, reorderPositions } from './todoLogic'
+import { filterTodos, focusCandidates, focusOf, nextPosition, reorderPositions } from './todoLogic'
 import type { Todo } from './types'
 
 const TODAY = '2026-03-10'
@@ -9,6 +9,7 @@ function todo(id: string, overrides: Partial<Todo> = {}): Todo {
     list_id: null,
     goal_id: null,
     recurrence: null,
+    focus_on: null,
     title: id,
     done: false,
     done_at: null,
@@ -107,6 +108,32 @@ describe('reorderPositions', () => {
     expect(updates).toEqual([
       { id: 'a', position: 1 },
       { id: 'b', position: 2 },
+    ])
+  })
+})
+
+describe('Top 3', () => {
+  const todos = [
+    todo('normale-sans-date', { position: 0 }),
+    todo('haute-sans-date', { priority: 'high', position: 1 }),
+    todo('due-aujourdhui', { due_date: TODAY, position: 2 }),
+    todo('en-retard-haute', { due_date: '2026-03-01', priority: 'high', position: 3 }),
+    todo('future', { due_date: '2026-04-01', position: 4 }),
+    todo('deja-top', { focus_on: TODAY, position: 5 }),
+    todo('faite', { done: true, position: 6 }),
+  ]
+
+  it('liste le Top 3 du jour', () => {
+    expect(ids(focusOf(todos, TODAY))).toEqual(['deja-top'])
+  })
+
+  it('suggère d’abord le dû et l’urgent, jamais le Top 3 ni le fait', () => {
+    expect(ids(focusCandidates(todos, TODAY))).toEqual([
+      'en-retard-haute',
+      'due-aujourdhui',
+      'haute-sans-date',
+      'future',
+      'normale-sans-date',
     ])
   })
 })

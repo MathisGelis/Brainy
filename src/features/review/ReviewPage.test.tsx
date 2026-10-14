@@ -44,6 +44,7 @@ describe('ReviewPage', () => {
         due_date: null,
         priority: 'normal',
         recurrence: null,
+        focus_on: null,
         position: 0,
         created_at: '',
       },

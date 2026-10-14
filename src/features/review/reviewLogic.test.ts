@@ -13,6 +13,7 @@ const todo = (id: string, extra: Partial<Todo>): Todo => ({
   due_date: null,
   priority: 'normal',
   recurrence: null,
+  focus_on: null,
   position: 0,
   created_at: '',
   ...extra,

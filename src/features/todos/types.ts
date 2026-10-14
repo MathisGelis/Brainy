@@ -11,6 +11,8 @@ export type Todo = {
   priority: Priority
   /** 'daily' | 'weekly:1,3,5' | 'monthly' (voir recurrence.ts) */
   recurrence: string | null
+  /** Jour pour lequel la todo fait partie du Top 3 */
+  focus_on: string | null
   position: number
   created_at: string
 }
@@ -27,6 +29,7 @@ export type TodoPatch = Partial<
     | 'list_id'
     | 'goal_id'
     | 'recurrence'
+    | 'focus_on'
   >
 >
 

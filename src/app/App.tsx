@@ -14,6 +14,7 @@ const HabitDetailPage = lazy(() => import('@/features/habits/HabitDetailPage'))
 const TodosPage = lazy(() => import('@/features/todos/TodosPage'))
 const BudgetPage = lazy(() => import('@/features/budget/BudgetPage'))
 const ReviewPage = lazy(() => import('@/features/review/ReviewPage'))
+const RitualPage = lazy(() => import('@/features/today/RitualPage'))
 
 export function App() {
   usePointerLight()
@@ -33,6 +34,7 @@ export function App() {
               <Route path="todo" element={<TodosPage />} />
               <Route path="budget" element={<BudgetPage />} />
               <Route path="revue" element={<ReviewPage />} />
+              <Route path="rituel" element={<RitualPage />} />
             </Route>
           </Route>
         </Routes>

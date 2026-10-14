@@ -102,6 +102,20 @@ export default function CommandPalette({ onClose, onQuickAdd, onHelp }: Props) {
       run: go('/revue'),
     },
     {
+      id: 'top3',
+      group: 'Commandes',
+      label: 'Top 3 du jour',
+      keywords: 'priorités focus',
+      run: go('/'),
+    },
+    {
+      id: 'ritual',
+      group: 'Commandes',
+      label: 'Rituel du soir',
+      keywords: 'journée demain bilan',
+      run: go('/rituel'),
+    },
+    {
       id: 'theme',
       group: 'Commandes',
       label: 'Basculer le thème',

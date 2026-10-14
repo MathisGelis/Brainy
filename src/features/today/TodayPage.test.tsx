@@ -23,6 +23,7 @@ const baseTodo = {
   list_id: null,
   goal_id: null,
   recurrence: null,
+  focus_on: null,
   done: false,
   done_at: null,
   priority: 'normal' as const,

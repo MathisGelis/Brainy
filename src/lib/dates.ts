@@ -84,3 +84,14 @@ export function formatDue(iso: string, today: string): string {
   }
   return formatDayMonth(iso)
 }
+
+const hourFormat = new Intl.DateTimeFormat('fr-FR', {
+  hour: 'numeric',
+  hourCycle: 'h23',
+  timeZone: TIMEZONE,
+})
+
+/** Heure courante à Paris (0 à 23). */
+export function parisHour(now: Date = new Date()): number {
+  return Number(hourFormat.format(now).replace(/\D/g, ''))
+}

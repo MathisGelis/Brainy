@@ -12,6 +12,7 @@ const base: Todo = {
   list_id: null,
   goal_id: null,
   recurrence: null,
+  focus_on: null,
   title: 'Acheter du pain',
   done: false,
   done_at: null,
