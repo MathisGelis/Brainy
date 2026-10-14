@@ -185,7 +185,7 @@ export function Layout() {
         </div>
       </div>
 
-      {/* Thème sur mobile : en haut à droite */}
+      {/* Recherche, calendrier et thème sur mobile : en haut à droite (PageHeader leur laisse la place) */}
       <div className="fixed top-[calc(env(safe-area-inset-top)+14px)] right-5 z-40 flex md:hidden">
         <button
           type="button"

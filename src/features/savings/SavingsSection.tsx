@@ -399,11 +399,11 @@ export function SavingsSection({ month }: { month: string }) {
   )
 
   return (
-    <section aria-labelledby="savings-title" className="mb-6 flex flex-col gap-3">
+    <section aria-labelledby="savings-title" className="mt-8 flex flex-col gap-3">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 id="savings-title" className="font-semibold">
+        <h3 id="savings-title" className="text-xs font-semibold text-muted uppercase">
           Cagnottes
-        </h2>
+        </h3>
         {saved !== 0 && (
           <span className="text-xs text-muted">
             {isCurrentMonth ? 'Ce mois-ci' : 'Ce mois-là'} : {signed(saved)} mis de côté

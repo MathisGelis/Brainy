@@ -56,7 +56,7 @@ function DayCell({
       onClick={() => onSelect(day)}
       onKeyDown={(e) => onKeyDown(e, day)}
       className={`flex min-h-14 w-full flex-col justify-between rounded-xl p-1 text-left transition-colors md:min-h-20 md:p-2 ${
-        selected ? 'bg-surface ring-2 ring-accent' : 'hover:bg-surface'
+        selected ? 'bg-surface ring-2 ring-accent' : 'bg-surface/40 hover:bg-surface'
       } ${inMonth ? '' : 'opacity-40'}`}
     >
       <span className="flex items-start justify-between gap-0.5">
@@ -174,7 +174,7 @@ export default function CalendarPage() {
         )}
       </div>
 
-      <div aria-hidden className="mb-1 grid grid-cols-7 gap-1 text-center text-xs text-muted">
+      <div aria-hidden className="mb-1 grid grid-cols-7 gap-1 px-1 text-xs text-muted md:px-2">
         {days.slice(0, 7).map((d) => (
           <span key={d} className="first-letter:uppercase">
             {formatWeekdayShort(d)}
