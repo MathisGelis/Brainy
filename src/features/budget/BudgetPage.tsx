@@ -21,7 +21,7 @@ export default function BudgetPage() {
   }
 
   const navButton =
-    'min-h-11 min-w-11 rounded text-muted hover:bg-surface hover:text-text md:min-h-9 md:min-w-9'
+    'flex min-h-11 min-w-11 items-center justify-center rounded-full text-muted transition-colors hover:bg-surface hover:text-text md:min-h-10 md:min-w-10'
 
   return (
     <>
@@ -51,7 +51,7 @@ export default function BudgetPage() {
         {month !== currentMonth && (
           <button
             type="button"
-            className="min-h-11 px-2 text-accent md:min-h-9"
+            className="min-h-11 rounded-full px-4 text-accent transition-colors hover:bg-surface md:min-h-9"
             onClick={() => setMonth(currentMonth)}
           >
             Ce mois-ci
@@ -71,7 +71,7 @@ export default function BudgetPage() {
           </button>
         </p>
       ) : budget.isLoading ? (
-        <div aria-hidden className="h-24 animate-pulse rounded bg-surface" />
+        <div aria-hidden className="h-24 animate-pulse rounded-2xl bg-surface" />
       ) : (
         <>
           <MonthSummary summary={budget.summary} />

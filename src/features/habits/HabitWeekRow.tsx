@@ -44,7 +44,7 @@ export function frequencyLabel(target: number): string {
 /** Ligne d'une habitude avec la grille cochable des 7 derniers jours. */
 export function HabitWeekRow({ habit, days, week, today, onToggle }: Props) {
   return (
-    <li className="rounded border border-border bg-bg p-3">
+    <li className="card p-4">
       <div className="mb-2 flex items-baseline justify-between gap-2">
         <Link to={`/habitudes/${habit.id}`} className="font-semibold hover:text-accent">
           {habit.name}
@@ -53,24 +53,19 @@ export function HabitWeekRow({ habit, days, week, today, onToggle }: Props) {
       </div>
       <div className="grid grid-cols-7 gap-1">
         {week.map((day) => {
-          const done = days.has(day)
           return (
             <button
               key={day}
               type="button"
-              aria-pressed={done}
+              aria-pressed={days.has(day)}
               aria-label={`${habit.name}, ${formatWeekdayShort(day)} ${day.slice(8)}`}
               onClick={() => onToggle(habit.id, day)}
-              className="flex min-h-14 flex-col items-center justify-center gap-1 rounded text-xs text-muted hover:bg-surface"
+              className="flex min-h-16 flex-col items-center justify-center gap-1.5 rounded-2xl text-xs text-muted transition-colors hover:bg-surface"
             >
               <span className={day === today ? 'font-semibold text-text' : ''}>
                 {formatWeekdayShort(day)}
               </span>
-              <span
-                className={`size-6 rounded-full border ${
-                  done ? 'border-accent bg-accent' : 'border-border'
-                }`}
-              />
+              <span className="habit-dot" />
             </button>
           )
         })}

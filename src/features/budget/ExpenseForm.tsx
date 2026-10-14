@@ -74,23 +74,21 @@ export function ExpenseForm({ categories, onAdd }: Props) {
           aria-invalid={invalid}
           placeholder="Montant (€)"
           autoFocus
-          className={`min-h-11 w-36 rounded border bg-bg px-3 text-text placeholder:text-muted md:min-h-9 ${
-            invalid ? 'border-danger' : 'border-border'
-          }`}
+          className={`field min-h-11 w-36 px-4 text-base font-semibold placeholder:font-normal md:min-h-10 ${invalid ? '!border-danger' : ''}`}
         />
         <input
           type="date"
           value={date ?? todayISO()}
           onChange={(e) => setDate(e.target.value || null)}
           aria-label="Date de la dépense"
-          className="min-h-11 rounded border border-border bg-bg px-2 text-muted md:min-h-9"
+          className="field min-h-11 px-3 text-muted md:min-h-10"
         />
         <input
           value={note}
           onChange={(e) => setNote(e.target.value)}
           aria-label="Note"
           placeholder="Note (optionnel)"
-          className="min-h-11 min-w-0 flex-1 basis-40 rounded border border-border bg-bg px-3 text-text placeholder:text-muted md:min-h-9"
+          className="field min-h-11 min-w-0 flex-1 basis-40 px-4 md:min-h-10"
         />
         <Button type="submit">Ajouter</Button>
       </div>
@@ -106,11 +104,7 @@ export function ExpenseForm({ categories, onAdd }: Props) {
             type="button"
             aria-pressed={categoryId === c.id}
             onClick={() => setChosen(categoryId === c.id ? null : c.id)}
-            className={`min-h-11 rounded-full border px-3 md:min-h-9 ${
-              categoryId === c.id
-                ? 'border-accent bg-surface font-semibold text-accent'
-                : 'border-border text-muted hover:text-text'
-            }`}
+            className="pill min-h-10 border border-[var(--field-border)] px-4 md:min-h-9"
           >
             {c.name}
           </button>

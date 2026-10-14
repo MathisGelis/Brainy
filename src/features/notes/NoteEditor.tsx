@@ -71,7 +71,8 @@ export function NoteEditor({ note, onSave, onTogglePin, onDelete }: Props) {
     }
   }, [])
 
-  const field = 'w-full rounded border border-transparent bg-transparent hover:border-border'
+  const field =
+    'w-full rounded-xl border border-transparent bg-transparent transition-colors hover:border-[var(--field-border)]'
 
   return (
     <div className="flex flex-col gap-3">
@@ -91,7 +92,7 @@ export function NoteEditor({ note, onSave, onTogglePin, onDelete }: Props) {
           type="button"
           aria-pressed={note.pinned}
           onClick={() => onTogglePin(note)}
-          className={`min-h-11 shrink-0 rounded px-2 md:min-h-9 ${note.pinned ? 'text-accent' : 'text-muted'}`}
+          className="pill min-h-10 shrink-0 px-4"
         >
           {note.pinned ? 'Épinglée' : 'Épingler'}
         </button>
@@ -107,16 +108,14 @@ export function NoteEditor({ note, onSave, onTogglePin, onDelete }: Props) {
         className={`${field} min-h-11 px-2 text-xs md:min-h-9`}
       />
       <div className="flex items-center justify-between">
-        <div role="group" aria-label="Mode" className="flex gap-1">
+        <div role="group" aria-label="Mode" className="flex gap-1 rounded-full bg-surface p-1">
           {[false, true].map((isPreview) => (
             <button
               key={String(isPreview)}
               type="button"
               aria-pressed={preview === isPreview}
               onClick={() => setPreview(isPreview)}
-              className={`min-h-11 rounded px-3 md:min-h-9 ${
-                preview === isPreview ? 'bg-surface font-semibold' : 'text-muted'
-              }`}
+              className="pill min-h-9 px-4"
             >
               {isPreview ? 'Aperçu' : 'Écrire'}
             </button>
@@ -127,7 +126,7 @@ export function NoteEditor({ note, onSave, onTogglePin, onDelete }: Props) {
         </span>
       </div>
       {preview ? (
-        <div className="min-h-64 rounded border border-border p-3">
+        <div className="card min-h-64 p-4">
           {content.trim() ? (
             <Markdown>{content}</Markdown>
           ) : (
@@ -143,7 +142,7 @@ export function NoteEditor({ note, onSave, onTogglePin, onDelete }: Props) {
           }}
           aria-label="Contenu de la note"
           placeholder="Écrivez en Markdown…"
-          className="min-h-64 w-full resize-y rounded border border-border bg-bg p-3 text-text placeholder:text-muted md:min-h-96"
+          className="field min-h-64 w-full resize-y rounded-2xl p-4 leading-relaxed md:min-h-96"
         />
       )}
       <button

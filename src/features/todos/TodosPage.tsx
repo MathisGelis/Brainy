@@ -15,6 +15,7 @@ import {
 import { useState } from 'react'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { useToast } from '@/components/ui'
+import { celebrate } from '@/lib/celebrate'
 import { todayISO } from '@/lib/dates'
 import { AddTodoForm } from './AddTodoForm'
 import { TodoItem } from './TodoItem'
@@ -67,6 +68,7 @@ export default function TodosPage() {
   function onToggle(todo: Todo) {
     const done = !todo.done
     setDone(todo.id, done)
+    if (done) celebrate()
     toast.show(done ? 'Todo terminée' : 'Todo rouverte', () => setDone(todo.id, !done))
   }
 
@@ -80,18 +82,18 @@ export default function TodosPage() {
       <PageHeader title="Todo" />
       <AddTodoForm defaultDue={filter === 'today' ? today : null} onAdd={addTodo} />
 
-      <div role="group" aria-label="Filtres" className="mb-4 flex flex-wrap gap-2">
+      <div
+        role="group"
+        aria-label="Filtres"
+        className="mb-5 grid w-full grid-cols-4 gap-1 rounded-full bg-surface p-1 md:inline-flex md:w-auto"
+      >
         {FILTERS.map((f) => (
           <button
             key={f.value}
             type="button"
             aria-pressed={filter === f.value}
             onClick={() => setFilter(f.value)}
-            className={`min-h-11 rounded px-3 md:min-h-9 ${
-              filter === f.value
-                ? 'bg-surface font-semibold text-accent'
-                : 'text-muted hover:text-text'
-            }`}
+            className="pill min-h-10 px-1 text-xs whitespace-nowrap md:min-h-9 md:px-4 md:text-sm"
           >
             {f.label}
           </button>
@@ -110,7 +112,7 @@ export default function TodosPage() {
           </button>
         </p>
       ) : isLoading ? (
-        <div aria-hidden className="h-24 animate-pulse rounded bg-surface" />
+        <div aria-hidden className="h-24 animate-pulse rounded-2xl bg-surface" />
       ) : visible.length === 0 ? (
         <p className="text-muted">{current.empty}</p>
       ) : (

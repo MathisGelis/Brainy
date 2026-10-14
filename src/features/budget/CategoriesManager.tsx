@@ -13,7 +13,7 @@ type Props = {
 /** Gestion discrète : nom, budget mensuel (optionnel) et archivage de chaque catégorie. */
 export function CategoriesManager({ categories, onAdd, onAddDefaults, onUpdate }: Props) {
   const [name, setName] = useState('')
-  const field = 'min-h-11 rounded border border-border bg-bg px-2 text-text md:min-h-9'
+  const field = 'field min-h-11 px-3 md:min-h-10'
 
   function submit(e: FormEvent) {
     e.preventDefault()
@@ -25,7 +25,7 @@ export function CategoriesManager({ categories, onAdd, onAddDefaults, onUpdate }
 
   return (
     <details className="mt-8">
-      <summary className="min-h-11 cursor-pointer text-muted hover:text-text">
+      <summary className="min-h-11 cursor-pointer content-center text-muted hover:text-text">
         Catégories et budgets
       </summary>
       <div className="mt-2 flex flex-col gap-3">
@@ -70,7 +70,7 @@ export function CategoriesManager({ categories, onAdd, onAddDefaults, onUpdate }
               <button
                 type="button"
                 onClick={() => onUpdate(c.id, { archived: !c.archived })}
-                className="min-h-11 px-2 text-xs text-muted hover:text-text md:min-h-9"
+                className="min-h-11 rounded-full px-3 text-xs text-muted transition-colors hover:text-text md:min-h-9"
               >
                 {c.archived ? 'Restaurer' : 'Archiver'}
               </button>

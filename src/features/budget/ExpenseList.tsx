@@ -14,16 +14,16 @@ function ExpenseRow({ expense, categories, onUpdate, onDelete }: RowProps) {
   const [editing, setEditing] = useState(false)
   const [amountInvalid, setAmountInvalid] = useState(false)
   const category = categories.find((c) => c.id === expense.category_id)
-  const field = 'min-h-11 rounded border border-border bg-bg px-2 text-text md:min-h-9'
+  const field = 'field min-h-11 px-3 md:min-h-10'
 
   if (!editing) {
     return (
-      <li className="flex items-center gap-3 border-b border-border">
+      <li className="flex items-center gap-3 border-b border-border last:border-b-0">
         <button
           type="button"
           onClick={() => setEditing(true)}
           aria-label={`Modifier la dépense de ${formatCents(expense.amount_cents)}`}
-          className="flex min-h-11 flex-1 items-center gap-3 text-left"
+          className="-mx-2 flex min-h-12 flex-1 items-center gap-3 rounded-xl px-2 text-left transition-colors hover:bg-surface"
         >
           <span className="w-14 shrink-0 text-xs text-muted">
             {formatDayMonth(expense.spent_on)}
@@ -39,7 +39,7 @@ function ExpenseRow({ expense, categories, onUpdate, onDelete }: RowProps) {
   }
 
   return (
-    <li className="flex flex-wrap items-center gap-2 border-b border-border py-2">
+    <li className="card my-2 flex flex-wrap items-center gap-2 p-3">
       <input
         defaultValue={centsToInput(expense.amount_cents)}
         inputMode="decimal"
@@ -54,7 +54,7 @@ function ExpenseRow({ expense, categories, onUpdate, onDelete }: RowProps) {
           setAmountInvalid(false)
           if (cents !== expense.amount_cents) onUpdate(expense.id, { amount_cents: cents })
         }}
-        className={`${field} w-28 ${amountInvalid ? 'border-danger' : ''}`}
+        className={`${field} w-28 ${amountInvalid ? '!border-danger' : ''}`}
       />
       <input
         type="date"
@@ -90,14 +90,14 @@ function ExpenseRow({ expense, categories, onUpdate, onDelete }: RowProps) {
       />
       <button
         type="button"
-        className="min-h-11 px-2 text-accent md:min-h-9"
+        className="min-h-11 rounded-full px-4 font-semibold text-accent transition-colors hover:bg-surface md:min-h-9"
         onClick={() => setEditing(false)}
       >
         OK
       </button>
       <button
         type="button"
-        className="min-h-11 px-2 text-muted hover:text-danger md:min-h-9"
+        className="min-h-11 rounded-full px-3 text-muted transition-colors hover:text-danger md:min-h-9"
         onClick={() => onDelete(expense)}
       >
         Supprimer

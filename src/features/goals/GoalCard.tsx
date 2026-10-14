@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Checkbox, ProgressBar } from '@/components/ui'
+import { celebrate } from '@/lib/celebrate'
 import { formatDayMonth } from '@/lib/dates'
 import { HORIZONS, STATUSES, goalProgress } from './goalLogic'
 import type { Goal, GoalPatch, GoalStatus, Horizon, Milestone, MilestonePatch } from './types'
@@ -14,7 +15,7 @@ type Props = {
   onDeleteMilestone: (id: string) => void
 }
 
-const field = 'min-h-11 rounded border border-border bg-bg px-2 text-text md:min-h-9'
+const field = 'field min-h-11 px-3 md:min-h-10'
 
 function MilestoneRow({
   milestone,
@@ -31,7 +32,10 @@ function MilestoneRow({
         hideLabel
         label={`Jalon « ${milestone.title} » fait`}
         checked={milestone.done}
-        onChange={() => onUpdate(milestone.id, { done: !milestone.done })}
+        onChange={() => {
+          if (!milestone.done) celebrate(0.6)
+          onUpdate(milestone.id, { done: !milestone.done })
+        }}
       />
       <input
         key={milestone.title}
@@ -43,7 +47,7 @@ function MilestoneRow({
           else e.target.value = milestone.title
         }}
         onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
-        className={`min-h-11 min-w-0 flex-1 rounded border border-transparent bg-transparent px-1 hover:border-border md:min-h-9 ${
+        className={`min-h-11 min-w-0 flex-1 rounded-xl border border-transparent bg-transparent px-2 hover:border-[var(--field-border)] md:min-h-9 ${
           milestone.done ? 'text-muted line-through' : ''
         }`}
       />
@@ -51,7 +55,7 @@ function MilestoneRow({
         type="button"
         onClick={() => onDelete(milestone.id)}
         aria-label={`Supprimer le jalon « ${milestone.title} »`}
-        className="min-h-11 min-w-11 text-muted hover:text-danger md:min-h-9 md:min-w-9"
+        className="min-h-11 min-w-11 rounded-full text-muted transition-colors hover:text-danger md:min-h-9 md:min-w-9"
       >
         ×
       </button>
@@ -82,12 +86,12 @@ export function GoalCard({
   }
 
   return (
-    <li className="rounded border border-border bg-bg p-3">
+    <li className="card p-4">
       <button
         type="button"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full min-h-11 flex-col gap-2 text-left"
+        className="flex w-full min-h-11 flex-col gap-2.5 text-left"
       >
         <span className="flex w-full items-baseline justify-between gap-2">
           <span className={`font-semibold ${goal.status !== 'active' ? 'text-muted' : ''}`}>
@@ -157,7 +161,11 @@ export function GoalCard({
             <select
               aria-label="Statut"
               value={goal.status}
-              onChange={(e) => onUpdate(goal.id, { status: e.target.value as GoalStatus })}
+              onChange={(e) => {
+                const status = e.target.value as GoalStatus
+                if (status === 'achieved') celebrate(1.5)
+                onUpdate(goal.id, { status })
+              }}
               className={field}
             >
               {STATUSES.map((s) => (
@@ -184,9 +192,12 @@ export function GoalCard({
               onChange={(e) => setNewMilestone(e.target.value)}
               aria-label={`Nouveau jalon pour « ${goal.title} »`}
               placeholder="Ajouter un jalon…"
-              className={`${field} min-w-0 flex-1 placeholder:text-muted`}
+              className={`${field} min-w-0 flex-1`}
             />
-            <button type="submit" className="min-h-11 px-3 font-semibold text-accent md:min-h-9">
+            <button
+              type="submit"
+              className="min-h-11 rounded-full px-4 font-semibold text-accent transition-colors hover:bg-surface md:min-h-9"
+            >
               Ajouter
             </button>
           </form>

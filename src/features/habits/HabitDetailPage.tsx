@@ -19,7 +19,7 @@ export default function HabitDetailPage() {
   const today = todayISO()
   useDocumentTitle(habit?.name ?? 'Habitudes')
 
-  if (isLoading) return <div aria-hidden className="h-24 animate-pulse rounded bg-surface" />
+  if (isLoading) return <div aria-hidden className="h-24 animate-pulse rounded-2xl bg-surface" />
   if (!habit) {
     return (
       <>
@@ -35,7 +35,10 @@ export default function HabitDetailPage() {
 
   return (
     <>
-      <Link to="/habitudes" className="mb-2 inline-block min-h-11 text-muted hover:text-text">
+      <Link
+        to="/habitudes"
+        className="mb-2 inline-flex min-h-11 items-center text-muted hover:text-text"
+      >
         ← Habitudes
       </Link>
       <h1 className="mb-4">
@@ -48,7 +51,7 @@ export default function HabitDetailPage() {
             if (name && name !== habit.name) updateHabit(habit.id, { name })
             else e.target.value = habit.name
           }}
-          className="w-full rounded border border-transparent bg-transparent text-xl font-semibold hover:border-border"
+          className="w-full rounded-xl border border-transparent bg-transparent px-1 text-[28px] leading-tight font-semibold tracking-tight hover:border-[var(--field-border)] md:text-[34px]"
         />
       </h1>
       <div className="mb-4 flex flex-wrap items-center gap-4">

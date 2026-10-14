@@ -5,10 +5,12 @@ import type { MonthSummary as Summary } from './types'
 export function MonthSummary({ summary }: { summary: Summary }) {
   const { totalSpent, totalBudget, remaining, over, byCategory } = summary
   return (
-    <section aria-label="Synthèse du mois" className="mb-6">
+    <section aria-label="Synthèse du mois" className="card mb-6 p-5">
       <div className="mb-4 flex flex-wrap items-baseline gap-x-6 gap-y-1">
         <p>
-          <span className="text-2xl font-semibold">{formatCents(totalSpent)}</span>{' '}
+          <span className="text-[34px] leading-none font-semibold tracking-tight">
+            {formatCents(totalSpent)}
+          </span>{' '}
           <span className="text-muted">dépensés</span>
         </p>
         {remaining !== null && (

@@ -35,23 +35,21 @@ export function AddTodoForm({ defaultDue, onAdd }: Props) {
         aria-label="Nouvelle todo"
         placeholder="Ajouter une todo…"
         autoFocus
-        className="min-h-11 min-w-0 flex-1 basis-60 rounded border border-border bg-bg px-3 text-text placeholder:text-muted md:min-h-9"
+        className="field min-h-11 min-w-0 flex-1 basis-60 px-4 md:min-h-10"
       />
       <input
         type="date"
         value={due ?? defaultDue ?? ''}
         onChange={(e) => setDue(e.target.value || null)}
         aria-label="Échéance"
-        className="min-h-11 rounded border border-border bg-bg px-2 text-muted md:min-h-9"
+        className="field min-h-11 px-3 text-muted md:min-h-10"
       />
       <button
         type="button"
         aria-pressed={high}
         aria-label="Priorité haute"
         onClick={() => setHigh((v) => !v)}
-        className={`min-h-11 min-w-11 rounded border font-semibold md:min-h-9 md:min-w-9 ${
-          high ? 'border-accent text-accent' : 'border-border text-muted'
-        }`}
+        className="pill min-h-11 min-w-11 border border-[var(--field-border)] font-semibold md:min-h-10 md:min-w-10"
       >
         !
       </button>

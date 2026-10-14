@@ -24,7 +24,7 @@ export function Heatmap({ days, today, onToggle }: Props) {
                 aria-label={`${formatWeekdayShort(cell.day)} ${formatDayMonth(cell.day)}`}
                 title={`${formatWeekdayShort(cell.day)} ${formatDayMonth(cell.day)}`}
                 onClick={() => onToggle(cell.day)}
-                className={`size-3 rounded-[3px] border ${
+                className={`size-3 rounded-[4px] border transition-colors ${
                   cell.future
                     ? 'border-transparent'
                     : cell.done

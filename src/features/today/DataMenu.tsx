@@ -3,7 +3,7 @@ import { signOut } from '@/features/auth/useAuth'
 import { useExport } from '@/features/export/useExport'
 
 const button =
-  'min-h-11 rounded border border-border px-3 hover:text-text disabled:opacity-50 md:min-h-9'
+  'min-h-11 rounded-full border border-[var(--field-border)] bg-bg px-4 transition-colors hover:text-text disabled:opacity-50 md:min-h-9'
 
 /** Menu discret en bas de l'accueil : export des données et déconnexion (seul accès sur mobile). */
 export function DataMenu() {

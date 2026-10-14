@@ -14,7 +14,7 @@ export function TargetSelect({
       aria-label={label}
       value={value}
       onChange={(e) => onChange(Number(e.target.value))}
-      className="min-h-11 rounded border border-border bg-bg px-2 text-text md:min-h-9"
+      className="field min-h-11 px-3 md:min-h-10"
     >
       {TARGET_OPTIONS.map((n) => (
         <option key={n} value={n}>

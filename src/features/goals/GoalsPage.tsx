@@ -44,7 +44,7 @@ export default function GoalsPage() {
     />
   )
 
-  const field = 'min-h-11 rounded border border-border bg-bg px-2 text-text md:min-h-9'
+  const field = 'field min-h-11 px-3 md:min-h-10'
 
   return (
     <>
@@ -55,7 +55,7 @@ export default function GoalsPage() {
           onChange={(e) => setTitle(e.target.value)}
           aria-label="Nouvel objectif"
           placeholder="Ajouter un objectif…"
-          className={`${field} min-w-0 flex-1 basis-60 px-3 placeholder:text-muted`}
+          className={`${field} min-w-0 flex-1 basis-48 px-4`}
         />
         <select
           aria-label="Horizon"
@@ -91,7 +91,7 @@ export default function GoalsPage() {
           </button>
         </p>
       ) : g.isLoading ? (
-        <div aria-hidden className="h-24 animate-pulse rounded bg-surface" />
+        <div aria-hidden className="h-24 animate-pulse rounded-2xl bg-surface" />
       ) : active.length === 0 ? (
         <p className="text-muted">Aucun objectif en cours. Tapez un titre ci-dessus puis Entrée.</p>
       ) : (

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Checkbox, ProgressBar, useToast } from '@/components/ui'
+import { BudgetIcon, Checkbox, HabitsIcon, ProgressBar, TodoIcon, useToast } from '@/components/ui'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { useBudget } from '@/features/budget/useBudget'
 import { currentStreak } from '@/features/habits/habitLogic'
@@ -7,23 +7,43 @@ import { useHabits } from '@/features/habits/useHabits'
 import { filterTodos } from '@/features/todos/todoLogic'
 import type { Todo } from '@/features/todos/types'
 import { useTodos } from '@/features/todos/useTodos'
+import { celebrate } from '@/lib/celebrate'
 import { formatDayMonth, monthOf, todayISO } from '@/lib/dates'
 import { formatCents } from '@/lib/money'
-import type { ReactNode } from 'react'
+import type { ComponentType, ReactNode, SVGProps } from 'react'
 import { DataMenu } from './DataMenu'
 
-function Section({ title, to, children }: { title: string; to: string; children: ReactNode }) {
+/** Widget de l'accueil : une carte par domaine. */
+function Section({
+  title,
+  to,
+  icon: Icon,
+  className = '',
+  children,
+}: {
+  title: string
+  to: string
+  icon: ComponentType<SVGProps<SVGSVGElement>>
+  className?: string
+  children: ReactNode
+}) {
   return (
-    <section aria-labelledby={`section-${to}`} className="flex flex-col gap-2">
-      <div className="flex items-baseline justify-between">
-        <h2 id={`section-${to}`} className="font-semibold">
+    <section
+      aria-labelledby={`section-${to}`}
+      className={`card flex flex-col gap-2 p-5 ${className}`}
+    >
+      <div className="flex items-center justify-between">
+        <h2 id={`section-${to}`} className="flex items-center gap-2 font-semibold">
+          <span className="text-accent">
+            <Icon width={18} height={18} />
+          </span>
           {title}
         </h2>
         <Link
           to={to}
-          className="min-h-11 content-center text-xs text-muted hover:text-text md:min-h-0"
+          className="flex min-h-11 items-center rounded-full px-3 text-xs text-muted transition-colors hover:bg-surface hover:text-text md:min-h-8"
         >
-          Tout voir →
+          Tout voir
         </Link>
       </div>
       {children}
@@ -31,7 +51,7 @@ function Section({ title, to, children }: { title: string; to: string; children:
   )
 }
 
-const skeleton = <div aria-hidden className="h-16 animate-pulse rounded bg-surface" />
+const skeleton = <div aria-hidden className="h-16 animate-pulse rounded-2xl bg-surface" />
 const rowClass = 'flex items-center gap-1 border-b border-border last:border-b-0'
 
 function TodayTodos({ today, onError }: { today: string; onError: (m: string) => void }) {
@@ -41,6 +61,7 @@ function TodayTodos({ today, onError }: { today: string; onError: (m: string) =>
 
   function onToggle(todo: Todo) {
     setDone(todo.id, true)
+    celebrate()
     toast.show('Todo terminée', () => setDone(todo.id, false))
   }
 
@@ -98,7 +119,10 @@ function TodayHabits({ today, onError }: { today: string; onError: (m: string) =
               hideLabel
               label={`${habit.name} fait aujourd'hui`}
               checked={days.has(today)}
-              onChange={() => toggleDay(habit.id, today)}
+              onChange={() => {
+                if (!days.has(today)) celebrate()
+                toggleDay(habit.id, today)
+              }}
             />
             <span className="min-w-0 flex-1">{habit.name}</span>
             {streak.count > 0 && (
@@ -121,7 +145,9 @@ function MonthBudget({ today, onError }: { today: string; onError: (m: string) =
   return (
     <div className="flex flex-col gap-2">
       <p>
-        <span className="text-xl font-semibold">{formatCents(totalSpent)}</span>{' '}
+        <span className="text-[34px] leading-none font-semibold tracking-tight">
+          {formatCents(totalSpent)}
+        </span>{' '}
         <span className="text-muted">
           {totalBudget > 0 ? `/ ${formatCents(totalBudget)}` : 'dépensés ce mois-ci'}
         </span>
@@ -172,14 +198,14 @@ export default function TodayPage() {
     <>
       <PageHeader title="Aujourd'hui" />
       <p className="-mt-4 mb-6 text-muted first-letter:uppercase">{dateLabel}</p>
-      <div className="flex flex-col gap-8">
-        <Section title="Todos du jour" to="/todo">
+      <div className="grid gap-4 md:grid-cols-2">
+        <Section title="Todos du jour" to="/todo" icon={TodoIcon}>
           <TodayTodos today={today} onError={onError} />
         </Section>
-        <Section title="Habitudes du jour" to="/habitudes">
+        <Section title="Habitudes du jour" to="/habitudes" icon={HabitsIcon}>
           <TodayHabits today={today} onError={onError} />
         </Section>
-        <Section title="Budget du mois" to="/budget">
+        <Section title="Budget du mois" to="/budget" icon={BudgetIcon} className="md:col-span-2">
           <MonthBudget today={today} onError={onError} />
         </Section>
       </div>

@@ -33,7 +33,7 @@ export function TodoItem({ todo, today, reorderable, onToggle, onUpdate, onDelet
     <li
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
-      className={`rounded border border-border bg-bg px-2 py-1 ${isDragging ? 'opacity-60' : ''}`}
+      className={`card px-2 py-1 transition-shadow ${isDragging ? 'relative z-10 shadow-xl' : ''}`}
     >
       <div className="flex items-center gap-1">
         {reorderable && (
@@ -63,7 +63,7 @@ export function TodoItem({ todo, today, reorderable, onToggle, onUpdate, onDelet
               if (e.key === 'Enter') commitTitle(e.currentTarget.value)
               if (e.key === 'Escape') setEditing(false)
             }}
-            className="min-h-11 min-w-0 flex-1 rounded border border-border bg-bg px-2 text-text md:min-h-9"
+            className="field min-h-11 min-w-0 flex-1 px-3 md:min-h-10"
           />
         ) : (
           <button
@@ -83,7 +83,7 @@ export function TodoItem({ todo, today, reorderable, onToggle, onUpdate, onDelet
           value={todo.due_date ?? ''}
           onChange={(e) => onUpdate(todo.id, { due_date: e.target.value || null })}
           aria-label={`Échéance de « ${todo.title} »`}
-          className={`min-h-9 rounded border border-transparent bg-transparent px-1 text-xs hover:border-border ${
+          className={`min-h-9 rounded-xl border border-transparent bg-transparent px-2 text-xs hover:border-[var(--field-border)] ${
             overdue ? 'text-danger' : 'text-muted'
           }`}
         />
@@ -94,9 +94,7 @@ export function TodoItem({ todo, today, reorderable, onToggle, onUpdate, onDelet
           onClick={() =>
             onUpdate(todo.id, { priority: todo.priority === 'high' ? 'normal' : 'high' })
           }
-          className={`min-h-9 min-w-9 rounded font-semibold ${
-            todo.priority === 'high' ? 'text-accent' : 'text-muted'
-          }`}
+          className="pill min-h-9 min-w-9 font-semibold"
         >
           !
         </button>
@@ -104,7 +102,7 @@ export function TodoItem({ todo, today, reorderable, onToggle, onUpdate, onDelet
           type="button"
           onClick={() => onDelete(todo)}
           aria-label={`Supprimer « ${todo.title} »`}
-          className="ml-auto min-h-9 px-2 text-xs text-muted hover:text-danger"
+          className="ml-auto min-h-9 rounded-full px-3 text-xs text-muted transition-colors hover:text-danger"
         >
           Supprimer
         </button>

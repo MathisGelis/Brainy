@@ -39,16 +39,18 @@ export default function NotesPage() {
   return (
     <div className="md:grid md:grid-cols-[18rem_1fr] md:gap-8">
       <section aria-label="Liste des notes" className={`${listClass} flex-col gap-3`}>
-        <h1 className="text-xl font-semibold">Notes</h1>
+        <h1 className="pr-12 text-[28px] leading-tight font-semibold tracking-tight md:pr-0 md:text-[34px]">
+          Notes
+        </h1>
         <div className="flex gap-2">
           <input
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             aria-label="Rechercher dans les notes"
-            placeholder="Rechercher…  (/)"
+            placeholder="Rechercher…"
             data-search
-            className="min-h-11 min-w-0 flex-1 rounded border border-border bg-bg px-3 text-text placeholder:text-muted md:min-h-9"
+            className="field min-h-11 min-w-0 flex-1 px-4 md:min-h-10"
           />
           <Button onClick={onCreate}>Nouvelle</Button>
         </div>
@@ -64,7 +66,7 @@ export default function NotesPage() {
             </button>
           </p>
         ) : isLoading ? (
-          <div aria-hidden className="h-24 animate-pulse rounded bg-surface" />
+          <div aria-hidden className="h-24 animate-pulse rounded-2xl bg-surface" />
         ) : visible.length === 0 ? (
           <p className="text-muted">
             {query
@@ -78,9 +80,7 @@ export default function NotesPage() {
                 <Link
                   to={`/notes/${n.id}`}
                   aria-current={n.id === noteId ? 'page' : undefined}
-                  className={`block min-h-11 rounded px-3 py-2 hover:bg-surface ${
-                    n.id === noteId ? 'bg-surface' : ''
-                  }`}
+                  className="block min-h-11 rounded-2xl px-3.5 py-2.5 transition-colors hover:bg-surface aria-[current=page]:bg-surface"
                 >
                   <span className="flex items-baseline justify-between gap-2">
                     <span className="truncate font-semibold">{n.title || 'Sans titre'}</span>

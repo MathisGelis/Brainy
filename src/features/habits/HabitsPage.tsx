@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Button, useToast } from '@/components/ui'
 import { PageHeader } from '@/components/ui/PageHeader'
+import { celebrate } from '@/lib/celebrate'
 import { lastNDays, todayISO } from '@/lib/dates'
 import { HabitWeekRow } from './HabitWeekRow'
 import { TargetSelect } from './TargetSelect'
@@ -36,7 +37,7 @@ export default function HabitsPage() {
           onChange={(e) => setName(e.target.value)}
           aria-label="Nouvelle habitude"
           placeholder="Ajouter une habitude…"
-          className="min-h-11 min-w-0 flex-1 basis-60 rounded border border-border bg-bg px-3 text-text placeholder:text-muted md:min-h-9"
+          className="field min-h-11 min-w-0 flex-1 basis-60 px-4 md:min-h-10"
         />
         <TargetSelect value={target} onChange={setTarget} />
         <Button type="submit">Ajouter</Button>
@@ -54,7 +55,7 @@ export default function HabitsPage() {
           </button>
         </p>
       ) : isLoading ? (
-        <div aria-hidden className="h-24 animate-pulse rounded bg-surface" />
+        <div aria-hidden className="h-24 animate-pulse rounded-2xl bg-surface" />
       ) : active.length === 0 ? (
         <p className="text-muted">Aucune habitude. Tapez un nom ci-dessus puis Entrée.</p>
       ) : (
@@ -66,7 +67,10 @@ export default function HabitsPage() {
               days={logDays.get(habit.id) ?? new Set()}
               week={week}
               today={today}
-              onToggle={toggleDay}
+              onToggle={(habitId, day) => {
+                if (!logDays.get(habitId)?.has(day)) celebrate()
+                toggleDay(habitId, day)
+              }}
             />
           ))}
         </ul>
@@ -85,10 +89,7 @@ export default function HabitsPage() {
           {showArchived && (
             <ul className="mt-2 flex flex-col gap-2">
               {archived.map((h) => (
-                <li
-                  key={h.id}
-                  className="flex items-center justify-between rounded border border-border px-3"
-                >
+                <li key={h.id} className="card flex items-center justify-between px-4">
                   <span className="text-muted">{h.name}</span>
                   <button
                     type="button"
