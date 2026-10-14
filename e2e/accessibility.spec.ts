@@ -79,22 +79,24 @@ const pages = [
 
 const WCAG = ['wcag2a', 'wcag2aa', 'wcag21aa']
 
-for (const { path, ready } of pages) {
-  test(`aucune violation axe (WCAG A/AA) : ${path || 'accueil'}`, async ({ page }) => {
-    await installFakeSupabase(page, seed)
-    await page.goto(path)
-    await expect(
-      page.getByRole(ready.role, { name: ready.name, exact: true }).first(),
-    ).toBeVisible()
-    // données chargées : plus aucun squelette
-    await expect(page.locator('.animate-pulse')).toHaveCount(0)
+for (const theme of ['light', 'dark'] as const)
+  for (const { path, ready } of pages) {
+    test(`aucune violation axe (WCAG A/AA, ${theme}) : ${path || 'accueil'}`, async ({ page }) => {
+      await page.addInitScript((t) => localStorage.setItem('cockpit.theme', t), theme)
+      await installFakeSupabase(page, seed)
+      await page.goto(path)
+      await expect(
+        page.getByRole(ready.role, { name: ready.name, exact: true }).first(),
+      ).toBeVisible()
+      // données chargées : plus aucun squelette
+      await expect(page.locator('.animate-pulse')).toHaveCount(0)
 
-    const results = await new AxeBuilder({ page }).withTags(WCAG).analyze()
-    expect(
-      results.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target).join(' | ')}`),
-    ).toEqual([])
-  })
-}
+      const results = await new AxeBuilder({ page }).withTags(WCAG).analyze()
+      expect(
+        results.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target).join(' | ')}`),
+      ).toEqual([])
+    })
+  }
 
 test('aucune violation axe (WCAG A/AA) : connexion', async ({ page }) => {
   await page.goto('#/connexion')

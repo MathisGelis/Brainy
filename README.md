@@ -22,6 +22,15 @@ Les tests e2e n'utilisent pas votre base : les appels à Supabase sont servis pa
 (`e2e/fakeSupabase.ts`). Avant la première exécution : `pnpm exec playwright install chromium`
 (ou `PLAYWRIGHT_CHROMIUM_PATH=/chemin/vers/chromium` si Chromium est déjà installé).
 
+## Design « Liquid glass »
+
+Panneaux de verre dépoli sur un fond animé three.js (orbe irisé + aurore), thème clair/sombre
+(suit le système, bouton de bascule mémorisé). Détails et règles : `UX_GUIDELINES.md`.
+
+- Le fond n'est chargé qu'avec un GPU, au repos du navigateur et hors mode économie de données ;
+  sinon un dégradé CSS le remplace. Image fixe si les animations sont réduites ou si l'appareil peine.
+- Débogage sans GPU (machine virtuelle) : `localStorage.setItem('cockpit.webgl', 'force')`.
+
 ## Raccourcis clavier (desktop)
 
 `n` ajout rapide (todo, note, dépense) · `/` rechercher dans les notes · `g` puis `a` `o` `n` `h` `t` `b`

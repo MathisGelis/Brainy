@@ -52,6 +52,12 @@ _Recherche faite côté client (instantanée, sans accents, `#tag`) : suffisant 
 
 _Lighthouse (mobile, build de prod) sur la page de connexion : performance 97, accessibilité 100. Les pages connectées sont vérifiées par axe-core (WCAG A/AA) dans les tests e2e, desktop et mobile. Les tests e2e tournent sur un faux Supabase en mémoire (`e2e/fakeSupabase.ts`)._
 
+## Refonte visuelle « Liquid glass »
+- [x] Tokens clair/sombre, matières de verre (`glass`, `sheet`, `card`, `field`, `pill`), bascule de thème mémorisée
+- [x] Navigation flottante (sidebar / tab bar) avec indicateur glissant, icônes, bouton « + » en verre
+- [x] Fond three.js (orbe irisé, aurore, onde de célébration), chargé au repos, uniquement avec GPU
+- [x] Contraste AA vérifié dans les deux thèmes (axe), Lighthouse sans GPU : perf 97, a11y 100
+
 ## Backlog (idées, ne pas implémenter sans validation)
 - Palette de commandes `Cmd/Ctrl+K`
 - Dépenses récurrentes et revenus
