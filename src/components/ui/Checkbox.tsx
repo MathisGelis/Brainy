@@ -6,15 +6,15 @@ type Props = Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> & {
   hideLabel?: boolean
 }
 
-/** Case à cocher avec une zone tactile ≥ 44px. */
+/** Case à cocher ronde (style dans index.css, `.check`) avec une zone tactile ≥ 44px. */
 export function Checkbox({ label, hideLabel = false, className = '', ...props }: Props) {
   return (
     <label
       className={`inline-flex min-h-11 shrink-0 cursor-pointer items-center gap-3 ${
-        hideLabel ? 'min-w-11 justify-center md:min-h-9 md:min-w-9' : ''
+        hideLabel ? 'min-w-11 justify-center md:min-h-10 md:min-w-10' : ''
       } ${className}`}
     >
-      <input type="checkbox" className="size-5 cursor-pointer accent-[var(--accent)]" {...props} />
+      <input type="checkbox" className="check" {...props} />
       <span className={hideLabel ? 'sr-only' : ''}>{label}</span>
     </label>
   )

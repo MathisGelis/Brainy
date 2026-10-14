@@ -31,18 +31,18 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       <div
         role="status"
         aria-live="polite"
-        className="pointer-events-none fixed inset-x-0 bottom-36 z-50 flex flex-col items-center gap-2 px-4 md:bottom-6"
+        className="pointer-events-none fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+160px)] z-50 flex flex-col items-center gap-2 px-4 md:bottom-6"
       >
         {toasts.map((t) => (
           <div
             key={t.id}
-            className="pointer-events-auto flex items-center gap-4 rounded border border-border bg-surface px-4 py-2"
+            className="glass-strong pointer-events-auto flex animate-pop items-center gap-4 rounded-full py-2 pr-2 pl-5"
           >
             <span>{t.message}</span>
             {t.onUndo && (
               <button
                 type="button"
-                className="min-h-11 font-semibold text-accent md:min-h-9"
+                className="min-h-10 rounded-full px-4 font-semibold text-accent transition-colors hover:bg-surface"
                 onClick={() => {
                   t.onUndo?.()
                   dismiss(t.id)

@@ -1,32 +1,80 @@
 @import 'tailwindcss';
 
-/* Tokens : neutres + une seule couleur d'accent. Clair par défaut, sombre via prefers-color-scheme. */
+/*
+ * Thème « Liquid glass ».
+ * Clair par défaut ; sombre via [data-theme='dark'], posé avant le premier rendu par index.html.
+ * Le fond animé (three.js) se dessine derrière ; body::before sert de repli statique.
+ */
 :root {
-  --bg: #ffffff;
-  --surface: #f6f6f7;
-  --border: #e4e4e7;
-  --text: #18181b;
-  --muted: #6b6b74;
-  --accent: #4f46e5;
+  --canvas: #eceef7;
+  --text: #111116;
+  --muted: #5a5a67;
+  --accent: #4a3ddc;
+  --accent-hi: #5d50ee;
   --accent-fg: #ffffff;
-  --success: #16a34a;
-  --danger: #c81e1e;
+  --accent-glow: rgba(74, 61, 220, 0.42);
+  --success: #15803d;
+  --danger: #b91c1c;
+
+  /* verre : panneaux flottants */
+  --glass: rgba(255, 255, 255, 0.56);
+  --glass-strong: rgba(255, 255, 255, 0.82);
+  /* feuille de contenu : assez opaque pour garantir le contraste AA quel que soit le fond */
+  --sheet: rgba(255, 255, 255, 0.72);
+  --glass-rim: rgba(255, 255, 255, 0.75);
+  --glass-sheen: rgba(255, 255, 255, 0.5);
+  --glass-shadow: 0 24px 60px -24px rgba(40, 40, 100, 0.35), 0 2px 8px -4px rgba(40, 40, 100, 0.12);
+  --highlight: rgba(255, 255, 255, 0.95);
+  --highlight-low: rgba(255, 255, 255, 0.35);
+  --glow: rgba(255, 255, 255, 0.55);
+
+  /* éléments posés sur le verre */
+  --bg: rgba(255, 255, 255, 0.55);
+  --surface: rgba(90, 90, 150, 0.1);
+  --border: rgba(20, 20, 70, 0.1);
+  --field-border: rgba(20, 20, 70, 0.17);
+  --check-border: #82829a;
+
+  /* repli du fond animé */
+  --blob-1: #cbc3ff;
+  --blob-2: #ffd5c6;
+  --blob-3: #bfe0ff;
+  --blob-4: #c7f1e2;
   color-scheme: light;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #111113;
-    --surface: #1b1b1f;
-    --border: #2e2e33;
-    --text: #ededef;
-    --muted: #a1a1aa;
-    --accent: #818cf8;
-    --accent-fg: #111113;
-    --success: #4ade80;
-    --danger: #f87171;
-    color-scheme: dark;
-  }
+:root[data-theme='dark'] {
+  --canvas: #07070b;
+  --text: #f2f2f7;
+  --muted: #a5a5b6;
+  --accent: #a59eff;
+  --accent-hi: #bdb7ff;
+  --accent-fg: #0c0b1a;
+  --accent-glow: rgba(150, 140, 255, 0.4);
+  --success: #4ade80;
+  --danger: #ff7d7d;
+
+  --glass: rgba(20, 20, 30, 0.52);
+  --glass-strong: rgba(26, 26, 38, 0.84);
+  --sheet: rgba(14, 14, 22, 0.6);
+  --glass-rim: rgba(255, 255, 255, 0.13);
+  --glass-sheen: rgba(255, 255, 255, 0.06);
+  --glass-shadow: 0 28px 70px -24px rgba(0, 0, 0, 0.75), 0 2px 8px -4px rgba(0, 0, 0, 0.5);
+  --highlight: rgba(255, 255, 255, 0.2);
+  --highlight-low: rgba(255, 255, 255, 0.04);
+  --glow: rgba(170, 160, 255, 0.12);
+
+  --bg: rgba(255, 255, 255, 0.05);
+  --surface: rgba(255, 255, 255, 0.08);
+  --border: rgba(255, 255, 255, 0.09);
+  --field-border: rgba(255, 255, 255, 0.17);
+  --check-border: #7e7e95;
+
+  --blob-1: #2a1f66;
+  --blob-2: #461b42;
+  --blob-3: #0f3460;
+  --blob-4: #0c3a37;
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -39,26 +87,248 @@
   --color-accent-fg: var(--accent-fg);
   --color-success: var(--success);
   --color-danger: var(--danger);
-  --font-sans: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --radius-DEFAULT: 8px;
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'SF Pro Text', Inter, system-ui, 'Segoe UI', Roboto,
+    sans-serif;
+}
+
+@theme {
+  --animate-pop: pop-in 0.38s cubic-bezier(0.2, 0.9, 0.25, 1.12) both;
+  --animate-rise: rise-in 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+
+  @keyframes pop-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px) scale(0.96);
+    }
+  }
+  /* Sans fondu : le contenu principal doit être visible dès la première image (LCP). */
+  @keyframes rise-in {
+    from {
+      transform: translateY(10px);
+    }
+  }
+}
+
+/* Panneau de verre : flou + saturation, reflet diagonal, liseré lumineux en haut. */
+@utility glass {
+  background: linear-gradient(135deg, var(--glass-sheen), transparent 38%), var(--glass);
+  border: 1px solid var(--glass-rim);
+  box-shadow:
+    inset 0 1px 0 var(--highlight),
+    inset 0 -1px 0 var(--highlight-low),
+    var(--glass-shadow);
+  -webkit-backdrop-filter: blur(26px) saturate(180%);
+  backdrop-filter: blur(26px) saturate(180%);
+}
+
+/* Verre plus opaque : panneaux qui passent au-dessus du contenu (ajout rapide, aide). */
+@utility glass-strong {
+  background: linear-gradient(135deg, var(--glass-sheen), transparent 38%), var(--glass-strong);
+  border: 1px solid var(--glass-rim);
+  box-shadow:
+    inset 0 1px 0 var(--highlight),
+    inset 0 -1px 0 var(--highlight-low),
+    var(--glass-shadow);
+  -webkit-backdrop-filter: blur(36px) saturate(190%);
+  backdrop-filter: blur(36px) saturate(190%);
+}
+
+/* Feuille qui porte le contenu d'une page */
+@utility sheet {
+  background: linear-gradient(160deg, var(--glass-sheen), transparent 30%), var(--sheet);
+  border: 1px solid var(--glass-rim);
+  box-shadow:
+    inset 0 1px 0 var(--highlight),
+    var(--glass-shadow);
+  -webkit-backdrop-filter: blur(30px) saturate(170%);
+  backdrop-filter: blur(30px) saturate(170%);
+}
+
+/* Menus déroulants : chevron discret à la place de la flèche système */
+select.field {
+  appearance: none;
+  padding-right: 2.25rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238a8a9e' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.85rem center;
+}
+
+/* Carte posée sur le verre */
+@utility card {
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  box-shadow: inset 0 1px 0 var(--highlight-low);
+}
+
+/* Champ de saisie */
+@utility field {
+  border-radius: 12px;
+  border: 1px solid var(--field-border);
+  background: var(--bg);
+  color: var(--text);
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+  &::placeholder {
+    color: var(--muted);
+  }
+  &:focus-visible {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 22%, transparent);
+  }
+}
+
+/* Capsule sélectionnable (filtres, onglets, puces) : l'état vient de aria-pressed. */
+@utility pill {
+  border-radius: 9999px;
+  color: var(--muted);
+  transition:
+    background-color 0.2s,
+    color 0.2s,
+    box-shadow 0.2s;
+  &:hover {
+    color: var(--text);
+  }
+  &[aria-pressed='true'] {
+    background: var(--glass-strong);
+    color: var(--accent);
+    font-weight: 600;
+    box-shadow:
+      inset 0 1px 0 var(--highlight),
+      0 6px 16px -8px rgba(40, 40, 100, 0.4);
+  }
+}
+
+/* Bouton principal : capsule brillante */
+@utility btn-primary {
+  border-radius: 9999px;
+  color: var(--accent-fg);
+  background: linear-gradient(180deg, var(--accent-hi), var(--accent));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    0 8px 20px -8px var(--accent-glow);
 }
 
 html {
   font-size: 14px;
+  background: var(--canvas);
 }
 
 body {
   margin: 0;
-  background: var(--bg);
+  min-height: 100dvh;
   color: var(--text);
   font-family: var(--font-sans);
   font-weight: 400;
   -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Repli statique du fond (avant le chargement de three.js, ou sans WebGL). */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(45% 50% at 82% 14%, var(--blob-1), transparent 70%),
+    radial-gradient(40% 45% at 12% 88%, var(--blob-2), transparent 70%),
+    radial-gradient(45% 40% at 8% 12%, var(--blob-3), transparent 70%),
+    radial-gradient(40% 45% at 88% 88%, var(--blob-4), transparent 70%), var(--canvas);
+}
+
+/* Reflet qui suit le pointeur sur le verre (desktop uniquement). */
+@media (hover: hover) and (pointer: fine) {
+  .glass,
+  .glass-strong {
+    background-image:
+      radial-gradient(
+        480px circle at var(--px, -100vw) var(--py, -100vh),
+        var(--glow),
+        transparent 60%
+      ),
+      linear-gradient(135deg, var(--glass-sheen), transparent 38%);
+    background-attachment: fixed, scroll;
+  }
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 28%, transparent);
 }
 
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+/* Case à cocher ronde, façon iOS */
+.check {
+  appearance: none;
+  display: grid;
+  place-content: center;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  border-radius: 9999px;
+  border: 1.5px solid var(--check-border);
+  background: var(--bg);
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    border-color 0.2s,
+    box-shadow 0.2s,
+    transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.check::after {
+  content: '';
+  width: 10px;
+  height: 5px;
+  border: solid var(--accent-fg);
+  border-width: 0 0 2px 2px;
+  transform: translateY(-1px) rotate(-45deg) scale(0);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.check:checked {
+  border-color: transparent;
+  background: linear-gradient(160deg, var(--accent-hi), var(--accent));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    0 4px 12px -3px var(--accent-glow);
+}
+.check:checked::after {
+  transform: translateY(-1px) rotate(-45deg) scale(1);
+}
+.check:active {
+  transform: scale(0.88);
+}
+
+/* Pastille d'habitude (grille 7 jours) */
+.habit-dot {
+  display: grid;
+  place-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 9999px;
+  border: 1.5px solid var(--check-border);
+  background: var(--bg);
+  transition:
+    background 0.2s,
+    border-color 0.2s,
+    transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+[aria-pressed='true'] > .habit-dot {
+  border-color: transparent;
+  background: linear-gradient(160deg, var(--accent-hi), var(--accent));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    0 4px 12px -3px var(--accent-glow);
+}
+button:active > .habit-dot {
+  transform: scale(0.85);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -117,4 +387,81 @@ body {
 .markdown pre code {
   padding: 0;
   background: none;
+}
+
+/* Navigation : capsule de verre qui glisse sous l'onglet actif (léger rebond). */
+.nav-indicator {
+  pointer-events: none;
+  opacity: 0;
+  background: var(--glass-strong);
+  box-shadow:
+    inset 0 1px 0 var(--highlight),
+    0 8px 20px -10px rgba(40, 40, 100, 0.45);
+}
+.nav-indicator[data-ready='true'] {
+  transition:
+    transform 0.5s cubic-bezier(0.3, 1.35, 0.5, 1),
+    width 0.5s cubic-bezier(0.3, 1.35, 0.5, 1),
+    height 0.5s cubic-bezier(0.3, 1.35, 0.5, 1),
+    opacity 0.2s;
+}
+
+/* Bouton flottant « + » : verre teinté de l'accent */
+.fab {
+  color: var(--accent-fg);
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--accent-hi) 90%, transparent),
+    color-mix(in srgb, var(--accent) 94%, transparent)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -2px 6px rgba(0, 0, 0, 0.12),
+    0 16px 34px -12px var(--accent-glow);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  backdrop-filter: blur(14px) saturate(160%);
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.fab:hover {
+  transform: scale(1.05);
+}
+.fab:active {
+  transform: scale(0.92);
+}
+.fab svg {
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.fab[aria-expanded='true'] svg {
+  transform: rotate(45deg);
+}
+
+/* Logo : petite bille irisée, écho de l'orbe du fond */
+.brand-orb {
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.95), transparent 32%),
+    conic-gradient(from 200deg, #8b7bff, #ff9ccf, #ffd59a, #7fd8ff, #8b7bff);
+  box-shadow:
+    inset 0 -3px 6px rgba(40, 20, 120, 0.25),
+    0 4px 12px -4px var(--accent-glow);
+}
+
+/* Coche dans la pastille d'habitude */
+.habit-dot::after {
+  content: '';
+  width: 11px;
+  height: 6px;
+  border: solid var(--accent-fg);
+  border-width: 0 0 2px 2px;
+  transform: translateY(-1px) rotate(-45deg) scale(0);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+[aria-pressed='true'] > .habit-dot::after {
+  transform: translateY(-1px) rotate(-45deg) scale(1);
+}
+
+/* Fondu enchaîné du changement de thème (View Transitions) */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.45s;
 }

@@ -3,8 +3,8 @@ import type { ButtonHTMLAttributes } from 'react'
 type Variant = 'primary' | 'ghost'
 
 const variants: Record<Variant, string> = {
-  primary: 'bg-accent text-accent-fg hover:opacity-90',
-  ghost: 'border border-border bg-transparent text-text hover:bg-surface',
+  primary: 'btn-primary hover:brightness-105',
+  ghost: 'border border-[var(--field-border)] bg-bg text-text hover:bg-surface',
 }
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant }
@@ -13,7 +13,7 @@ export function Button({ variant = 'primary', className = '', type = 'button', .
   return (
     <button
       type={type}
-      className={`inline-flex min-h-11 items-center justify-center rounded px-4 font-semibold transition-opacity disabled:opacity-50 md:min-h-9 ${variants[variant]} ${className}`}
+      className={`inline-flex min-h-11 items-center justify-center rounded-full px-5 font-semibold transition-[transform,filter] active:scale-[0.97] disabled:opacity-50 md:min-h-10 ${variants[variant]} ${className}`}
       {...props}
     />
   )

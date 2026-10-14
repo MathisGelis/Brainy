@@ -3,9 +3,24 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#111113" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#eceef7" />
+    <meta name="description" content="Cockpit : objectifs, notes, habitudes, todo et budget." />
     <title>Cockpit</title>
+    <script>
+      // Thème appliqué avant le premier rendu (pas de flash) : préférence enregistrée, sinon système.
+      ;(function () {
+        var theme = null
+        try {
+          theme = localStorage.getItem('cockpit.theme')
+        } catch (e) {}
+        if (theme !== 'light' && theme !== 'dark') {
+          theme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+        }
+        document.documentElement.dataset.theme = theme
+        document.querySelector('meta[name="theme-color"]').content =
+          theme === 'dark' ? '#07070b' : '#eceef7'
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>
