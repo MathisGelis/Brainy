@@ -6,7 +6,7 @@ export async function fetchCheckins(since: string): Promise<DayCheckin[]> {
   return fetchAllRows<DayCheckin>((from, to) =>
     supabase
       .from('day_checkins')
-      .select('day, mood, energy')
+      .select('day, mood, energy, win')
       .gte('day', since)
       .order('day')
       .range(from, to),

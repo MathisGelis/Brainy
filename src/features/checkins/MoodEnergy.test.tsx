@@ -39,16 +39,21 @@ describe('MoodEnergy', () => {
     const mood = await screen.findByRole('button', { name: 'Humeur : bonne (4 sur 5)' })
     await userEvent.click(mood)
     expect(mood).toHaveAttribute('aria-pressed', 'true')
-    expect(api.upsertCheckin).toHaveBeenCalledWith({ day: DAY, mood: 4, energy: null })
+    expect(api.upsertCheckin).toHaveBeenCalledWith({ day: DAY, mood: 4, energy: null, win: null })
 
     await userEvent.click(screen.getByRole('button', { name: 'Énergie : au top (5 sur 5)' }))
     await waitFor(() =>
-      expect(api.upsertCheckin).toHaveBeenLastCalledWith({ day: DAY, mood: 4, energy: 5 }),
+      expect(api.upsertCheckin).toHaveBeenLastCalledWith({
+        day: DAY,
+        mood: 4,
+        energy: 5,
+        win: null,
+      }),
     )
   })
 
   it('retoucher la valeur choisie la retire ; une saisie vide est supprimée', async () => {
-    server = [{ day: DAY, mood: 2, energy: null }]
+    server = [{ day: DAY, mood: 2, energy: null, win: null }]
     renderScale()
     const mood = await screen.findByRole('button', { name: 'Humeur : bof (2 sur 5)' })
     await waitFor(() => expect(mood).toHaveAttribute('aria-pressed', 'true'))
@@ -58,7 +63,7 @@ describe('MoodEnergy', () => {
   })
 
   it('« Effacer » retire la saisie du jour, et « Annuler » la remet', async () => {
-    server = [{ day: DAY, mood: 5, energy: 3 }]
+    server = [{ day: DAY, mood: 5, energy: 3, win: null }]
     renderScale()
     await userEvent.click(await screen.findByRole('button', { name: 'Effacer' }))
     expect(api.removeCheckin).toHaveBeenCalledWith(DAY)
@@ -69,7 +74,7 @@ describe('MoodEnergy', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Annuler' }))
     await waitFor(() =>
-      expect(api.upsertCheckin).toHaveBeenCalledWith({ day: DAY, mood: 5, energy: 3 }),
+      expect(api.upsertCheckin).toHaveBeenCalledWith({ day: DAY, mood: 5, energy: 3, win: null }),
     )
     expect(
       await screen.findByRole('button', { name: 'Humeur : excellente (5 sur 5)', pressed: true }),

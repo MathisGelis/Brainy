@@ -105,7 +105,7 @@ describe('summarizeDays', () => {
           updated_at: '',
         },
       ],
-      checkins: [{ day: '2026-10-14', mood: 4, energy: null }],
+      checkins: [{ day: '2026-10-14', mood: 4, energy: null, win: 'Semi bouclé' }],
     })
     expect(map.get('2026-10-13')).toMatchObject({
       todosOpen: 0,
@@ -121,7 +121,7 @@ describe('summarizeDays', () => {
       mood: 4,
     })
     expect(describeDay(map.get('2026-10-14')!, formatCents)).toMatch(
-      /^2 todos à faire, 20,00\s€ dépensés, 1 jalon atteint, humeur 4 sur 5$/,
+      /^2 todos à faire, 20,00\s€ dépensés, 1 jalon atteint, humeur 4 sur 5, victoire notée$/,
     )
   })
 })

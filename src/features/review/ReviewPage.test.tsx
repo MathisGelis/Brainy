@@ -116,7 +116,7 @@ describe('ReviewPage', () => {
         .map((day) => ({ id: day, habit_id: 'h1', day, amount: null })),
     )
     vi.mocked(checkinsApi.fetchCheckins).mockResolvedValue(
-      days.map((day, i) => ({ day, mood: 4, energy: i % 2 === 0 ? 4 : 3 })),
+      days.map((day, i) => ({ day, mood: 4, energy: i % 2 === 0 ? 4 : 3, win: null })),
     )
     renderPage()
     const card = await screen.findByRole('region', { name: 'Humeur et énergie' })
@@ -134,5 +134,17 @@ describe('ReviewPage', () => {
       'href',
       '/',
     )
+  })
+
+  it('liste les victoires de la semaine', async () => {
+    vi.mocked(checkinsApi.fetchCheckins).mockResolvedValue([
+      { day: addDays(monday, 1), mood: null, energy: null, win: 'Dossier rendu' },
+      { day: addDays(monday, -3), mood: null, energy: null, win: 'Semaine d’avant' },
+    ])
+    renderPage()
+    const card = await screen.findByRole('region', { name: 'Victoires' })
+    expect(await within(card).findByText('Dossier rendu')).toBeInTheDocument()
+    expect(within(card).queryByText('Semaine d’avant')).toBeNull()
+    expect(screen.getByText(/· 1 victoire$/)).toBeInTheDocument()
   })
 })

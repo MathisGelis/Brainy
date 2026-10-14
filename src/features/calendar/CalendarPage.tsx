@@ -78,6 +78,7 @@ function DayCell({
           <span key={i} className="size-1.5 rounded-full bg-accent" />
         ))}
         {summary.habitsDone > 0 && <span className="size-1.5 rounded-full border border-accent" />}
+        {summary.win && <span className="text-[10px] leading-none text-accent">★</span>}
         {summary.milestones + summary.goalsDue > 0 && (
           <span className="text-[10px] leading-none text-accent">◎</span>
         )}
@@ -211,6 +212,12 @@ export default function CalendarPage() {
             ◎
           </span>{' '}
           Jalon ou objectif
+        </span>
+        <span className="flex items-center gap-1">
+          <span aria-hidden className="text-accent">
+            ★
+          </span>{' '}
+          Victoire
         </span>
       </p>
 

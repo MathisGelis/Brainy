@@ -158,6 +158,42 @@ function MoodCard({
   )
 }
 
+/** Victoires notées chaque soir pendant la semaine. */
+function WinsCard({ wins }: { wins: DayCheckin[] }) {
+  return (
+    <Card
+      title="Victoires"
+      icon={
+        <span aria-hidden className="text-[17px] leading-none">
+          ★
+        </span>
+      }
+      className="md:col-span-2"
+    >
+      {wins.length === 0 ? (
+        <p className="text-muted">
+          Aucune victoire notée cette semaine.{' '}
+          <Link to="/rituel" className="text-accent">
+            Le rituel du soir
+          </Link>{' '}
+          vous en demande une chaque jour.
+        </p>
+      ) : (
+        <ul className="flex flex-col gap-1">
+          {wins.map((c) => (
+            <li key={c.day} className="flex gap-3">
+              <span className="w-16 shrink-0 text-xs leading-6 text-muted">
+                {formatWeekdayShort(c.day)} {formatDayMonth(c.day)}
+              </span>
+              <span className="min-w-0 flex-1">{c.win}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Card>
+  )
+}
+
 /** Revue de la semaine (lundi → dimanche) : todos, habitudes, dépenses, jalons. */
 export default function ReviewPage() {
   const toast = useToast()
@@ -174,6 +210,7 @@ export default function ReviewPage() {
   const { categories } = useBudget(monthOf(monday), { onError })
   const { expenses, isLoading } = useExpensesBetween(monday, sunday)
   const { checkins } = useCheckins({ onError })
+  const wins = checkins.filter((c) => c.win && c.day >= monday && c.day <= sunday)
   const links = habitLinks({
     checkins,
     habits,
@@ -201,6 +238,7 @@ export default function ReviewPage() {
     `${review.todosDone.length} todo${review.todosDone.length > 1 ? 's' : ''} terminée${review.todosDone.length > 1 ? 's' : ''}`,
     review.habitRate !== null ? `${Math.round(review.habitRate * 100)} % des habitudes` : null,
     `${formatCents(review.spent)} dépensés`,
+    wins.length > 0 ? `${wins.length} victoire${wins.length > 1 ? 's' : ''}` : null,
   ].filter(Boolean)
 
   return (
@@ -313,6 +351,7 @@ export default function ReviewPage() {
             </ul>
           )}
         </Card>
+        <WinsCard wins={wins} />
         <MoodCard monday={monday} checkins={checkins} links={links} />
       </div>
     </>

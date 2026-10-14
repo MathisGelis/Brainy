@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { ToastProvider } from '@/components/ui'
 import * as checkinsApi from '@/features/checkins/checkinsApi'
+import type { DayCheckin } from '@/features/checkins/types'
 import * as habitsApi from '@/features/habits/habitsApi'
 import * as todosApi from '@/features/todos/todosApi'
 import type { Todo } from '@/features/todos/types'
@@ -60,13 +61,31 @@ describe('RitualPage', () => {
   })
 
   it('enchaîne les étapes : reporter le reste, puis choisir le Top 3 de demain', async () => {
-    vi.mocked(checkinsApi.upsertCheckin).mockResolvedValue()
+    let saved: DayCheckin[] = []
+    vi.mocked(checkinsApi.fetchCheckins).mockImplementation(async () => saved)
+    vi.mocked(checkinsApi.upsertCheckin).mockImplementation(async (c) => {
+      saved = [...saved.filter((x) => x.day !== c.day), c]
+    })
     renderPage()
     expect(
       screen.getByRole('heading', { name: 'Comment s’est passée la journée ?' }),
     ).toBeInTheDocument()
     await userEvent.click(await screen.findByRole('button', { name: 'Énergie : basse (2 sur 5)' }))
-    expect(checkinsApi.upsertCheckin).toHaveBeenCalledWith({ day: today, mood: null, energy: 2 })
+    expect(checkinsApi.upsertCheckin).toHaveBeenCalledWith({
+      day: today,
+      mood: null,
+      energy: 2,
+      win: null,
+    })
+    await userEvent.type(screen.getByLabelText('Une victoire aujourd’hui ?'), 'Appelé Paul{Enter}')
+    await waitFor(() =>
+      expect(checkinsApi.upsertCheckin).toHaveBeenLastCalledWith({
+        day: today,
+        mood: null,
+        energy: 2,
+        win: 'Appelé Paul',
+      }),
+    )
     await userEvent.click(screen.getByRole('button', { name: 'Suivant' }))
 
     expect(screen.getByRole('heading', { name: 'Vos habitudes du jour' })).toBeInTheDocument()

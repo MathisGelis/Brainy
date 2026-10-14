@@ -29,6 +29,8 @@ export type DaySummary = {
   goalsDue: number
   mood: number | null
   energy: number | null
+  /** Une victoire a été notée ce jour-là */
+  win: boolean
 }
 
 const empty = (): DaySummary => ({
@@ -40,6 +42,7 @@ const empty = (): DaySummary => ({
   goalsDue: 0,
   mood: null,
   energy: null,
+  win: false,
 })
 
 /** Jour (Europe/Paris) d'un horodatage ISO. */
@@ -95,6 +98,7 @@ export function summarizeDays(
     if (s) {
       s.mood = c.mood
       s.energy = c.energy
+      s.win = Boolean(c.win)
     }
   }
   return map
@@ -111,6 +115,7 @@ export function describeDay(s: DaySummary, formatMoney: (cents: number) => strin
     s.milestones > 0 && plural(s.milestones, 'jalon atteint', 'jalons atteints'),
     s.goalsDue > 0 && plural(s.goalsDue, 'objectif à échéance', 'objectifs à échéance'),
     s.mood !== null && `humeur ${s.mood} sur 5`,
+    s.win && 'victoire notée',
   ]
     .filter(Boolean)
     .join(', ')

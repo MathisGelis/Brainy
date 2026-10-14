@@ -35,6 +35,7 @@ function sample() {
     day,
     mood: 3,
     energy: i % 2 === 0 ? 4 : 3,
+    win: null,
   }))
   return { done, checkins }
 }
@@ -49,9 +50,9 @@ describe('describe', () => {
 describe('average', () => {
   it('ignore les valeurs absentes et les jours hors période', () => {
     const checkins: DayCheckin[] = [
-      { day: '2026-10-05', mood: 4, energy: null },
-      { day: '2026-10-06', mood: 2, energy: 5 },
-      { day: '2026-10-20', mood: 1, energy: 1 },
+      { day: '2026-10-05', mood: 4, energy: null, win: null },
+      { day: '2026-10-06', mood: 2, energy: 5, win: null },
+      { day: '2026-10-20', mood: 1, energy: 1, win: null },
     ]
     expect(average(checkins, 'mood', '2026-10-05', '2026-10-11')).toBe(3)
     expect(average(checkins, 'energy', '2026-10-05', '2026-10-11')).toBe(5)

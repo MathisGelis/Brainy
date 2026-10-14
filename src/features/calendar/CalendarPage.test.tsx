@@ -90,7 +90,9 @@ describe('CalendarPage', () => {
         created_at: '',
       },
     ])
-    vi.mocked(checkinsApi.fetchCheckins).mockResolvedValue([{ day: yesterday, mood: 4, energy: 3 }])
+    vi.mocked(checkinsApi.fetchCheckins).mockResolvedValue([
+      { day: yesterday, mood: 4, energy: 3, win: null },
+    ])
   })
 
   it('ouvre sur aujourd’hui et résume chaque jour pour les lecteurs d’écran', async () => {
@@ -146,7 +148,12 @@ describe('CalendarPage', () => {
     await userEvent.click(
       await within(detail).findByRole('button', { name: 'Énergie : au top (5 sur 5)' }),
     )
-    expect(checkinsApi.upsertCheckin).toHaveBeenCalledWith({ day: yesterday, mood: 4, energy: 5 })
+    expect(checkinsApi.upsertCheckin).toHaveBeenCalledWith({
+      day: yesterday,
+      mood: 4,
+      energy: 5,
+      win: null,
+    })
   })
 
   it('se déplace au clavier et change de mois', async () => {

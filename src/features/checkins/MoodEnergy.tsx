@@ -108,7 +108,7 @@ type Props = {
 /** Humeur et énergie d'un jour en un geste ; retoucher la valeur choisie la retire. */
 export function MoodEnergy({ day, onError, title }: Props) {
   const toast = useToast()
-  const { checkinsByDay, isLoading, setValue, clearDay } = useCheckins({ onError })
+  const { checkinsByDay, isLoading, setValue, clearMood } = useCheckins({ onError })
   const checkin = checkinsByDay.get(day)
 
   return (
@@ -116,10 +116,10 @@ export function MoodEnergy({ day, onError, title }: Props) {
       {title && (
         <div className="flex items-center justify-between gap-2">
           <h2 className="font-semibold">{title}</h2>
-          {checkin && (
+          {(checkin?.mood != null || checkin?.energy != null) && (
             <button
               type="button"
-              onClick={() => toast.show('Saisie effacée', clearDay(day))}
+              onClick={() => toast.show('Saisie effacée', clearMood(day))}
               className="min-h-11 rounded-full px-3 text-xs text-muted transition-colors hover:bg-surface hover:text-text md:min-h-8"
             >
               Effacer

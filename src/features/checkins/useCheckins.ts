@@ -9,6 +9,7 @@ export const CHECKINS_KEY = ['day_checkins'] as const
 const HISTORY_DAYS = 400
 
 const byDay = (a: DayCheckin, b: DayCheckin) => a.day.localeCompare(b.day)
+const isEmpty = (c: DayCheckin) => c.mood === null && c.energy === null && !c.win
 
 export function useCheckins({ onError }: { onError?: (message: string) => void } = {}) {
   const query = useQuery({
@@ -31,6 +32,14 @@ export function useCheckins({ onError }: { onError?: (message: string) => void }
   const checkins = query.data ?? []
   const checkinsByDay = new Map(checkins.map((c) => [c.day, c]))
 
+  function write(day: string, patch: Partial<Omit<DayCheckin, 'day'>>) {
+    const current = checkinsByDay.get(day) ?? { day, mood: null, energy: null, win: null }
+    const next: DayCheckin = { ...current, win: current.win ?? null, ...patch }
+    if (isEmpty(next)) {
+      if (checkinsByDay.has(day)) clear.mutate(day)
+    } else save.mutate(next)
+  }
+
   return {
     checkins,
     checkinsByDay,
@@ -38,17 +47,15 @@ export function useCheckins({ onError }: { onError?: (message: string) => void }
     isError: query.isError,
     refetch: query.refetch,
     /** Fixe (ou retire, avec null) l'humeur ou l'énergie d'un jour ; une saisie vide est supprimée. */
-    setValue: (day: string, field: CheckinField, value: number | null) => {
-      const current = checkinsByDay.get(day) ?? { day, mood: null, energy: null }
-      const next = { ...current, [field]: value }
-      if (next.mood === null && next.energy === null) clear.mutate(day)
-      else save.mutate(next)
-    },
-    /** Efface la saisie du jour ; renvoie l'annulation. */
-    clearDay: (day: string): (() => void) => {
+    setValue: (day: string, field: CheckinField, value: number | null) =>
+      write(day, { [field]: value }),
+    /** Note (ou efface, avec null) la victoire du jour. */
+    setWin: (day: string, win: string | null) => write(day, { win: win?.trim() || null }),
+    /** Efface l'humeur et l'énergie du jour (la victoire reste) ; renvoie l'annulation. */
+    clearMood: (day: string): (() => void) => {
       const previous = checkinsByDay.get(day)
       if (!previous) return () => {}
-      clear.mutate(day)
+      write(day, { mood: null, energy: null })
       return () => save.mutate(previous)
     },
   }

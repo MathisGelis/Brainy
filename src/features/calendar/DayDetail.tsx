@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { Checkbox, useToast } from '@/components/ui'
 import type { Category, Expense } from '@/features/budget/types'
+import { DayWin } from '@/features/checkins/DayWin'
 import { MoodEnergy } from '@/features/checkins/MoodEnergy'
 import type { Goal, Milestone } from '@/features/goals/types'
 import { TodayHabits } from '@/features/today/parts'
@@ -133,7 +134,14 @@ export function DayDetail({ day, onError, expenses, categories, milestones, goal
       {past && (
         <section aria-label={`Humeur et énergie du ${label}`}>
           <h3 className={h3}>Humeur et énergie</h3>
-          <MoodEnergy day={day} onError={onError} />
+          <div className="flex flex-col gap-3">
+            <MoodEnergy day={day} onError={onError} />
+            <DayWin
+              day={day}
+              onError={onError}
+              label={day === today ? 'Une victoire aujourd’hui ?' : 'Victoire du jour'}
+            />
+          </div>
         </section>
       )}
 
