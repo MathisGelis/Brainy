@@ -10,12 +10,7 @@ export async function fetchGoals(): Promise<Goal[]> {
 
 export async function fetchMilestones(): Promise<Milestone[]> {
   return fetchAllRows<Milestone>((from, to) =>
-    supabase
-      .from('goal_milestones')
-      .select('id, goal_id, title, done, position, created_at')
-      .order('position')
-      .order('id')
-      .range(from, to),
+    supabase.from('goal_milestones').select('*').order('position').order('id').range(from, to),
   )
 }
 

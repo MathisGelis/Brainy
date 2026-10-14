@@ -6,6 +6,7 @@ import { ToastProvider } from '@/components/ui'
 import * as budgetApi from '@/features/budget/budgetApi'
 import * as habitsApi from '@/features/habits/habitsApi'
 import * as notesApi from '@/features/notes/notesApi'
+import * as goalsApi from '@/features/goals/goalsApi'
 import * as todosApi from '@/features/todos/todosApi'
 import { addDays, todayISO } from '@/lib/dates'
 import TodayPage from './TodayPage'
@@ -14,6 +15,7 @@ vi.mock('@/features/todos/todosApi')
 vi.mock('@/features/habits/habitsApi')
 vi.mock('@/features/budget/budgetApi')
 vi.mock('@/features/notes/notesApi')
+vi.mock('@/features/goals/goalsApi')
 vi.mock('@/features/auth/useAuth', () => ({ signOut: vi.fn() }))
 
 const today = todayISO()
@@ -77,6 +79,38 @@ describe('TodayPage', () => {
     ])
     vi.mocked(habitsApi.fetchLogs).mockResolvedValue([])
     vi.mocked(notesApi.fetchNotes).mockResolvedValue([])
+    vi.mocked(goalsApi.fetchGoals).mockResolvedValue([
+      {
+        id: 'g1',
+        title: 'Courir un semi',
+        description: null,
+        horizon: 'medium',
+        target_date: null,
+        status: 'active',
+        created_at: '',
+        updated_at: '',
+      },
+    ])
+    vi.mocked(goalsApi.fetchMilestones).mockResolvedValue([
+      {
+        id: 'm1',
+        goal_id: 'g1',
+        title: '10 km',
+        done: true,
+        done_at: null,
+        position: 0,
+        created_at: '',
+      },
+      {
+        id: 'm2',
+        goal_id: 'g1',
+        title: '15 km',
+        done: false,
+        done_at: null,
+        position: 1,
+        created_at: '',
+      },
+    ])
     vi.mocked(habitsApi.fetchDaysOff).mockResolvedValue([])
     vi.mocked(habitsApi.insertLogs).mockReturnValue(new Promise<void>(() => {}))
     vi.mocked(budgetApi.fetchCategories).mockResolvedValue([
@@ -175,5 +209,19 @@ describe('TodayPage', () => {
     )
     await userEvent.click(button)
     expect(notesApi.insertNote).toHaveBeenCalledTimes(1)
+  })
+
+  it('montre le prochain jalon et le coche en datant sa réalisation', async () => {
+    vi.mocked(goalsApi.patchMilestone).mockReturnValue(new Promise<void>(() => {}))
+    renderPage()
+    const box = await screen.findByRole('checkbox', {
+      name: 'Jalon « 15 km » de « Courir un semi » fait',
+    })
+    expect(screen.getByText('50 %')).toBeInTheDocument()
+    await userEvent.click(box)
+    expect(goalsApi.patchMilestone).toHaveBeenCalledWith('m2', {
+      done: true,
+      done_at: expect.any(String),
+    })
   })
 })

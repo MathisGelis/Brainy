@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import {
   BudgetIcon,
   Checkbox,
+  GoalsIcon,
   HabitsIcon,
   NotesIcon,
   ProgressBar,
@@ -12,6 +13,9 @@ import { PageHeader } from '@/components/ui/PageHeader'
 import { projectMonthEnd } from '@/features/budget/recurringLogic'
 import { useBudget } from '@/features/budget/useBudget'
 import { useNotes } from '@/features/notes/useNotes'
+import { goalProgress, milestonesOf, nextMilestone } from '@/features/goals/goalLogic'
+import type { Goal, Milestone } from '@/features/goals/types'
+import { useGoals } from '@/features/goals/useGoals'
 import { useRecurring } from '@/features/budget/useBudgetExtras'
 import { currentStreak, isDayDone, isScheduled } from '@/features/habits/habitLogic'
 import { useDaysOff, useHabits } from '@/features/habits/useHabits'
@@ -215,6 +219,62 @@ function TodayHabits({ today, onError }: { today: string; onError: (m: string) =
   )
 }
 
+function TodayGoals({ onError }: { onError: (m: string) => void }) {
+  const toast = useToast()
+  const { goals, milestones, isLoading, isError, refetch, setMilestoneDone } = useGoals({ onError })
+  const { todos } = useTodos({ onError })
+  if (isError) return <RetryLine label="les objectifs" onRetry={refetch} />
+  if (isLoading) return skeleton
+
+  const items = goals
+    .filter((g) => g.status === 'active')
+    .map((goal) => ({ goal, next: nextMilestone(milestones, goal.id) }))
+    .filter((x): x is { goal: Goal; next: Milestone } => x.next !== undefined)
+    .slice(0, 5)
+
+  if (items.length === 0) {
+    return (
+      <p className="text-muted">
+        Aucun jalon à venir.{' '}
+        <Link to="/objectifs" className="text-accent">
+          Planifier un objectif
+        </Link>
+      </p>
+    )
+  }
+  return (
+    <ul>
+      {items.map(({ goal, next }) => {
+        const linked = todos
+          .filter((t) => t.goal_id === goal.id)
+          .map((t) => ({ id: t.id, title: t.title, done: t.done, recurrence: t.recurrence }))
+        const percent = Math.round(
+          goalProgress(milestonesOf(milestones, goal.id), linked).ratio * 100,
+        )
+        return (
+          <li key={goal.id} className={rowClass}>
+            <Checkbox
+              hideLabel
+              label={`Jalon « ${next.title} » de « ${goal.title} » fait`}
+              checked={false}
+              onChange={() => {
+                setMilestoneDone(next.id, true)
+                celebrate(0.8)
+                toast.show('Jalon atteint', () => setMilestoneDone(next.id, false))
+              }}
+            />
+            <span className="min-w-0 flex-1">
+              {next.title}
+              <span className="block truncate text-xs text-muted">{goal.title}</span>
+            </span>
+            <span className="text-xs text-muted">{percent} %</span>
+          </li>
+        )
+      })}
+    </ul>
+  )
+}
+
 function MonthBudget({ today, onError }: { today: string; onError: (m: string) => void }) {
   const { summary, expenses, isLoading, isError, refetch } = useBudget(monthOf(today), { onError })
   const { rules } = useRecurring({ onError })
@@ -311,6 +371,14 @@ export default function TodayPage() {
         </Section>
         <Section title="Habitudes du jour" to="/habitudes" icon={HabitsIcon}>
           <TodayHabits today={today} onError={onError} />
+        </Section>
+        <Section
+          title="Prochains jalons"
+          to="/objectifs"
+          icon={GoalsIcon}
+          className="md:col-span-2"
+        >
+          <TodayGoals onError={onError} />
         </Section>
         <Section title="Budget du mois" to="/budget" icon={BudgetIcon} className="md:col-span-2">
           <MonthBudget today={today} onError={onError} />

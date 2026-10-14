@@ -1,4 +1,4 @@
-import { goalProgress, groupGoals, milestonesOf } from './goalLogic'
+import { goalProgress, groupGoals, milestonesOf, nextMilestone } from './goalLogic'
 import type { Goal, Milestone } from './types'
 
 const goal = (id: string, overrides: Partial<Goal> = {}): Goal => ({
@@ -18,6 +18,7 @@ const ms = (id: string, goalId: string, done: boolean, position = 0): Milestone 
   goal_id: goalId,
   title: id,
   done,
+  done_at: null,
   position,
   created_at: '2026-01-01T00:00:00Z',
 })
@@ -67,5 +68,25 @@ describe('groupGoals', () => {
 
   it('met les objectifs atteints ou abandonnés à part, plus récents d’abord', () => {
     expect(groupGoals(goals).closed.map((g) => g.id)).toEqual(['dropped', 'done'])
+  })
+})
+
+describe('progression avec todos liées', () => {
+  it('compte les todos liées non récurrentes', () => {
+    const p = goalProgress(
+      [ms('a', 'g', true)],
+      [
+        { id: 't1', title: 'Inscription', done: true, recurrence: null },
+        { id: 't2', title: 'Chaussures', done: false, recurrence: null },
+        { id: 't3', title: 'Footing', done: true, recurrence: 'weekly:1' },
+      ],
+    )
+    expect(p).toEqual({ done: 2, total: 3, ratio: 2 / 3 })
+  })
+
+  it('prochain jalon dans l’ordre manuel', () => {
+    const all = [ms('c', 'g', false, 2), ms('a', 'g', true, 0), ms('b', 'g', false, 1)]
+    expect(nextMilestone(all, 'g')?.id).toBe('b')
+    expect(nextMilestone([ms('a', 'g', true)], 'g')).toBeUndefined()
   })
 })

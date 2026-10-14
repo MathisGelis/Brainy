@@ -2,11 +2,15 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ToastProvider } from '@/components/ui'
+import * as habitsApi from '@/features/habits/habitsApi'
+import * as todosApi from '@/features/todos/todosApi'
 import * as api from './goalsApi'
 import GoalsPage from './GoalsPage'
 import type { Goal, Milestone } from './types'
 
 vi.mock('./goalsApi')
+vi.mock('@/features/todos/todosApi')
+vi.mock('@/features/habits/habitsApi')
 
 const goal: Goal = {
   id: 'g1',
@@ -23,6 +27,7 @@ const milestone = (id: string, done: boolean, position: number): Milestone => ({
   goal_id: 'g1',
   title: id,
   done,
+  done_at: null,
   position,
   created_at: '2026-01-01T00:00:00Z',
 })
@@ -41,6 +46,24 @@ function renderPage() {
 describe('GoalsPage', () => {
   beforeEach(() => {
     vi.mocked(api.fetchGoals).mockResolvedValue([goal])
+    vi.mocked(todosApi.fetchTodos).mockResolvedValue([
+      {
+        id: 't1',
+        list_id: null,
+        goal_id: null,
+        title: 'Acheter des chaussures',
+        done: false,
+        done_at: null,
+        due_date: null,
+        priority: 'normal',
+        recurrence: null,
+        position: 0,
+        created_at: '',
+      },
+    ])
+    vi.mocked(habitsApi.fetchHabits).mockResolvedValue([])
+    vi.mocked(habitsApi.fetchLogs).mockResolvedValue([])
+    vi.mocked(habitsApi.fetchDaysOff).mockResolvedValue([])
     vi.mocked(api.fetchMilestones).mockResolvedValue([
       milestone('10 km', true, 0),
       milestone('15 km', false, 1),
@@ -58,7 +81,10 @@ describe('GoalsPage', () => {
     await userEvent.click(screen.getByRole('checkbox', { name: /15 km/ }))
 
     expect(await screen.findByText('2/2 jalons · 100 %')).toBeInTheDocument()
-    expect(api.patchMilestone).toHaveBeenCalledWith('15 km', { done: true })
+    expect(api.patchMilestone).toHaveBeenCalledWith('15 km', {
+      done: true,
+      done_at: expect.any(String),
+    })
   })
 
   it('ajoute un objectif dans le bon horizon', async () => {
@@ -85,5 +111,18 @@ describe('GoalsPage', () => {
       ).toBeInTheDocument(),
     )
     expect(screen.getByText(/Aucun objectif en cours/)).toBeInTheDocument()
+  })
+
+  it('lie une todo à l’objectif : elle compte dans la progression', async () => {
+    vi.mocked(todosApi.patchTodo).mockReturnValue(new Promise<void>(() => {}))
+    renderPage()
+    await userEvent.click(await screen.findByRole('button', { name: /Courir un semi/ }))
+    await userEvent.selectOptions(screen.getByLabelText('Lier une todo à « Courir un semi »'), 't1')
+
+    expect(todosApi.patchTodo).toHaveBeenCalledWith('t1', { goal_id: 'g1' })
+    expect(await screen.findByText('1/3 étapes · 33 %')).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Délier la todo « Acheter des chaussures »' }),
+    ).toBeInTheDocument()
   })
 })

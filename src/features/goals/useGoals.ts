@@ -118,12 +118,19 @@ export function useGoals({ onError }: { onError?: (message: string) => void } = 
           goal_id: goalId,
           title,
           done: false,
+          done_at: null,
           position: siblings.reduce((max, m) => Math.max(max, m.position), -1) + 1,
           created_at: new Date().toISOString(),
         },
       ])
     },
     updateMilestone: (id: string, patch: MilestonePatch) => updateMilestoneM.mutate({ id, patch }),
+    /** Coche / décoche un jalon en datant sa réalisation. */
+    setMilestoneDone: (id: string, done: boolean) =>
+      updateMilestoneM.mutate({
+        id,
+        patch: { done, done_at: done ? new Date().toISOString() : null },
+      }),
     deleteMilestone: (id: string) => deleteMilestoneM.mutate(id),
   }
 }

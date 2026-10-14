@@ -1,14 +1,49 @@
 import { useState, type FormEvent } from 'react'
 import { Button, useToast } from '@/components/ui'
 import { PageHeader } from '@/components/ui/PageHeader'
-import { GoalCard } from './GoalCard'
+import { successRate30 } from '@/features/habits/habitLogic'
+import { useDaysOff, useHabits } from '@/features/habits/useHabits'
+import { useTodos } from '@/features/todos/useTodos'
+import { todayISO } from '@/lib/dates'
+import { GoalCard, type GoalLinks } from './GoalCard'
 import { HORIZONS, groupGoals, milestonesOf } from './goalLogic'
 import type { Goal, Horizon } from './types'
 import { useGoals } from './useGoals'
 
 export default function GoalsPage() {
   const toast = useToast()
-  const g = useGoals({ onError: (m) => toast.show(m) })
+  const onError = (m: string) => toast.show(m)
+  const g = useGoals({ onError })
+  const { todos, updateTodo, completeTodo, setDone } = useTodos({ onError })
+  const { habits, entries, updateHabit } = useHabits({ onError })
+  const { offDays } = useDaysOff({ onError })
+  const today = todayISO()
+
+  const linksOf = (goalId: string): GoalLinks => ({
+    todos: todos
+      .filter((t) => t.goal_id === goalId)
+      .map((t) => ({ id: t.id, title: t.title, done: t.done, recurrence: t.recurrence })),
+    habits: habits
+      .filter((h) => h.goal_id === goalId && !h.archived)
+      .map((h) => ({
+        id: h.id,
+        name: h.name,
+        rate: successRate30(h, entries.get(h.id) ?? new Map(), today, offDays),
+      })),
+    availableTodos: todos
+      .filter((t) => !t.done && !t.goal_id)
+      .map((t) => ({ id: t.id, title: t.title })),
+    availableHabits: habits
+      .filter((h) => !h.archived && !h.goal_id)
+      .map((h) => ({ id: h.id, name: h.name })),
+  })
+
+  function onToggleTodo(todoId: string, done: boolean) {
+    const todo = todos.find((t) => t.id === todoId)
+    if (!todo) return
+    if (done) toast.show('Todo terminée', completeTodo(todo))
+    else setDone(todoId, false)
+  }
   const [title, setTitle] = useState('')
   const [horizon, setHorizon] = useState<Horizon>('short')
   const [targetDate, setTargetDate] = useState('')
@@ -36,6 +71,10 @@ export default function GoalsPage() {
       key={goal.id}
       goal={goal}
       milestones={milestonesOf(g.milestones, goal.id)}
+      links={linksOf(goal.id)}
+      onToggleTodo={onToggleTodo}
+      onLinkTodo={(todoId, goalId) => updateTodo(todoId, { goal_id: goalId })}
+      onLinkHabit={(habitId, goalId) => updateHabit(habitId, { goal_id: goalId })}
       onUpdate={g.updateGoal}
       onDelete={onDelete}
       onAddMilestone={g.addMilestone}

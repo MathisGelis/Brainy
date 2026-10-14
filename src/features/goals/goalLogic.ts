@@ -1,4 +1,4 @@
-import type { Goal, GoalStatus, Horizon, Milestone, Progress } from './types'
+import type { Goal, GoalStatus, Horizon, LinkedTodo, Milestone, Progress } from './types'
 
 export const HORIZONS: { value: Horizon; label: string }[] = [
   { value: 'short', label: 'Court terme (< 3 mois)' },
@@ -12,11 +12,20 @@ export const STATUSES: { value: GoalStatus; label: string }[] = [
   { value: 'abandoned', label: 'Abandonné' },
 ]
 
-/** Progression calculée : jalons faits / total (jamais stockée). */
-export function goalProgress(milestones: Milestone[]): Progress {
-  const total = milestones.length
-  const done = milestones.filter((m) => m.done).length
+/**
+ * Progression calculée (jamais stockée) : jalons + todos liées faits / total.
+ * Les todos récurrentes liées n'y comptent pas (elles se renouvellent sans fin).
+ */
+export function goalProgress(milestones: Milestone[], linkedTodos: LinkedTodo[] = []): Progress {
+  const todos = linkedTodos.filter((t) => !t.recurrence)
+  const total = milestones.length + todos.length
+  const done = milestones.filter((m) => m.done).length + todos.filter((t) => t.done).length
   return { done, total, ratio: total === 0 ? 0 : done / total }
+}
+
+/** Prochain jalon à faire (dans l'ordre manuel), s'il y en a un. */
+export function nextMilestone(milestones: Milestone[], goalId: string): Milestone | undefined {
+  return milestonesOf(milestones, goalId).find((m) => !m.done)
 }
 
 /** Jalons d'un objectif, dans l'ordre manuel. */

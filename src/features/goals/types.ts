@@ -21,10 +21,15 @@ export type Milestone = {
   goal_id: string
   title: string
   done: boolean
+  /** Date de réalisation (revue de la semaine) */
+  done_at: string | null
   position: number
   created_at: string
 }
 
-export type MilestonePatch = Partial<Pick<Milestone, 'title' | 'done' | 'position'>>
+export type MilestonePatch = Partial<Pick<Milestone, 'title' | 'done' | 'done_at' | 'position'>>
+
+/** Todo liée à un objectif (sous-ensemble utile au calcul de progression) */
+export type LinkedTodo = { id: string; title: string; done: boolean; recurrence: string | null }
 
 export type Progress = { done: number; total: number; ratio: number }
