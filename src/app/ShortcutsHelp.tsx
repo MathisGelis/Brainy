@@ -1,17 +1,22 @@
 import { NAV_SHORTCUTS, OTHER_SHORTCUTS } from './shortcuts'
 
-const kbd = 'rounded border border-border bg-surface px-1.5 py-0.5 font-sans text-xs'
+const kbd =
+  'inline-flex min-w-6 justify-center rounded-md border border-[var(--field-border)] bg-bg px-1.5 py-0.5 font-sans text-xs shadow-[inset_0_-1px_0_var(--border)]'
 
 export function ShortcutsHelp({ onClose }: { onClose: () => void }) {
   return (
     <div
       role="dialog"
       aria-label="Raccourcis clavier"
-      className="fixed inset-x-4 bottom-36 z-50 mx-auto max-w-sm rounded border border-border bg-bg p-4 md:right-6 md:bottom-6 md:left-auto"
+      className="glass-strong fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+160px)] z-50 mx-auto max-w-sm animate-pop rounded-[28px] p-5 md:right-8 md:bottom-28 md:left-auto"
     >
       <div className="mb-3 flex items-center justify-between">
         <h2 className="font-semibold">Raccourcis clavier</h2>
-        <button type="button" onClick={onClose} className="min-h-9 px-2 text-muted hover:text-text">
+        <button
+          type="button"
+          onClick={onClose}
+          className="min-h-9 rounded-full px-3 text-muted transition-colors hover:bg-surface hover:text-text"
+        >
           Fermer
         </button>
       </div>

@@ -1,5 +1,6 @@
-import { lazy, Suspense, useRef, useState } from 'react'
+import { lazy, Suspense, useLayoutEffect, useRef, useState } from 'react'
 import { NavLink, Outlet, useLocation, useMatch } from 'react-router-dom'
+import { LogoutIcon, PlusIcon, ThemeToggle } from '@/components/ui'
 import { signOut } from '@/features/auth/useAuth'
 import { navItems } from './navItems'
 import type { QuickAddTab } from './QuickAdd'
@@ -15,16 +16,57 @@ function tabFor(pathname: string): QuickAddTab {
   return 'todo'
 }
 
-const linkBase = 'flex items-center rounded px-3 text-sm'
+export function Brand() {
+  return (
+    <span className="flex items-center gap-2.5 font-semibold tracking-tight">
+      <span aria-hidden className="brand-orb size-7 rounded-full" />
+      Cockpit
+    </span>
+  )
+}
 
-/** Sidebar sur desktop, tab bar en bas sur mobile (zones tactiles ≥ 44px). */
+/** Capsule qui glisse sous l'onglet actif (positionnée en mesurant le lien `aria-current`). */
+function useNavIndicator(pathname: string) {
+  const navRef = useRef<HTMLElement>(null)
+  const indicatorRef = useRef<HTMLSpanElement>(null)
+
+  useLayoutEffect(() => {
+    const nav = navRef.current
+    const indicator = indicatorRef.current
+    if (!nav || !indicator) return
+    const place = () => {
+      const active = nav.querySelector<HTMLElement>('a[aria-current="page"]')
+      if (!active) {
+        indicator.style.opacity = '0'
+        return
+      }
+      indicator.style.opacity = '1'
+      indicator.style.width = `${active.offsetWidth}px`
+      indicator.style.height = `${active.offsetHeight}px`
+      indicator.style.transform = `translate(${active.offsetLeft}px, ${active.offsetTop}px)`
+    }
+    place()
+    // Les transitions ne s'activent qu'après le premier placement (pas de glissement depuis 0,0).
+    const frame = requestAnimationFrame(() => (indicator.dataset.ready = 'true'))
+    window.addEventListener('resize', place)
+    return () => {
+      cancelAnimationFrame(frame)
+      window.removeEventListener('resize', place)
+    }
+  }, [pathname])
+
+  return { navRef, indicatorRef }
+}
+
 export function Layout() {
   // Les notes (liste + éditeur) ont besoin de plus de largeur que les autres écrans.
   const wide = useMatch('/notes/*') !== null
   const { pathname } = useLocation()
+  const section = pathname.split('/')[1] ?? ''
   const [quickAdd, setQuickAdd] = useState<QuickAddTab | null>(null)
   const [help, setHelp] = useState(false)
   const plusRef = useRef<HTMLButtonElement>(null)
+  const { navRef, indicatorRef } = useNavIndicator(pathname)
 
   function closeQuickAdd() {
     setQuickAdd(null)
@@ -39,47 +81,81 @@ export function Layout() {
       setHelp(false)
     },
   })
+
   return (
-    <div className="min-h-dvh md:grid md:grid-cols-[14rem_1fr]">
+    <div className="min-h-dvh">
       <button
         type="button"
         onClick={() => document.getElementById('contenu')?.focus()}
-        className="sr-only z-50 rounded bg-accent px-4 py-2 text-accent-fg focus:not-sr-only focus:fixed focus:top-2 focus:left-2"
+        className="sr-only z-50 rounded-full bg-accent px-4 py-2 text-accent-fg focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
       >
         Aller au contenu
       </button>
-      <nav
-        aria-label="Navigation principale"
-        className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-6 border-t border-border bg-bg pb-[env(safe-area-inset-bottom)] md:static md:flex md:flex-col md:gap-1 md:border-t-0 md:border-r md:p-4"
-      >
-        {navItems.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            end={item.end}
-            className={({ isActive }) =>
-              `${linkBase} min-h-14 justify-center text-xs md:min-h-9 md:justify-start md:text-sm ${
-                isActive ? 'font-semibold text-accent md:bg-surface' : 'text-muted hover:text-text'
-              }`
-            }
+
+      {/* Barre latérale (desktop) / barre d'onglets flottante (mobile) */}
+      <div className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+10px)] z-40 md:inset-x-auto md:top-4 md:bottom-4 md:left-4 md:w-60">
+        <div className="glass flex h-full flex-col rounded-[30px] p-1.5 md:rounded-[28px] md:p-3">
+          <div className="hidden px-3 pt-2 pb-6 md:block">
+            <Brand />
+          </div>
+          <nav
+            ref={navRef}
+            aria-label="Navigation principale"
+            className="relative grid grid-cols-6 md:flex md:flex-col md:gap-1"
           >
-            {item.label}
-          </NavLink>
-        ))}
-        <button
-          type="button"
-          onClick={() => void signOut()}
-          className="hidden min-h-9 items-center rounded px-3 text-left text-sm text-muted hover:text-text md:mt-auto md:flex"
-        >
-          Déconnexion
-        </button>
-      </nav>
+            <span
+              ref={indicatorRef}
+              aria-hidden
+              className="nav-indicator absolute top-0 left-0 rounded-[24px] md:rounded-2xl"
+            />
+            {navItems.map(({ to, label, end, icon: Icon }) => (
+              <NavLink
+                key={to}
+                to={to}
+                end={end}
+                className={({ isActive }) =>
+                  `relative z-10 flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-[24px] text-[10px] leading-tight transition-colors md:min-h-10 md:flex-row md:justify-start md:gap-3 md:rounded-2xl md:px-3 md:text-sm ${
+                    isActive ? 'font-semibold text-accent' : 'text-muted hover:text-text'
+                  }`
+                }
+              >
+                <Icon />
+                <span>{label}</span>
+              </NavLink>
+            ))}
+          </nav>
+          <div className="mt-auto hidden items-center justify-between border-t border-border pt-3 md:flex">
+            <ThemeToggle />
+            <button
+              type="button"
+              onClick={() => void signOut()}
+              className="flex min-h-11 items-center gap-2 rounded-full px-3 text-sm text-muted transition-colors hover:text-text"
+            >
+              <LogoutIcon width={18} height={18} />
+              Déconnexion
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Thème sur mobile : en haut à droite */}
+      <div className="fixed top-[calc(env(safe-area-inset-top)+14px)] right-5 z-40 md:hidden">
+        <ThemeToggle />
+      </div>
+
       <main
         id="contenu"
         tabIndex={-1}
-        className={`mx-auto w-full px-4 pt-6 focus:outline-none pb-40 md:px-8 md:pb-24 ${wide ? 'max-w-5xl' : 'max-w-3xl'}`}
+        className="px-3 pt-[calc(env(safe-area-inset-top)+12px)] pb-48 focus:outline-none md:pt-6 md:pr-6 md:pb-28 md:pl-[17.5rem]"
       >
-        <Outlet />
+        <div
+          key={section}
+          className={`sheet mx-auto animate-rise rounded-[30px] px-5 py-6 md:px-10 md:py-9 ${
+            wide ? 'max-w-5xl' : 'max-w-3xl'
+          }`}
+        >
+          <Outlet />
+        </div>
       </main>
 
       <button
@@ -88,9 +164,9 @@ export function Layout() {
         aria-label="Ajout rapide (n)"
         aria-expanded={quickAdd !== null}
         onClick={() => (quickAdd ? closeQuickAdd() : setQuickAdd(tabFor(pathname)))}
-        className="fixed right-4 bottom-20 z-40 flex size-14 items-center justify-center rounded-full bg-accent text-2xl text-accent-fg md:right-6 md:bottom-6"
+        className="fab fixed right-4 bottom-[calc(env(safe-area-inset-bottom)+92px)] z-40 flex size-14 items-center justify-center rounded-full md:right-8 md:bottom-8"
       >
-        +
+        <PlusIcon width={26} height={26} />
       </button>
       {quickAdd && (
         <Suspense fallback={null}>

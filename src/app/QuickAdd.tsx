@@ -50,7 +50,7 @@ function NoteTab({ onDone }: { onDone: () => void }) {
         aria-label="Titre de la nouvelle note"
         placeholder="Titre de la note…"
         autoFocus
-        className="min-h-11 min-w-0 flex-1 rounded border border-border bg-bg px-3 text-text placeholder:text-muted md:min-h-9"
+        className="field min-h-11 min-w-0 flex-1 px-4 md:min-h-10"
       />
       <Button type="submit">Créer</Button>
     </form>
@@ -87,21 +87,21 @@ export default function QuickAdd({
     <div
       role="dialog"
       aria-label="Ajout rapide"
-      className="fixed inset-x-4 bottom-36 z-50 mx-auto max-w-lg rounded border border-border bg-bg p-4 md:right-6 md:bottom-24 md:left-auto md:w-[32rem]"
+      className="glass-strong fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+160px)] z-50 mx-auto max-w-lg animate-pop rounded-[28px] p-4 md:right-8 md:bottom-28 md:left-auto md:w-[34rem] md:p-5"
     >
       <div className="mb-3 flex items-center justify-between gap-2">
-        <div role="group" aria-label="Type d'élément" className="flex gap-1">
+        <div
+          role="group"
+          aria-label="Type d'élément"
+          className="flex gap-1 rounded-full bg-surface p-1"
+        >
           {TABS.map((t) => (
             <button
               key={t.value}
               type="button"
               aria-pressed={tab === t.value}
               onClick={() => setTab(t.value)}
-              className={`min-h-11 rounded px-3 md:min-h-9 ${
-                tab === t.value
-                  ? 'bg-surface font-semibold text-accent'
-                  : 'text-muted hover:text-text'
-              }`}
+              className="pill min-h-9 px-4"
             >
               {t.label}
             </button>
@@ -110,7 +110,7 @@ export default function QuickAdd({
         <button
           type="button"
           onClick={onClose}
-          className="min-h-11 px-2 text-muted hover:text-text md:min-h-9"
+          className="min-h-10 rounded-full px-3 text-muted transition-colors hover:bg-surface hover:text-text"
         >
           Fermer
         </button>
