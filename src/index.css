@@ -1,1 +1,71 @@
-@import "tailwindcss";
+@import 'tailwindcss';
+
+/* Tokens : neutres + une seule couleur d'accent. Clair par défaut, sombre via prefers-color-scheme. */
+:root {
+  --bg: #ffffff;
+  --surface: #f6f6f7;
+  --border: #e4e4e7;
+  --text: #18181b;
+  --muted: #71717a;
+  --accent: #4f46e5;
+  --accent-fg: #ffffff;
+  --success: #16a34a;
+  --danger: #dc2626;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #111113;
+    --surface: #1b1b1f;
+    --border: #2e2e33;
+    --text: #ededef;
+    --muted: #a1a1aa;
+    --accent: #818cf8;
+    --accent-fg: #111113;
+    --success: #4ade80;
+    --danger: #f87171;
+    color-scheme: dark;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-border: var(--border);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --font-sans: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --radius-DEFAULT: 8px;
+}
+
+html {
+  font-size: 14px;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
