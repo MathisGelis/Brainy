@@ -9,6 +9,8 @@ export default defineConfig({
   base: process.env.VITE_BASE ?? '/Brainy/',
   plugins: [react(), tailwindcss()],
   build: {
+    // Le seul bloc au-delà de 500 kB est three.js (fond animé), chargé à part et au repos.
+    chunkSizeWarningLimit: 600,
     rolldownOptions: {
       output: {
         // Dépendances en blocs séparés : elles restent en cache d'un déploiement à l'autre.

@@ -1,6 +1,8 @@
 import { lazy, Suspense } from 'react'
 import { HashRouter, Route, Routes } from 'react-router-dom'
+import { BackgroundLoader } from './background/BackgroundLoader'
 import { Layout } from './Layout'
+import { usePointerLight } from './background/usePointerLight'
 import { RequireAuth } from '@/features/auth/RequireAuth'
 
 const LoginPage = lazy(() => import('@/features/auth/LoginPage'))
@@ -13,8 +15,10 @@ const TodosPage = lazy(() => import('@/features/todos/TodosPage'))
 const BudgetPage = lazy(() => import('@/features/budget/BudgetPage'))
 
 export function App() {
+  usePointerLight()
   return (
     <HashRouter>
+      <BackgroundLoader />
       <Suspense fallback={null}>
         <Routes>
           <Route path="connexion" element={<LoginPage />} />
