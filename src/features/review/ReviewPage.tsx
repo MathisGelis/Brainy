@@ -184,7 +184,7 @@ function WinsCard({ wins }: { wins: DayCheckin[] }) {
         <ul className="flex flex-col gap-1">
           {wins.map((c) => (
             <li key={c.day} className="flex gap-3">
-              <span className="w-16 shrink-0 text-xs leading-6 text-muted">
+              <span className="w-20 shrink-0 text-xs leading-6 whitespace-nowrap text-muted">
                 {formatWeekdayShort(c.day)} {formatDayMonth(c.day)}
               </span>
               <span className="min-w-0 flex-1">{c.win}</span>
