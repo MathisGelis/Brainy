@@ -20,10 +20,10 @@ Avancer phase par phase. Cocher les tâches au fur et à mesure. Chaque phase do
 _Reste pour plus tard : liste/projet par todo (champ `list_id` déjà en base), voir Backlog._
 
 ## Phase 2 — Habitudes
-- [ ] CRUD habitudes, archivage
-- [ ] Grille 7 jours cochable
-- [ ] Streak + taux 30 jours (fonctions pures testées)
-- [ ] Vue détail avec heatmap annuelle
+- [x] CRUD habitudes, archivage
+- [x] Grille 7 jours cochable
+- [x] Streak + taux 30 jours (fonctions pures testées)
+- [x] Vue détail avec heatmap annuelle
 
 ## Phase 3 — Budget
 - [ ] Catégories + budgets mensuels

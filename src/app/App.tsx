@@ -8,6 +8,7 @@ const TodayPage = lazy(() => import('@/features/today/TodayPage'))
 const GoalsPage = lazy(() => import('@/features/goals/GoalsPage'))
 const NotesPage = lazy(() => import('@/features/notes/NotesPage'))
 const HabitsPage = lazy(() => import('@/features/habits/HabitsPage'))
+const HabitDetailPage = lazy(() => import('@/features/habits/HabitDetailPage'))
 const TodosPage = lazy(() => import('@/features/todos/TodosPage'))
 const BudgetPage = lazy(() => import('@/features/budget/BudgetPage'))
 
@@ -23,6 +24,7 @@ export function App() {
               <Route path="objectifs" element={<GoalsPage />} />
               <Route path="notes" element={<NotesPage />} />
               <Route path="habitudes" element={<HabitsPage />} />
+              <Route path="habitudes/:habitId" element={<HabitDetailPage />} />
               <Route path="todo" element={<TodosPage />} />
               <Route path="budget" element={<BudgetPage />} />
             </Route>

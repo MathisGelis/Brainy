@@ -12,7 +12,7 @@ export function useOptimisticMutation<T, V>(
 ) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: request,
+    mutationFn: (variables: V) => request(variables),
     onMutate: async (variables: V) => {
       await queryClient.cancelQueries({ queryKey })
       const previous = queryClient.getQueryData<T[]>(queryKey)
