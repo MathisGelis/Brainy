@@ -8,9 +8,11 @@ type RowProps = {
   categories: Category[]
   onUpdate: (id: string, patch: ExpensePatch) => void
   onDelete: (expense: Expense) => void
+  /** Transforme la dépense en dépense mensuelle */
+  onRepeat: (expense: Expense) => void
 }
 
-function ExpenseRow({ expense, categories, onUpdate, onDelete }: RowProps) {
+function ExpenseRow({ expense, categories, onUpdate, onDelete, onRepeat }: RowProps) {
   const [editing, setEditing] = useState(false)
   const [amountInvalid, setAmountInvalid] = useState(false)
   const category = categories.find((c) => c.id === expense.category_id)
@@ -29,6 +31,11 @@ function ExpenseRow({ expense, categories, onUpdate, onDelete }: RowProps) {
             {formatDayMonth(expense.spent_on)}
           </span>
           <span className="min-w-0 flex-1 truncate">
+            {expense.recurring_id && (
+              <span className="text-muted" title="Récurrente">
+                ↻{' '}
+              </span>
+            )}
             {expense.note || category?.name || 'Sans catégorie'}
             {expense.note && category && <span className="text-muted"> · {category.name}</span>}
           </span>
@@ -88,6 +95,15 @@ function ExpenseRow({ expense, categories, onUpdate, onDelete }: RowProps) {
         }}
         className={`${field} min-w-0 flex-1 basis-32`}
       />
+      {!expense.recurring_id && (
+        <button
+          type="button"
+          className="min-h-11 rounded-full px-3 text-muted transition-colors hover:bg-surface hover:text-text md:min-h-9"
+          onClick={() => onRepeat(expense)}
+        >
+          Répéter chaque mois
+        </button>
+      )}
       <button
         type="button"
         className="min-h-11 rounded-full px-4 font-semibold text-accent transition-colors hover:bg-surface md:min-h-9"

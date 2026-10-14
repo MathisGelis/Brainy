@@ -17,6 +17,7 @@ const exp = (id: string, categoryId: string | null, cents: number): Expense => (
   amount_cents: cents,
   spent_on: '2026-03-10',
   note: null,
+  recurring_id: null,
   created_at: '2026-03-10T10:00:00Z',
 })
 

@@ -2,6 +2,7 @@ import { lazy, Suspense, useLayoutEffect, useRef, useState } from 'react'
 import { NavLink, Outlet, useLocation, useMatch } from 'react-router-dom'
 import { LogoutIcon, PlusIcon, ThemeToggle } from '@/components/ui'
 import { signOut } from '@/features/auth/useAuth'
+import { useRecurringGeneration } from '@/features/budget/useBudgetExtras'
 import { navItems } from './navItems'
 import type { QuickAddTab } from './QuickAdd'
 import { ShortcutsHelp } from './ShortcutsHelp'
@@ -67,6 +68,8 @@ export function Layout() {
   const [help, setHelp] = useState(false)
   const plusRef = useRef<HTMLButtonElement>(null)
   const { navRef, indicatorRef } = useNavIndicator(pathname)
+  // Loyer, abonnements, salaire : occurrences du mois créées à l'ouverture de l'app
+  useRecurringGeneration()
 
   function closeQuickAdd() {
     setQuickAdd(null)

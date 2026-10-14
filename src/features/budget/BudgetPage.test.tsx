@@ -1,11 +1,11 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ToastProvider } from '@/components/ui'
-import { monthOf, todayISO } from '@/lib/dates'
+import { addDays, monthOf, todayISO } from '@/lib/dates'
 import * as api from './budgetApi'
 import BudgetPage from './BudgetPage'
-import type { Category } from './types'
+import type { Category, RecurringEntry } from './types'
 
 vi.mock('./budgetApi')
 
@@ -37,7 +37,132 @@ describe('BudgetPage', () => {
       category('c2', 'Loisirs', null, 1),
     ])
     vi.mocked(api.fetchExpenses).mockResolvedValue([])
+    vi.mocked(api.fetchIncomes).mockResolvedValue([])
+    vi.mocked(api.fetchRecurring).mockResolvedValue([])
     vi.mocked(api.insertExpense).mockReturnValue(new Promise<void>(() => {}))
+  })
+
+  it('comprend « 12,50 resto hier » (montant, catégorie, date)', async () => {
+    vi.mocked(api.fetchCategories).mockResolvedValue([
+      category('c1', 'Courses', 30000, 0),
+      category('c2', 'Restaurants', null, 1),
+    ])
+    renderPage()
+    await screen.findByRole('button', { name: 'Restaurants' })
+    await userEvent.type(screen.getByLabelText('Montant en euros'), '12,50 resto hier')
+    expect(screen.getByRole('button', { name: 'Restaurants', pressed: true })).toBeInTheDocument()
+    await userEvent.keyboard('{Enter}')
+
+    expect(api.insertExpense).toHaveBeenCalledWith(
+      expect.objectContaining({
+        amount_cents: 1250,
+        category_id: 'c2',
+        spent_on: addDays(todayISO(), -1),
+        note: null,
+      }),
+    )
+  })
+
+  it('ajoute un revenu avec « + » et affiche le solde', async () => {
+    vi.mocked(api.insertIncome).mockReturnValue(new Promise<void>(() => {}))
+    renderPage()
+    await screen.findByRole('button', { name: 'Courses' })
+    await userEvent.type(screen.getByLabelText('Montant en euros'), '+2400 salaire{Enter}')
+
+    expect(api.insertIncome).toHaveBeenCalledWith(
+      expect.objectContaining({ amount_cents: 240000, note: 'salaire', received_on: todayISO() }),
+    )
+    expect(api.insertExpense).not.toHaveBeenCalled()
+    expect(await screen.findByText(/Revenus 2\s400,00/)).toBeInTheDocument()
+    expect(screen.getByText('salaire')).toBeInTheDocument()
+  })
+
+  it('crée une dépense récurrente depuis le gestionnaire', async () => {
+    const server: RecurringEntry[] = []
+    vi.mocked(api.fetchRecurring).mockImplementation(async () => [...server])
+    vi.mocked(api.insertRecurring).mockImplementation(async (rule) => {
+      server.push(rule)
+    })
+    renderPage()
+    await screen.findByRole('button', { name: 'Courses' })
+    await userEvent.click(screen.getByText('Dépenses et revenus récurrents'))
+    await userEvent.type(screen.getByLabelText('Montant récurrent'), '900')
+    const day = screen.getByLabelText('Jour du mois')
+    await userEvent.clear(day)
+    await userEvent.type(day, '5')
+    await userEvent.type(screen.getByLabelText('Note récurrente'), 'Loyer{Enter}')
+
+    expect(api.insertRecurring).toHaveBeenCalledWith(
+      expect.objectContaining({
+        kind: 'expense',
+        amount_cents: 90000,
+        day_of_month: 5,
+        note: 'Loyer',
+        active: true,
+      }),
+    )
+    expect(await screen.findByLabelText('Montant de « Loyer »')).toHaveValue('900,00')
+  })
+
+  it('« Répéter chaque mois » sur une dépense crée la règle sans doublon', async () => {
+    const today = todayISO()
+    vi.mocked(api.fetchExpenses).mockResolvedValue([
+      {
+        id: 'e1',
+        category_id: 'c2',
+        amount_cents: 1399,
+        spent_on: today,
+        note: 'Netflix',
+        recurring_id: null,
+        created_at: '',
+      },
+    ])
+    vi.mocked(api.insertRecurring).mockResolvedValue()
+    vi.mocked(api.patchExpense).mockResolvedValue()
+    renderPage()
+    await userEvent.click(
+      await screen.findByRole('button', { name: /Modifier la dépense de 13,99/ }),
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Répéter chaque mois' }))
+
+    expect(api.insertRecurring).toHaveBeenCalledWith(
+      expect.objectContaining({
+        amount_cents: 1399,
+        note: 'Netflix',
+        start_on: today,
+        last_generated_on: today,
+      }),
+    )
+    const rule = vi.mocked(api.insertRecurring).mock.calls[0]![0]
+    await waitFor(() =>
+      expect(api.patchExpense).toHaveBeenCalledWith('e1', { recurring_id: rule.id }),
+    )
+  })
+
+  it('supprime une catégorie puis l’annule (les dépenses y sont rattachées de nouveau)', async () => {
+    let server = [category('c1', 'Courses', 30000, 0), category('c2', 'Loisirs', null, 1)]
+    vi.mocked(api.fetchCategories).mockImplementation(async () => [...server])
+    vi.mocked(api.fetchExpenseIdsByCategory).mockResolvedValue(['e1', 'e2'])
+    vi.mocked(api.removeCategory).mockImplementation(async (id) => {
+      server = server.filter((c) => c.id !== id)
+    })
+    vi.mocked(api.insertCategories).mockImplementation(async (added) => {
+      server = [...server, ...added]
+    })
+    vi.mocked(api.setExpensesCategory).mockResolvedValue()
+    renderPage()
+    await screen.findByRole('button', { name: 'Courses' })
+    await userEvent.click(screen.getByText('Catégories et budgets'))
+    await userEvent.click(screen.getByRole('button', { name: 'Supprimer la catégorie Loisirs' }))
+
+    await waitFor(() => expect(api.removeCategory).toHaveBeenCalledWith('c2'))
+    expect(screen.queryByRole('button', { name: 'Loisirs' })).not.toBeInTheDocument()
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Annuler' }))
+    await waitFor(() =>
+      expect(api.insertCategories).toHaveBeenCalledWith([category('c2', 'Loisirs', null, 1)]),
+    )
+    await waitFor(() => expect(api.setExpensesCategory).toHaveBeenCalledWith(['e1', 'e2'], 'c2'))
   })
 
   it('saisit une dépense en centimes avec une catégorie et met à jour le total', async () => {

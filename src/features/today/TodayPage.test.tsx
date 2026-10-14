@@ -77,6 +77,7 @@ describe('TodayPage', () => {
         archived: false,
       },
     ])
+    vi.mocked(budgetApi.fetchRecurring).mockResolvedValue([])
     vi.mocked(budgetApi.fetchExpenses).mockResolvedValue([
       {
         id: 'e1',
@@ -84,6 +85,7 @@ describe('TodayPage', () => {
         amount_cents: 10000,
         spent_on: today,
         note: null,
+        recurring_id: null,
         created_at: '',
       },
     ])

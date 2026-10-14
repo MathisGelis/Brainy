@@ -21,6 +21,7 @@ const exp = (
   amount_cents: cents,
   spent_on: day,
   note,
+  recurring_id: null,
   created_at: `${day}T10:00:00Z`,
 })
 

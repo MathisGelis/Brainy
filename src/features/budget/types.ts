@@ -15,11 +15,47 @@ export type Expense = {
   amount_cents: number
   spent_on: string
   note: string | null
+  /** Règle récurrente qui l'a générée, le cas échéant */
+  recurring_id: string | null
   created_at: string
 }
 
+export type Income = {
+  id: string
+  amount_cents: number
+  received_on: string
+  note: string | null
+  recurring_id: string | null
+  created_at: string
+}
+
+export type IncomePatch = Partial<Pick<Income, 'amount_cents' | 'received_on' | 'note'>>
+
+export type EntryKind = 'expense' | 'income'
+
+/** Règle mensuelle (loyer, abonnement, salaire…) qui génère dépenses ou revenus. */
+export type RecurringEntry = {
+  id: string
+  kind: EntryKind
+  amount_cents: number
+  category_id: string | null
+  note: string | null
+  day_of_month: number
+  start_on: string
+  last_generated_on: string | null
+  active: boolean
+  created_at: string
+}
+
+export type RecurringPatch = Partial<
+  Pick<
+    RecurringEntry,
+    'amount_cents' | 'category_id' | 'note' | 'day_of_month' | 'active' | 'last_generated_on'
+  >
+>
+
 export type ExpensePatch = Partial<
-  Pick<Expense, 'category_id' | 'amount_cents' | 'spent_on' | 'note'>
+  Pick<Expense, 'category_id' | 'amount_cents' | 'spent_on' | 'note' | 'recurring_id'>
 >
 
 export type CategorySummary = {

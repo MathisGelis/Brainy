@@ -1,9 +1,11 @@
 import { useRef, useState, type FormEvent } from 'react'
 import { Button } from '@/components/ui'
-import { todayISO } from '@/lib/dates'
-import { parseAmountToCents } from '@/lib/money'
+import { formatDue, todayISO } from '@/lib/dates'
+import { formatCents } from '@/lib/money'
+import { parseEntryInput } from './parseEntryInput'
+import type { NewIncomeInput } from './useBudgetExtras'
 import type { NewExpenseInput } from './useBudget'
-import type { Category } from './types'
+import type { Category, EntryKind } from './types'
 
 const LAST_CATEGORY_KEY = 'cockpit.lastCategory'
 
@@ -23,36 +25,54 @@ function saveLastCategory(id: string | null) {
   }
 }
 
-type Props = { categories: Category[]; onAdd: (expense: NewExpenseInput) => void }
+type Props = {
+  categories: Category[]
+  onAdd: (expense: NewExpenseInput) => void
+  /** Absent : formulaire limité aux dépenses */
+  onAddIncome?: (income: NewIncomeInput) => void
+}
 
-/** Saisie rapide : montant + puces de catégorie (dernière utilisée présélectionnée) + date du jour. */
-export function ExpenseForm({ categories, onAdd }: Props) {
+const chip = 'rounded-full bg-surface px-2.5 py-1 text-xs text-text'
+
+/**
+ * Saisie rapide en langage naturel : « 12,50 resto hier », « +2400 salaire ».
+ * Puces de catégorie (dernière utilisée présélectionnée), date du jour par défaut.
+ */
+export function ExpenseForm({ categories, onAdd, onAddIncome }: Props) {
   const active = categories.filter((c) => !c.archived)
-  const [amount, setAmount] = useState('')
+  const [kind, setKind] = useState<EntryKind>('expense')
+  const [text, setText] = useState('')
   const [chosen, setChosen] = useState<string | null>(readLastCategory)
   const [date, setDate] = useState<string | null>(null)
   const [note, setNote] = useState('')
   const [invalid, setInvalid] = useState(false)
   const amountRef = useRef<HTMLInputElement>(null)
 
-  const categoryId = active.some((c) => c.id === chosen) ? chosen : null
+  const today = todayISO()
+  const parsed = text.trim() ? parseEntryInput(text, categories, today) : null
+  const effectiveKind: EntryKind =
+    parsed?.kind === 'income' || (kind === 'income' && onAddIncome) ? 'income' : 'expense'
+  const chosenId = active.some((c) => c.id === chosen) ? chosen : null
+  const categoryId = parsed?.category_id ?? chosenId
+  const parsedCategory = categories.find((c) => c.id === parsed?.category_id)
 
   function submit(e: FormEvent) {
     e.preventDefault()
-    const cents = parseAmountToCents(amount)
+    const cents = parsed?.amount_cents ?? null
     if (cents === null) {
       setInvalid(true)
       amountRef.current?.focus()
       return
     }
-    onAdd({
-      amount_cents: cents,
-      category_id: categoryId,
-      spent_on: date ?? todayISO(),
-      note: note.trim() || null,
-    })
-    saveLastCategory(categoryId)
-    setAmount('')
+    const when = parsed?.spent_on ?? date ?? today
+    const finalNote = note.trim() || parsed?.note || null
+    if (effectiveKind === 'income' && onAddIncome) {
+      onAddIncome({ amount_cents: cents, received_on: when, note: finalNote })
+    } else {
+      onAdd({ amount_cents: cents, category_id: categoryId, spent_on: when, note: finalNote })
+      saveLastCategory(categoryId)
+    }
+    setText('')
     setNote('')
     setDate(null)
     setInvalid(false)
@@ -61,26 +81,47 @@ export function ExpenseForm({ categories, onAdd }: Props) {
 
   return (
     <form onSubmit={submit} className="mb-6 flex flex-col gap-3">
+      {onAddIncome && (
+        <div
+          role="group"
+          aria-label="Type"
+          className="flex w-fit gap-1 rounded-full bg-surface p-1"
+        >
+          {(['expense', 'income'] as const).map((k) => (
+            <button
+              key={k}
+              type="button"
+              aria-pressed={effectiveKind === k}
+              onClick={() => setKind(k)}
+              className="pill min-h-9 px-4"
+            >
+              {k === 'expense' ? 'Dépense' : 'Revenu'}
+            </button>
+          ))}
+        </div>
+      )}
       <div className="flex flex-wrap items-center gap-2">
         <input
           ref={amountRef}
-          value={amount}
+          value={text}
           onChange={(e) => {
-            setAmount(e.target.value)
+            setText(e.target.value)
             setInvalid(false)
           }}
-          inputMode="decimal"
           aria-label="Montant en euros"
+          aria-describedby="entry-hint"
           aria-invalid={invalid}
-          placeholder="Montant (€)"
+          placeholder={effectiveKind === 'income' ? '2400 salaire' : '12,50 resto hier'}
           autoFocus
-          className={`field min-h-11 w-36 px-4 text-base font-semibold placeholder:font-normal md:min-h-10 ${invalid ? '!border-danger' : ''}`}
+          className={`field min-h-11 min-w-0 flex-1 basis-48 px-4 text-base font-semibold placeholder:font-normal md:min-h-10 ${
+            invalid ? '!border-danger' : ''
+          }`}
         />
         <input
           type="date"
-          value={date ?? todayISO()}
+          value={date ?? today}
           onChange={(e) => setDate(e.target.value || null)}
-          aria-label="Date de la dépense"
+          aria-label="Date"
           className="field min-h-11 px-3 text-muted md:min-h-10"
         />
         <input
@@ -92,24 +133,42 @@ export function ExpenseForm({ categories, onAdd }: Props) {
         />
         <Button type="submit">Ajouter</Button>
       </div>
-      {invalid && (
-        <p role="alert" className="text-danger">
-          Montant invalide. Exemple : 12,50
-        </p>
+      <p id="entry-hint" aria-live="polite" className="flex min-h-7 flex-wrap items-center gap-1.5">
+        {invalid ? (
+          <span role="alert" className="text-danger">
+            Montant invalide. Exemple : 12,50
+          </span>
+        ) : (
+          parsed?.amount_cents != null && (
+            <>
+              <span className="sr-only">Compris :</span>
+              <span className={`${chip} font-semibold`}>
+                {effectiveKind === 'income' ? '+' : ''}
+                {formatCents(parsed.amount_cents)}
+              </span>
+              {effectiveKind === 'income' && <span className={chip}>Revenu</span>}
+              {parsedCategory && <span className={chip}>{parsedCategory.name}</span>}
+              {parsed.spent_on && <span className={chip}>{formatDue(parsed.spent_on, today)}</span>}
+              {parsed.note && <span className={chip}>« {parsed.note} »</span>}
+            </>
+          )
+        )}
+      </p>
+      {effectiveKind === 'expense' && (
+        <div role="group" aria-label="Catégorie" className="flex flex-wrap gap-2">
+          {active.map((c) => (
+            <button
+              key={c.id}
+              type="button"
+              aria-pressed={categoryId === c.id}
+              onClick={() => setChosen(chosenId === c.id ? null : c.id)}
+              className="pill min-h-10 border border-[var(--field-border)] px-4 md:min-h-9"
+            >
+              {c.name}
+            </button>
+          ))}
+        </div>
       )}
-      <div role="group" aria-label="Catégorie" className="flex flex-wrap gap-2">
-        {active.map((c) => (
-          <button
-            key={c.id}
-            type="button"
-            aria-pressed={categoryId === c.id}
-            onClick={() => setChosen(categoryId === c.id ? null : c.id)}
-            className="pill min-h-10 border border-[var(--field-border)] px-4 md:min-h-9"
-          >
-            {c.name}
-          </button>
-        ))}
-      </div>
     </form>
   )
 }

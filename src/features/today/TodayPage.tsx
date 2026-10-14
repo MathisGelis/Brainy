@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom'
 import { BudgetIcon, Checkbox, HabitsIcon, ProgressBar, TodoIcon, useToast } from '@/components/ui'
 import { PageHeader } from '@/components/ui/PageHeader'
+import { projectMonthEnd } from '@/features/budget/recurringLogic'
 import { useBudget } from '@/features/budget/useBudget'
+import { useRecurring } from '@/features/budget/useBudgetExtras'
 import { currentStreak } from '@/features/habits/habitLogic'
 import { useHabits } from '@/features/habits/useHabits'
 import { filterTodos } from '@/features/todos/todoLogic'
@@ -152,10 +154,12 @@ function TodayHabits({ today, onError }: { today: string; onError: (m: string) =
 }
 
 function MonthBudget({ today, onError }: { today: string; onError: (m: string) => void }) {
-  const { summary, isLoading, isError, refetch } = useBudget(monthOf(today), { onError })
+  const { summary, expenses, isLoading, isError, refetch } = useBudget(monthOf(today), { onError })
+  const { rules } = useRecurring({ onError })
   if (isError) return <RetryLine label="le budget" onRetry={refetch} />
   if (isLoading) return skeleton
   const { totalSpent, totalBudget, remaining, over } = summary
+  const projection = projectMonthEnd(expenses, rules, monthOf(today), today)
   return (
     <div className="flex flex-col gap-2">
       <p>
@@ -177,6 +181,13 @@ function MonthBudget({ today, onError }: { today: string; onError: (m: string) =
             {over ? `Dépassement de ${formatCents(-remaining)}` : `Reste ${formatCents(remaining)}`}
           </p>
         </>
+      )}
+      {projection !== null && (
+        <p
+          className={`text-xs ${totalBudget > 0 && projection > totalBudget ? 'text-danger' : 'text-muted'}`}
+        >
+          À ce rythme : {formatCents(projection)} en fin de mois
+        </p>
       )}
     </div>
   )

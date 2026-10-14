@@ -1,14 +1,17 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { monthBounds } from '@/lib/dates'
 import { useOptimisticMutation } from '@/lib/useOptimisticMutation'
 import {
   fetchCategories,
   fetchExpenses,
+  fetchExpenseIdsByCategory,
   insertCategories,
   insertExpense,
   patchCategory,
   patchExpense,
+  removeCategory,
   removeExpense,
+  setExpensesCategory,
 } from './budgetApi'
 import { DEFAULT_CATEGORIES, summarizeMonth } from './budgetLogic'
 import type { Category, CategoryPatch, Expense, ExpensePatch } from './types'
@@ -28,6 +31,7 @@ export function useBudget(
   month: string,
   { onError }: { onError?: (message: string) => void } = {},
 ) {
+  const queryClient = useQueryClient()
   const categoriesQuery = useQuery({ queryKey: CATEGORIES_KEY, queryFn: fetchCategories })
   const expensesQuery = useQuery({
     queryKey: expensesKey(month),
@@ -74,6 +78,22 @@ export function useBudget(
     onError,
   )
 
+  const removeCategoryM = useOptimisticMutation<Category, string>(
+    CATEGORIES_KEY,
+    removeCategory,
+    (list, id) => list.filter((c) => c.id !== id),
+    onError,
+    [['expenses'], ['recurring_entries']],
+  )
+  const relink = useOptimisticMutation<Expense, { ids: string[]; categoryId: string }>(
+    key,
+    ({ ids, categoryId }) => setExpensesCategory(ids, categoryId),
+    (list, { ids, categoryId }) =>
+      list.map((e) => (ids.includes(e.id) ? { ...e, category_id: categoryId } : e)),
+    onError,
+    [['expenses']],
+  )
+
   const categories = categoriesQuery.data ?? []
   const expenses = expensesQuery.data ?? []
 
@@ -99,6 +119,7 @@ export function useBudget(
     addExpense: (input: NewExpenseInput) =>
       addExpenseM.mutate({
         id: crypto.randomUUID(),
+        recurring_id: null,
         created_at: new Date().toISOString(),
         ...input,
       }),
@@ -112,5 +133,20 @@ export function useBudget(
     addDefaultCategories: () =>
       addCategoriesM.mutate(DEFAULT_CATEGORIES.map((name, i) => makeCategory(name, i))),
     updateCategory: (id: string, patch: CategoryPatch) => updateCategoryM.mutate({ id, patch }),
+    /**
+     * Supprime une catégorie ; ses dépenses (tous mois confondus) restent, sans catégorie.
+     * Renvoie l'annulation, qui recrée la catégorie et y rattache de nouveau ces dépenses.
+     */
+    deleteCategory: async (category: Category): Promise<() => void> => {
+      const ids = await fetchExpenseIdsByCategory(category.id)
+      queryClient.setQueriesData<Expense[]>({ queryKey: ['expenses'] }, (old) =>
+        old?.map((e) => (e.category_id === category.id ? { ...e, category_id: null } : e)),
+      )
+      removeCategoryM.mutate(category.id)
+      return () =>
+        addCategoriesM.mutate([category], {
+          onSuccess: () => relink.mutate({ ids, categoryId: category.id }),
+        })
+    },
   }
 }

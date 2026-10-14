@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Button, useToast } from '@/components/ui'
 import { ExpenseForm } from '@/features/budget/ExpenseForm'
 import { useBudget } from '@/features/budget/useBudget'
+import { useIncomes } from '@/features/budget/useBudgetExtras'
 import { useNotes } from '@/features/notes/useNotes'
 import { AddTodoForm } from '@/features/todos/AddTodoForm'
 import { useQuickTodo } from '@/features/todos/useTodos'
@@ -13,7 +14,7 @@ export type QuickAddTab = 'todo' | 'note' | 'expense'
 const TABS: { value: QuickAddTab; label: string }[] = [
   { value: 'todo', label: 'Todo' },
   { value: 'note', label: 'Note' },
-  { value: 'expense', label: 'Dépense' },
+  { value: 'expense', label: 'Budget' },
 ]
 
 function TodoTab() {
@@ -59,15 +60,20 @@ function NoteTab({ onDone }: { onDone: () => void }) {
 
 function ExpenseTab() {
   const toast = useToast()
-  const { categories, addExpense } = useBudget(monthOf(todayISO()), {
-    onError: (m) => toast.show(m),
-  })
+  const month = monthOf(todayISO())
+  const onError = (m: string) => toast.show(m)
+  const { categories, addExpense } = useBudget(month, { onError })
+  const { addIncome } = useIncomes(month, { onError })
   return (
     <ExpenseForm
       categories={categories}
       onAdd={(expense) => {
         addExpense(expense)
         toast.show('Dépense ajoutée')
+      }}
+      onAddIncome={(income) => {
+        addIncome(income)
+        toast.show('Revenu ajouté')
       }}
     />
   )

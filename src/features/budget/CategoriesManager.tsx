@@ -8,10 +8,12 @@ type Props = {
   onAdd: (name: string) => void
   onAddDefaults: () => void
   onUpdate: (id: string, patch: CategoryPatch) => void
+  /** Supprime la catégorie (ses dépenses restent, sans catégorie) */
+  onDelete: (category: Category) => void
 }
 
 /** Gestion discrète : nom, budget mensuel (optionnel) et archivage de chaque catégorie. */
-export function CategoriesManager({ categories, onAdd, onAddDefaults, onUpdate }: Props) {
+export function CategoriesManager({ categories, onAdd, onAddDefaults, onUpdate, onDelete }: Props) {
   const [name, setName] = useState('')
   const field = 'field min-h-11 px-3 md:min-h-10'
 
@@ -73,6 +75,14 @@ export function CategoriesManager({ categories, onAdd, onAddDefaults, onUpdate }
                 className="min-h-11 rounded-full px-3 text-xs text-muted transition-colors hover:text-text md:min-h-9"
               >
                 {c.archived ? 'Restaurer' : 'Archiver'}
+              </button>
+              <button
+                type="button"
+                onClick={() => onDelete(c)}
+                aria-label={`Supprimer la catégorie ${c.name}`}
+                className="min-h-11 rounded-full px-3 text-xs text-muted transition-colors hover:text-danger md:min-h-9"
+              >
+                Supprimer
               </button>
             </li>
           ))}
