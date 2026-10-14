@@ -12,6 +12,7 @@ export const NAV_SHORTCUTS: { key: string; to: string; label: string }[] = [
 ]
 
 export const OTHER_SHORTCUTS: { keys: string; label: string }[] = [
+  { keys: '⌘ K', label: 'Palette : rechercher, aller à, créer (Ctrl K sous Windows)' },
   { keys: 'n', label: 'Ajout rapide (todo, note, dépense)' },
   { keys: '/', label: 'Rechercher dans les notes' },
   { keys: '?', label: 'Afficher les raccourcis' },
@@ -51,7 +52,12 @@ function focusSearch(navigate: NavigateFunction) {
   }, 50)
 }
 
-type Handlers = { onNew: () => void; onHelp: () => void; onEscape: () => void }
+type Handlers = {
+  onNew: () => void
+  onHelp: () => void
+  onEscape: () => void
+  onPalette: () => void
+}
 
 export function useShortcuts(handlers: Handlers) {
   const navigate = useNavigate()
@@ -66,6 +72,12 @@ export function useShortcuts(handlers: Handlers) {
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape') {
         ref.current.onEscape()
+        return
+      }
+      // Cmd/Ctrl+K : fonctionne aussi pendant la saisie
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault()
+        ref.current.onPalette()
         return
       }
       if (e.ctrlKey || e.metaKey || e.altKey || isTypingTarget(e.target)) return

@@ -39,7 +39,7 @@ export default function NotesPage() {
   return (
     <div className="md:grid md:grid-cols-[18rem_1fr] md:gap-8">
       <section aria-label="Liste des notes" className={`${listClass} flex-col gap-3`}>
-        <h1 className="pr-12 text-[28px] leading-tight font-semibold tracking-tight md:pr-0 md:text-[34px]">
+        <h1 className="pr-24 text-[28px] leading-tight font-semibold tracking-tight md:pr-0 md:text-[34px]">
           Notes
         </h1>
         <div className="flex gap-2">

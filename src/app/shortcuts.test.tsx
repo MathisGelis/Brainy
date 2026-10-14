@@ -8,7 +8,20 @@ import { Providers } from './Providers'
 vi.mock('@/lib/supabase', () => {
   const empty = Promise.resolve({ data: [], error: null })
   const builder: Record<string, unknown> = {}
-  for (const m of ['select', 'order', 'gte', 'lt', 'eq', 'range']) builder[m] = () => builder
+  for (const m of [
+    'select',
+    'order',
+    'gte',
+    'lt',
+    'eq',
+    'range',
+    'in',
+    'insert',
+    'update',
+    'delete',
+    'upsert',
+  ])
+    builder[m] = () => builder
   builder.then = (resolve: (v: unknown) => unknown) => empty.then(resolve)
   return {
     supabase: {
@@ -64,5 +77,51 @@ describe('raccourcis clavier', () => {
     await renderApp()
     await userEvent.keyboard('/')
     await waitFor(() => expect(screen.getByLabelText('Rechercher dans les notes')).toHaveFocus())
+  })
+
+  it('Ctrl+K ouvre la palette : recherche puis Entrée pour y aller', async () => {
+    await renderApp()
+    await userEvent.keyboard('{Control>}k{/Control}')
+    const input = await screen.findByRole('combobox', { name: 'Rechercher ou créer' })
+    expect(input).toHaveFocus()
+    await userEvent.type(input, 'budg')
+    expect(screen.getByRole('option', { name: /Aller à Budget/ })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    )
+    await userEvent.keyboard('{Enter}')
+    expect(await screen.findByRole('heading', { name: 'Budget' })).toBeInTheDocument()
+    expect(screen.queryByRole('dialog', { name: 'Palette de commandes' })).not.toBeInTheDocument()
+  })
+
+  it('la palette crée une todo depuis la saisie', async () => {
+    await renderApp()
+    await userEvent.keyboard('{Control>}k{/Control}')
+    const input = await screen.findByRole('combobox', { name: 'Rechercher ou créer' })
+    await userEvent.type(input, 'Appeler Léa demain')
+    expect(screen.getByRole('option', { name: /Créer la todo « Appeler Léa »/ })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    )
+    await userEvent.keyboard('{Enter}')
+    expect(await screen.findByText('Todo ajoutée')).toBeInTheDocument()
+  })
+
+  it('flèches pour naviguer, Échap pour fermer', async () => {
+    await renderApp()
+    await userEvent.keyboard('{Control>}k{/Control}')
+    await screen.findByRole('combobox', { name: 'Rechercher ou créer' })
+    const options = screen.getAllByRole('option')
+    expect(options[0]).toHaveAttribute('aria-selected', 'true')
+    await userEvent.keyboard('{ArrowDown}')
+    expect(screen.getAllByRole('option')[1]).toHaveAttribute('aria-selected', 'true')
+    await userEvent.keyboard('{ArrowUp}{ArrowUp}')
+    expect(screen.getAllByRole('option').at(-1)).toHaveAttribute('aria-selected', 'true')
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('dialog', { name: 'Palette de commandes' }),
+      ).not.toBeInTheDocument(),
+    )
   })
 })

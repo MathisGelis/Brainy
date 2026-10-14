@@ -1,6 +1,6 @@
 import { lazy, Suspense, useLayoutEffect, useRef, useState } from 'react'
 import { NavLink, Outlet, useLocation, useMatch } from 'react-router-dom'
-import { LogoutIcon, PlusIcon, ThemeToggle } from '@/components/ui'
+import { LogoutIcon, PlusIcon, SearchIcon, ThemeToggle } from '@/components/ui'
 import { signOut } from '@/features/auth/useAuth'
 import { useRecurringGeneration } from '@/features/budget/useBudgetExtras'
 import { navItems } from './navItems'
@@ -9,6 +9,7 @@ import { ShortcutsHelp } from './ShortcutsHelp'
 import { useShortcuts } from './shortcuts'
 
 const QuickAdd = lazy(() => import('./QuickAdd'))
+const CommandPalette = lazy(() => import('./palette/CommandPalette'))
 
 /** Type pré-sélectionné selon l'écran courant (valeur par défaut intelligente). */
 function tabFor(pathname: string): QuickAddTab {
@@ -66,6 +67,19 @@ export function Layout() {
   const section = pathname.split('/')[1] ?? ''
   const [quickAdd, setQuickAdd] = useState<QuickAddTab | null>(null)
   const [help, setHelp] = useState(false)
+  const [palette, setPalette] = useState(false)
+  const returnFocus = useRef<HTMLElement | null>(null)
+
+  function openPalette() {
+    returnFocus.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null
+    setQuickAdd(null)
+    setPalette(true)
+  }
+  function closePalette() {
+    setPalette(false)
+    returnFocus.current?.focus()
+  }
   const plusRef = useRef<HTMLButtonElement>(null)
   const { navRef, indicatorRef } = useNavIndicator(pathname)
   // Loyer, abonnements, salaire : occurrences du mois créées à l'ouverture de l'app
@@ -80,9 +94,11 @@ export function Layout() {
     onNew: () => setQuickAdd((current) => current ?? tabFor(pathname)),
     onHelp: () => setHelp((v) => !v),
     onEscape: () => {
+      if (palette) closePalette()
       if (quickAdd) closeQuickAdd()
       setHelp(false)
     },
+    onPalette: () => (palette ? closePalette() : openPalette()),
   })
 
   return (
@@ -98,9 +114,18 @@ export function Layout() {
       {/* Barre latérale (desktop) / barre d'onglets flottante (mobile) */}
       <div className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+10px)] z-40 md:inset-x-auto md:top-4 md:bottom-4 md:left-4 md:w-60">
         <div className="glass flex h-full flex-col rounded-[30px] p-1.5 md:rounded-[28px] md:p-3">
-          <div className="hidden px-3 pt-2 pb-6 md:block">
+          <div className="hidden px-3 pt-2 pb-4 md:block">
             <Brand />
           </div>
+          <button
+            type="button"
+            onClick={openPalette}
+            className="mb-3 hidden min-h-10 items-center gap-2 rounded-2xl border border-[var(--field-border)] bg-bg px-3 text-sm text-muted transition-colors hover:text-text md:flex"
+          >
+            <SearchIcon width={16} height={16} />
+            <span className="flex-1 text-left">Rechercher</span>
+            <kbd className="font-sans text-xs">⌘K</kbd>
+          </button>
           <nav
             ref={navRef}
             aria-label="Navigation principale"
@@ -142,7 +167,15 @@ export function Layout() {
       </div>
 
       {/* Thème sur mobile : en haut à droite */}
-      <div className="fixed top-[calc(env(safe-area-inset-top)+14px)] right-5 z-40 md:hidden">
+      <div className="fixed top-[calc(env(safe-area-inset-top)+14px)] right-5 z-40 flex md:hidden">
+        <button
+          type="button"
+          onClick={openPalette}
+          aria-label="Rechercher"
+          className="flex size-11 items-center justify-center rounded-full text-muted transition-colors hover:text-text"
+        >
+          <SearchIcon />
+        </button>
         <ThemeToggle />
       </div>
 
@@ -177,6 +210,15 @@ export function Layout() {
         </Suspense>
       )}
       {help && <ShortcutsHelp onClose={() => setHelp(false)} />}
+      {palette && (
+        <Suspense fallback={null}>
+          <CommandPalette
+            onClose={closePalette}
+            onQuickAdd={(tab) => setQuickAdd(tab)}
+            onHelp={() => setHelp(true)}
+          />
+        </Suspense>
+      )}
     </div>
   )
 }
