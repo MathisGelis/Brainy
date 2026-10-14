@@ -1,3 +1,4 @@
+import { addDays, startOfWeek } from '@/lib/dates'
 import type { PositionUpdate, Todo, TodoFilter, TodoPatch } from './types'
 
 const byPosition = (a: Todo, b: Todo) =>
@@ -83,16 +84,42 @@ export function focusOf(todos: Todo[], day: string): Todo[] {
 }
 
 /**
- * Suggestions pour le Top 3 : todos ouvertes hors Top 3, en retard ou dues d'abord,
- * puis priorité haute, puis échéances proches, puis l'ordre manuel.
+ * Suggestions pour le Top 3 : todos ouvertes hors Top 3, en retard, dues ou priorités de la semaine
+ * d'abord, puis priorité haute, puis échéances proches, puis l'ordre manuel.
  */
 export function focusCandidates(todos: Todo[], day: string): Todo[] {
+  const week = startOfWeek(day)
   const rank = (t: Todo) =>
-    (t.due_date !== null && t.due_date <= day ? 0 : 4) +
+    ((t.due_date !== null && t.due_date <= day) || t.focus_week === week ? 0 : 4) +
     (t.priority === 'high' ? 0 : 2) +
     (t.due_date !== null ? 0 : 1)
   return todos
     .filter((t) => !t.done && t.focus_on !== day)
+    .sort(
+      (a, b) =>
+        rank(a) - rank(b) ||
+        (a.due_date ?? '9999').localeCompare(b.due_date ?? '9999') ||
+        byPosition(a, b),
+    )
+}
+
+/** Priorités d'une semaine (lundi), faites comprises, dans l'ordre manuel. */
+export function weekFocusOf(todos: Todo[], monday: string): Todo[] {
+  return todos.filter((t) => t.focus_week === monday).sort(byPosition)
+}
+
+/**
+ * Suggestions pour les priorités de la semaine : todos ouvertes hors priorités,
+ * priorité haute et objectif lié d'abord, puis échéance dans la semaine, puis l'ordre manuel.
+ */
+export function weekFocusCandidates(todos: Todo[], monday: string): Todo[] {
+  const sunday = addDays(monday, 6)
+  const rank = (t: Todo) =>
+    (t.priority === 'high' ? 0 : 4) +
+    (t.goal_id !== null ? 0 : 2) +
+    (t.due_date !== null && t.due_date <= sunday ? 0 : 1)
+  return todos
+    .filter((t) => !t.done && t.focus_week !== monday)
     .sort(
       (a, b) =>
         rank(a) - rank(b) ||

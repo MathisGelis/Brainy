@@ -15,6 +15,7 @@ const base: Omit<Todo, 'id' | 'title'> = {
   goal_id: null,
   recurrence: null,
   focus_on: null,
+  focus_week: null,
   done: false,
   done_at: null,
   due_date: null,

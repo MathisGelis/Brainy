@@ -9,6 +9,7 @@ const todo = (over: Partial<Todo>): Todo => ({
   goal_id: null,
   recurrence: null,
   focus_on: null,
+  focus_week: null,
   title: 'T',
   done: false,
   done_at: null,

@@ -48,6 +48,7 @@ describe('ReviewPage', () => {
         priority: 'normal',
         recurrence: null,
         focus_on: null,
+        focus_week: null,
         position: 0,
         created_at: '',
       },
@@ -146,5 +147,28 @@ describe('ReviewPage', () => {
     expect(await within(card).findByText('Dossier rendu')).toBeInTheDocument()
     expect(within(card).queryByText('Semaine d’avant')).toBeNull()
     expect(screen.getByText(/· 1 victoire$/)).toBeInTheDocument()
+  })
+
+  it('montre les priorités de la semaine tenues', async () => {
+    const base = (await todosApi.fetchTodos())[0]!
+    vi.mocked(todosApi.fetchTodos).mockResolvedValue([
+      { ...base, id: 'p1', title: 'Finir le rapport', focus_week: monday, done: true },
+      {
+        ...base,
+        id: 'p2',
+        title: 'Appeler la banque',
+        focus_week: monday,
+        done: false,
+        done_at: null,
+      },
+    ])
+    renderPage()
+    const priorities = await screen.findByRole('region', { name: 'Priorités de la semaine' })
+    expect(within(priorities).getByText('Appeler la banque')).toBeInTheDocument()
+    expect(screen.getByText(/^1\/2 priorités tenues/)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /^Planifier la semaine du/ })).toHaveAttribute(
+      'href',
+      '/semaine',
+    )
   })
 })

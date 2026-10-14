@@ -11,6 +11,7 @@ export const NAV_SHORTCUTS: { key: string; to: string; label: string }[] = [
   { key: 'b', to: '/budget', label: 'Budget' },
   { key: 'c', to: '/calendrier', label: 'Calendrier' },
   { key: 'r', to: '/revue', label: 'Revue de la semaine' },
+  { key: 'p', to: '/semaine', label: 'Planifier la semaine' },
 ]
 
 export const OTHER_SHORTCUTS: { keys: string; label: string }[] = [

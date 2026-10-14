@@ -1,4 +1,12 @@
-import { filterTodos, focusCandidates, focusOf, nextPosition, reorderPositions } from './todoLogic'
+import {
+  filterTodos,
+  focusCandidates,
+  focusOf,
+  nextPosition,
+  reorderPositions,
+  weekFocusCandidates,
+  weekFocusOf,
+} from './todoLogic'
 import type { Todo } from './types'
 
 const TODAY = '2026-03-10'
@@ -10,6 +18,7 @@ function todo(id: string, overrides: Partial<Todo> = {}): Todo {
     goal_id: null,
     recurrence: null,
     focus_on: null,
+    focus_week: null,
     title: id,
     done: false,
     done_at: null,
@@ -135,5 +144,36 @@ describe('Top 3', () => {
       'future',
       'normale-sans-date',
     ])
+  })
+})
+
+describe('priorités de la semaine', () => {
+  const MONDAY = '2026-10-12'
+  const todos = [
+    todo('choisie', { focus_week: MONDAY, position: 3 }),
+    todo('autre-semaine', { focus_week: '2026-10-05' }),
+    todo('haute', { priority: 'high', position: 2 }),
+    todo('objectif', { goal_id: 'g1', position: 1 }),
+    todo('cette-semaine', { due_date: '2026-10-15', position: 0 }),
+    todo('plus-tard', { due_date: '2026-11-20', position: 0 }),
+    todo('faite', { done: true, priority: 'high' }),
+  ]
+
+  it('retrouve les priorités de la semaine', () => {
+    expect(ids(weekFocusOf(todos, MONDAY))).toEqual(['choisie'])
+  })
+
+  it('suggère : priorité haute, puis objectif lié, puis échéance dans la semaine', () => {
+    expect(ids(weekFocusCandidates(todos, MONDAY))).toEqual([
+      'haute',
+      'objectif',
+      'cette-semaine',
+      'plus-tard',
+      'autre-semaine',
+    ])
+  })
+
+  it('le Top 3 du jour suggère d’abord les priorités de la semaine', () => {
+    expect(ids(focusCandidates(todos, '2026-10-14'))[0]).toBe('choisie')
   })
 })

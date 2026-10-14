@@ -62,6 +62,7 @@ describe('GoalsPage', () => {
         priority: 'normal',
         recurrence: null,
         focus_on: null,
+        focus_week: null,
         position: 0,
         created_at: '',
       },

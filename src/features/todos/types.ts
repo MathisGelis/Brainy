@@ -13,6 +13,8 @@ export type Todo = {
   recurrence: string | null
   /** Jour pour lequel la todo fait partie du Top 3 */
   focus_on: string | null
+  /** Lundi de la semaine pour laquelle la todo est une des 3 priorités */
+  focus_week: string | null
   position: number
   created_at: string
 }
@@ -30,6 +32,7 @@ export type TodoPatch = Partial<
     | 'goal_id'
     | 'recurrence'
     | 'focus_on'
+    | 'focus_week'
   >
 >
 

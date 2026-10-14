@@ -9,7 +9,7 @@ import * as habitsApi from '@/features/habits/habitsApi'
 import * as notesApi from '@/features/notes/notesApi'
 import * as goalsApi from '@/features/goals/goalsApi'
 import * as todosApi from '@/features/todos/todosApi'
-import { addDays, todayISO } from '@/lib/dates'
+import { addDays, startOfWeek, todayISO } from '@/lib/dates'
 import TodayPage from './TodayPage'
 
 vi.mock('@/features/checkins/checkinsApi')
@@ -26,6 +26,7 @@ const baseTodo = {
   goal_id: null,
   recurrence: null,
   focus_on: null,
+  focus_week: null,
   done: false,
   done_at: null,
   priority: 'normal' as const,
@@ -227,5 +228,32 @@ describe('TodayPage', () => {
       done: true,
       done_at: expect.any(String),
     })
+  })
+
+  it('rappelle les priorités de la semaine, cochables', async () => {
+    vi.mocked(todosApi.fetchTodos).mockResolvedValue([
+      {
+        ...baseTodo,
+        id: 'w1',
+        title: 'Finir le rapport',
+        due_date: null,
+        focus_week: startOfWeek(today),
+      },
+      {
+        ...baseTodo,
+        id: 'w2',
+        title: 'Semaine passée',
+        due_date: null,
+        focus_week: addDays(startOfWeek(today), -7),
+      },
+    ])
+    renderPage()
+    const card = await screen.findByRole('region', { name: 'Priorités de la semaine' })
+    expect(within(card).getByText('Finir le rapport')).toBeInTheDocument()
+    expect(within(card).queryByText('Semaine passée')).toBeNull()
+    await userEvent.click(
+      within(card).getByRole('checkbox', { name: 'Terminer « Finir le rapport »' }),
+    )
+    expect(todosApi.patchTodo).toHaveBeenCalledWith('w1', expect.objectContaining({ done: true }))
   })
 })

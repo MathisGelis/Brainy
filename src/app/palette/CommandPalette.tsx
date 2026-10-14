@@ -104,6 +104,13 @@ export default function CommandPalette({ onClose, onQuickAdd, onHelp }: Props) {
       run: go('/revue'),
     },
     {
+      id: 'plan-week',
+      group: 'Commandes',
+      label: 'Planifier la semaine',
+      keywords: 'dimanche priorités organiser répartir',
+      run: go('/semaine'),
+    },
+    {
       id: 'calendar',
       group: 'Commandes',
       label: 'Calendrier',

@@ -1,6 +1,5 @@
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button, useToast } from '@/components/ui'
+import { useToast } from '@/components/ui'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { DayWin } from '@/features/checkins/DayWin'
 import { MoodEnergy } from '@/features/checkins/MoodEnergy'
@@ -11,6 +10,7 @@ import { celebrate } from '@/lib/celebrate'
 import { addDays, todayISO } from '@/lib/dates'
 import { markEveningRitualDone } from '@/lib/ritual'
 import { rowClass, TodayHabits } from './parts'
+import { StepFlow } from './StepFlow'
 import { TopThree } from './TopThree'
 
 const small =
@@ -63,7 +63,6 @@ export default function RitualPage() {
   const onError = (m: string) => toast.show(m)
   const today = todayISO()
   const tomorrow = addDays(today, 1)
-  const [step, setStep] = useState(0)
 
   const steps = [
     {
@@ -89,8 +88,6 @@ export default function RitualPage() {
       ),
     },
   ]
-  const last = step === steps.length - 1
-
   function finish() {
     markEveningRitualDone(today)
     celebrate(1.2)
@@ -101,37 +98,7 @@ export default function RitualPage() {
   return (
     <>
       <PageHeader title="Rituel du soir" />
-      <ol aria-label="Étapes" className="-mt-3 mb-5 flex gap-1.5">
-        {steps.map((s, i) => (
-          <li
-            key={s.title}
-            aria-current={i === step ? 'step' : undefined}
-            className={`h-1.5 flex-1 rounded-full ${i <= step ? 'bg-accent' : 'bg-surface'}`}
-          >
-            <span className="sr-only">
-              Étape {i + 1} sur {steps.length} : {s.title}
-            </span>
-          </li>
-        ))}
-      </ol>
-      <section aria-labelledby="ritual-step" className="card mb-5 p-5">
-        <h2 id="ritual-step" className="mb-3 font-semibold">
-          {steps[step]!.title}
-        </h2>
-        {steps[step]!.body}
-      </section>
-      <div className="flex items-center justify-between gap-2">
-        <button
-          type="button"
-          onClick={() => (step === 0 ? navigate('/') : setStep(step - 1))}
-          className="min-h-11 rounded-full px-4 text-muted transition-colors hover:bg-surface hover:text-text"
-        >
-          {step === 0 ? 'Plus tard' : 'Précédent'}
-        </button>
-        <Button onClick={() => (last ? finish() : setStep(step + 1))}>
-          {last ? 'Terminer' : 'Suivant'}
-        </Button>
-      </div>
+      <StepFlow steps={steps} onFinish={finish} />
     </>
   )
 }

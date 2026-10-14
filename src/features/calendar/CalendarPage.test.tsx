@@ -27,6 +27,7 @@ const facture: Todo = {
   goal_id: null,
   recurrence: null,
   focus_on: null,
+  focus_week: null,
   title: 'Payer la facture',
   done: false,
   done_at: null,

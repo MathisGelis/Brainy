@@ -14,6 +14,7 @@ const todo = (id: string, extra: Partial<Todo>): Todo => ({
   priority: 'normal',
   recurrence: null,
   focus_on: null,
+  focus_week: null,
   position: 0,
   created_at: '',
   ...extra,

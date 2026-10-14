@@ -18,12 +18,13 @@ import { goalProgress, milestonesOf, nextMilestone } from '@/features/goals/goal
 import type { Goal, Milestone } from '@/features/goals/types'
 import { useGoals } from '@/features/goals/useGoals'
 import { useRecurring } from '@/features/budget/useBudgetExtras'
-import { filterTodos } from '@/features/todos/todoLogic'
+import { isPlanningTime, planningMonday } from '@/features/planning/planningLogic'
+import { filterTodos, weekFocusOf } from '@/features/todos/todoLogic'
 import type { Todo } from '@/features/todos/types'
 import { useTodos } from '@/features/todos/useTodos'
 import { celebrate } from '@/lib/celebrate'
-import { addDays, formatDayMonth, monthOf, parisHour, todayISO } from '@/lib/dates'
-import { eveningRitualDoneOn } from '@/lib/ritual'
+import { addDays, formatDayMonth, monthOf, parisHour, startOfWeek, todayISO } from '@/lib/dates'
+import { eveningRitualDoneOn, weekPlannedFor } from '@/lib/ritual'
 import { isoWeekday } from '@/lib/naturalDate'
 import { formatCents } from '@/lib/money'
 import type { ComponentType, ReactNode, SVGProps } from 'react'
@@ -118,6 +119,51 @@ function TodayTodos({ today, onError }: { today: string; onError: (m: string) =>
         </li>
       ))}
     </ul>
+  )
+}
+
+/** Rappel des priorités de la semaine (planifiées le dimanche), cochables. */
+function WeekPriorities({ today, onError }: { today: string; onError: (m: string) => void }) {
+  const toast = useToast()
+  const { todos, completeTodo, setDone } = useTodos({ onError })
+  const items = weekFocusOf(todos, startOfWeek(today))
+  if (items.length === 0) return null
+  const done = items.filter((t) => t.done).length
+  return (
+    <section aria-labelledby="week-priorities" className="card mb-4 flex flex-col gap-1 p-4">
+      <div className="flex items-center justify-between">
+        <h2 id="week-priorities" className="text-xs font-semibold text-muted uppercase">
+          Priorités de la semaine
+        </h2>
+        <span
+          className={`text-xs ${done === items.length ? 'font-semibold text-accent' : 'text-muted'}`}
+        >
+          {done}/{items.length}
+        </span>
+      </div>
+      <ul>
+        {items.map((todo) => (
+          <li key={todo.id} className="flex items-center gap-2">
+            <Checkbox
+              hideLabel
+              label={`Terminer « ${todo.title} »`}
+              checked={todo.done}
+              onChange={() => {
+                if (todo.done) return setDone(todo.id, false)
+                celebrate(0.8)
+                toast.show('Priorité de la semaine terminée', completeTodo(todo))
+              }}
+            />
+            <span className={`min-w-0 flex-1 ${todo.done ? 'text-muted line-through' : ''}`}>
+              {todo.title}
+            </span>
+            {todo.due_date && !todo.done && (
+              <span className="text-xs text-muted">{formatDayMonth(todo.due_date)}</span>
+            )}
+          </li>
+        ))}
+      </ul>
+    </section>
   )
 }
 
@@ -252,6 +298,7 @@ export default function TodayPage() {
         <DailyNoteButton today={today} onError={onError} />
       </div>
       <TopThree day={today} onError={onError} />
+      <WeekPriorities today={today} onError={onError} />
       <section aria-label="Humeur et énergie du jour" className="card mb-4 p-4">
         <MoodEnergy day={today} onError={onError} title="Comment ça va ?" />
       </section>
@@ -264,6 +311,26 @@ export default function TodayPage() {
             <span className="font-semibold">Rituel du soir</span>
             <span className="block text-xs text-muted">
               30 secondes pour boucler la journée et préparer demain
+            </span>
+          </span>
+          <span aria-hidden className="text-accent">
+            →
+          </span>
+        </Link>
+      )}
+      {isPlanningTime(today) && weekPlannedFor() !== planningMonday(today) && (
+        <Link
+          to="/semaine"
+          className="card mb-4 flex min-h-14 items-center justify-between gap-3 p-4 transition-colors hover:bg-surface"
+        >
+          <span>
+            <span className="font-semibold">
+              {planningMonday(today) === startOfWeek(today)
+                ? 'Planifier cette semaine'
+                : 'Planifier la semaine prochaine'}
+            </span>
+            <span className="block text-xs text-muted">
+              Reprendre ce qui traîne, choisir 3 priorités, répartir sur les jours
             </span>
           </span>
           <span aria-hidden className="text-accent">

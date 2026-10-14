@@ -2,32 +2,65 @@ import { useState, type FormEvent } from 'react'
 import { Checkbox, useToast } from '@/components/ui'
 import { parseTodoInput } from '@/features/todos/parseTodoInput'
 import { serializeRecurrence } from '@/features/todos/recurrence'
-import { FOCUS_MAX, focusCandidates, focusOf } from '@/features/todos/todoLogic'
+import {
+  FOCUS_MAX,
+  focusCandidates,
+  focusOf,
+  weekFocusCandidates,
+  weekFocusOf,
+} from '@/features/todos/todoLogic'
 import type { Todo } from '@/features/todos/types'
 import { useQuickTodo, useTodos } from '@/features/todos/useTodos'
 import { celebrate } from '@/lib/celebrate'
-import { parisHour } from '@/lib/dates'
+import { parisHour, todayISO } from '@/lib/dates'
 
-type Props = {
-  /** Jour du Top 3 (aujourd'hui, ou demain dans le rituel du soir) */
-  day: string
-  onError: (m: string) => void
-  title?: string
-  /** Invitation affichée quand le Top 3 est vide */
-  prompt?: string
+/** Top 3 d'un jour, ou priorités d'une semaine (lundi). */
+export type FocusScope = { kind: 'day'; day: string } | { kind: 'week'; monday: string }
+
+const WORDS = {
+  day: {
+    add: (t: string) => `Ajouter « ${t} » au Top 3`,
+    remove: (t: string) => `Retirer « ${t} » du Top 3`,
+    group: 'Suggestions pour le Top 3',
+    done: 'Top 3 bouclé. Bravo !',
+    one: 'Priorité terminée',
+  },
+  week: {
+    add: (t: string) => `Ajouter « ${t} » aux priorités de la semaine`,
+    remove: (t: string) => `Retirer « ${t} » des priorités de la semaine`,
+    group: 'Suggestions pour la semaine',
+    done: 'Semaine bouclée. Bravo !',
+    one: 'Priorité de la semaine terminée',
+  },
 }
 
-/** Les 3 priorités d'un jour : choisies parmi les suggestions ou tapées directement. */
-export function TopThree({ day, onError, title = 'Top 3 du jour', prompt }: Props) {
+type PickerProps = {
+  scope: FocusScope
+  onError: (m: string) => void
+  title: string
+  /** Invitation affichée quand la liste est vide */
+  prompt: string
+}
+
+/** 3 priorités choisies parmi les suggestions ou tapées directement. */
+export function FocusPicker({ scope, onError, title, prompt }: PickerProps) {
   const toast = useToast()
-  const { todos, isLoading, completeTodo, setDone, setFocus } = useTodos({ onError })
+  const { todos, isLoading, completeTodo, setDone, setFocus, setWeekFocus } = useTodos({
+    onError,
+  })
   const addQuick = useQuickTodo({ onError })
   const [text, setText] = useState('')
+  const words = WORDS[scope.kind]
+  const key = scope.kind === 'day' ? scope.day : scope.monday
 
-  const focus = focusOf(todos, day)
-  const candidates = focusCandidates(todos, day).slice(0, 5)
+  const focus = scope.kind === 'day' ? focusOf(todos, key) : weekFocusOf(todos, key)
+  const candidates = (
+    scope.kind === 'day' ? focusCandidates(todos, key) : weekFocusCandidates(todos, key)
+  ).slice(0, 5)
   const room = FOCUS_MAX - focus.length
   const done = focus.filter((t) => t.done).length
+  const pick = (id: string, value: string | null) =>
+    scope.kind === 'day' ? setFocus(id, value) : setWeekFocus(id, value)
 
   function toggle(todo: Todo) {
     if (todo.done) {
@@ -37,34 +70,29 @@ export function TopThree({ day, onError, title = 'Top 3 du jour', prompt }: Prop
     const undo = completeTodo(todo)
     const finished = done + 1 === focus.length && focus.length === FOCUS_MAX
     celebrate(finished ? 1.6 : 0.8)
-    toast.show(finished ? 'Top 3 bouclé. Bravo !' : 'Priorité terminée', undo)
+    toast.show(finished ? words.done : words.one, undo)
   }
 
   function add(e: FormEvent) {
     e.preventDefault()
     if (!text.trim() || room <= 0) return
-    const parsed = parseTodoInput(text, day)
+    const parsed = parseTodoInput(text, scope.kind === 'day' ? key : todayISO())
     addQuick({
       title: parsed.title,
-      due_date: parsed.due_date ?? day,
+      // une priorité du jour est pour ce jour ; celle de la semaine se place ensuite sur un jour
+      due_date: parsed.due_date ?? (scope.kind === 'day' ? key : null),
       priority: parsed.priority,
       recurrence: serializeRecurrence(parsed.recurrence),
       listName: parsed.listName,
-      focus_on: day,
+      ...(scope.kind === 'day' ? { focus_on: key } : { focus_week: key }),
     })
     setText('')
   }
 
-  const greeting =
-    prompt ??
-    (parisHour() < 12
-      ? 'Bonjour ! Quelles sont vos 3 priorités aujourd’hui ?'
-      : 'Quelles sont vos 3 priorités ?')
-
   return (
-    <section aria-labelledby={`top3-${day}`} className="card mb-4 flex flex-col gap-3 p-5">
+    <section aria-labelledby={`focus-${key}`} className="card mb-4 flex flex-col gap-3 p-5">
       <div className="flex items-center justify-between">
-        <h2 id={`top3-${day}`} className="font-semibold">
+        <h2 id={`focus-${key}`} className="font-semibold">
           {title}
         </h2>
         {focus.length > 0 && (
@@ -80,7 +108,7 @@ export function TopThree({ day, onError, title = 'Top 3 du jour', prompt }: Prop
         <div aria-hidden className="h-12 animate-pulse rounded-2xl bg-surface" />
       ) : (
         <>
-          {focus.length === 0 && <p className="text-muted">{greeting}</p>}
+          {focus.length === 0 && <p className="text-muted">{prompt}</p>}
           {focus.length > 0 && (
             <ol className="flex flex-col">
               {focus.map((todo, i) => (
@@ -104,8 +132,8 @@ export function TopThree({ day, onError, title = 'Top 3 du jour', prompt }: Prop
                   </span>
                   <button
                     type="button"
-                    onClick={() => setFocus(todo.id, null)}
-                    aria-label={`Retirer « ${todo.title} » du Top 3`}
+                    onClick={() => pick(todo.id, null)}
+                    aria-label={words.remove(todo.title)}
                     className="min-h-11 min-w-11 rounded-full text-muted transition-colors hover:text-danger md:min-h-9 md:min-w-9"
                   >
                     ×
@@ -115,23 +143,19 @@ export function TopThree({ day, onError, title = 'Top 3 du jour', prompt }: Prop
             </ol>
           )}
           {focus.length === FOCUS_MAX && done === FOCUS_MAX && (
-            <p className="font-semibold text-accent">Top 3 bouclé. Bravo !</p>
+            <p className="font-semibold text-accent">{words.done}</p>
           )}
 
           {room > 0 && (
             <>
               {candidates.length > 0 && (
-                <div
-                  role="group"
-                  aria-label="Suggestions pour le Top 3"
-                  className="flex flex-wrap gap-1.5"
-                >
+                <div role="group" aria-label={words.group} className="flex flex-wrap gap-1.5">
                   {candidates.map((t) => (
                     <button
                       key={t.id}
                       type="button"
-                      onClick={() => setFocus(t.id, day)}
-                      aria-label={`Ajouter « ${t.title} » au Top 3`}
+                      onClick={() => pick(t.id, key)}
+                      aria-label={words.add(t.title)}
                       className="pill min-h-9 max-w-full truncate border border-[var(--field-border)] px-3 text-xs"
                     >
                       + {t.title}
@@ -153,5 +177,25 @@ export function TopThree({ day, onError, title = 'Top 3 du jour', prompt }: Prop
         </>
       )}
     </section>
+  )
+}
+
+type Props = {
+  /** Jour du Top 3 (aujourd'hui, ou demain dans le rituel du soir) */
+  day: string
+  onError: (m: string) => void
+  title?: string
+  prompt?: string
+}
+
+/** Les 3 priorités d'un jour. */
+export function TopThree({ day, onError, title = 'Top 3 du jour', prompt }: Props) {
+  const greeting =
+    prompt ??
+    (parisHour() < 12
+      ? 'Bonjour ! Quelles sont vos 3 priorités aujourd’hui ?'
+      : 'Quelles sont vos 3 priorités ?')
+  return (
+    <FocusPicker scope={{ kind: 'day', day }} onError={onError} title={title} prompt={greeting} />
   )
 }

@@ -17,6 +17,8 @@ import { useCheckins } from '@/features/checkins/useCheckins'
 import { useExpensesBetween } from '@/features/budget/useBudgetExtras'
 import { useGoals } from '@/features/goals/useGoals'
 import { useDaysOff, useHabits } from '@/features/habits/useHabits'
+import { planningMonday } from '@/features/planning/planningLogic'
+import { weekFocusOf } from '@/features/todos/todoLogic'
 import { useTodos } from '@/features/todos/useTodos'
 import {
   addDays,
@@ -234,7 +236,12 @@ export default function ReviewPage() {
   const nav =
     'flex min-h-11 min-w-11 items-center justify-center rounded-full text-muted transition-colors hover:bg-surface hover:text-text disabled:opacity-30 md:min-h-10 md:min-w-10'
 
+  const priorities = weekFocusOf(todos, monday)
+  const prioritiesDone = priorities.filter((t) => t.done).length
+  const nextToPlan = planningMonday(today)
+
   const summary = [
+    priorities.length > 0 ? `${prioritiesDone}/${priorities.length} priorités tenues` : null,
     `${review.todosDone.length} todo${review.todosDone.length > 1 ? 's' : ''} terminée${review.todosDone.length > 1 ? 's' : ''}`,
     review.habitRate !== null ? `${Math.round(review.habitRate * 100)} % des habitudes` : null,
     `${formatCents(review.spent)} dépensés`,
@@ -270,6 +277,26 @@ export default function ReviewPage() {
 
       <div className="grid gap-4 md:grid-cols-2">
         <Card title="Todos" icon={<TodoIcon width={18} height={18} />}>
+          {priorities.length > 0 && (
+            <section aria-label="Priorités de la semaine" className="mb-1">
+              <h3 className="mb-1 text-xs font-semibold text-muted uppercase">
+                Priorités de la semaine
+              </h3>
+              <ul className="flex flex-col gap-1">
+                {priorities.map((t) => (
+                  <li key={t.id} className="flex gap-2">
+                    <span className={t.done ? 'text-accent' : 'text-muted'}>
+                      {t.done ? '★' : '☆'}
+                    </span>
+                    <span className={`min-w-0 flex-1 truncate ${t.done ? '' : 'text-muted'}`}>
+                      {t.title}
+                    </span>
+                    <span className="sr-only">{t.done ? 'tenue' : 'pas tenue'}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
           {review.todosDone.length === 0 ? (
             <p className="text-muted">Aucune todo terminée cette semaine.</p>
           ) : (
@@ -354,6 +381,24 @@ export default function ReviewPage() {
         <WinsCard wins={wins} />
         <MoodCard monday={monday} checkins={checkins} links={links} />
       </div>
+      {nextToPlan > monday && (
+        <Link
+          to="/semaine"
+          className="card mt-4 flex min-h-14 items-center justify-between gap-3 p-4 transition-colors hover:bg-surface"
+        >
+          <span>
+            <span className="font-semibold">
+              Planifier la semaine du {formatDayMonth(nextToPlan)}
+            </span>
+            <span className="block text-xs text-muted">
+              Reprendre ce qui traîne, choisir 3 priorités, répartir sur les jours
+            </span>
+          </span>
+          <span aria-hidden className="text-accent">
+            →
+          </span>
+        </Link>
+      )}
     </>
   )
 }

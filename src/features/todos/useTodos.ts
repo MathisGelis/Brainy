@@ -30,6 +30,7 @@ export type NewTodoInput = {
   list_id?: string | null
   goal_id?: string | null
   focus_on?: string | null
+  focus_week?: string | null
 }
 
 export function useTodos({ onError }: Options = {}) {
@@ -83,6 +84,7 @@ export function useTodos({ onError }: Options = {}) {
     priority: input.priority ?? 'normal',
     recurrence: input.recurrence ?? null,
     focus_on: input.focus_on ?? null,
+    focus_week: input.focus_week ?? null,
     position,
     created_at: new Date().toISOString(),
   })
@@ -139,6 +141,9 @@ export function useTodos({ onError }: Options = {}) {
     },
     /** Place la todo dans le Top 3 d'un jour (null : l'en retire). */
     setFocus: (id: string, day: string | null) => update.mutate({ id, patch: { focus_on: day } }),
+    /** Place la todo parmi les priorités d'une semaine (lundi ; null : l'en retire). */
+    setWeekFocus: (id: string, monday: string | null) =>
+      update.mutate({ id, patch: { focus_week: monday } }),
     /** Reporte l'échéance (« Demain », « Lundi »…). */
     snoozeTodo: (id: string, due_date: string) => update.mutate({ id, patch: { due_date } }),
     deleteTodo: (id: string) => remove.mutate(id),
