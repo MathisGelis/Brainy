@@ -1,9 +1,9 @@
 import { lazy, Suspense, useLayoutEffect, useRef, useState } from 'react'
 import { NavLink, Outlet, useLocation, useMatch } from 'react-router-dom'
-import { LogoutIcon, PlusIcon, SearchIcon, ThemeToggle } from '@/components/ui'
+import { CalendarIcon, LogoutIcon, PlusIcon, SearchIcon, ThemeToggle } from '@/components/ui'
 import { signOut } from '@/features/auth/useAuth'
 import { useRecurringGeneration } from '@/features/budget/useBudgetExtras'
-import { navItems } from './navItems'
+import { navItems, secondaryNavItems } from './navItems'
 import type { QuickAddTab } from './QuickAdd'
 import { ShortcutsHelp } from './ShortcutsHelp'
 import { useShortcuts } from './shortcuts'
@@ -152,6 +152,25 @@ export function Layout() {
               </NavLink>
             ))}
           </nav>
+          <nav
+            aria-label="Vues"
+            className="mt-3 hidden flex-col gap-1 border-t border-border pt-3 md:flex"
+          >
+            {secondaryNavItems.map(({ to, label, icon: Icon }) => (
+              <NavLink
+                key={to}
+                to={to}
+                className={({ isActive }) =>
+                  `flex min-h-10 items-center gap-3 rounded-2xl px-3 text-sm transition-colors ${
+                    isActive ? 'bg-surface font-semibold text-accent' : 'text-muted hover:text-text'
+                  }`
+                }
+              >
+                <Icon width={20} height={20} />
+                <span>{label}</span>
+              </NavLink>
+            ))}
+          </nav>
           <div className="mt-auto hidden items-center justify-between border-t border-border pt-3 md:flex">
             <ThemeToggle />
             <button
@@ -176,6 +195,17 @@ export function Layout() {
         >
           <SearchIcon />
         </button>
+        <NavLink
+          to="/calendrier"
+          aria-label="Calendrier"
+          className={({ isActive }) =>
+            `flex size-11 items-center justify-center rounded-full transition-colors ${
+              isActive ? 'text-accent' : 'text-muted hover:text-text'
+            }`
+          }
+        >
+          <CalendarIcon />
+        </NavLink>
         <ThemeToggle />
       </div>
 

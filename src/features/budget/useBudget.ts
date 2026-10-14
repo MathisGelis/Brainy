@@ -18,6 +18,8 @@ import type { Category, CategoryPatch, Expense, ExpensePatch } from './types'
 
 export const CATEGORIES_KEY = ['expense_categories'] as const
 export const expensesKey = (month: string) => ['expenses', month] as const
+/** Dépenses sur une période (calendrier, revue) : à rafraîchir après chaque changement */
+const RANGE_KEY = ['expenses', 'range'] as const
 
 export type NewExpenseInput = {
   amount_cents: number
@@ -48,6 +50,7 @@ export function useBudget(
     insertExpense,
     (list, e) => (inMonth(e) ? [...list, e].sort(byDateDesc) : list),
     onError,
+    [RANGE_KEY],
   )
   const updateExpenseM = useOptimisticMutation<Expense, { id: string; patch: ExpensePatch }>(
     key,
@@ -58,12 +61,14 @@ export function useBudget(
         .filter(inMonth)
         .sort(byDateDesc),
     onError,
+    [RANGE_KEY],
   )
   const deleteExpenseM = useOptimisticMutation<Expense, string>(
     key,
     removeExpense,
     (list, id) => list.filter((e) => e.id !== id),
     onError,
+    [RANGE_KEY],
   )
   const addCategoriesM = useOptimisticMutation<Category, Category[]>(
     CATEGORIES_KEY,

@@ -22,9 +22,19 @@ export function RetryLine({ label, onRetry }: { label: string; onRetry: () => un
   )
 }
 
-/** Ouvre (ou crée) la note du jour, taguée « journal ». */
-/** Habitudes du jour : case à cocher, ou compteur pour une habitude chiffrée. */
-export function TodayHabits({ today, onError }: { today: string; onError: (m: string) => void }) {
+/**
+ * Habitudes d'un jour : case à cocher, ou compteur pour une habitude chiffrée.
+ * Par défaut aujourd'hui ; le calendrier l'utilise pour un jour passé (`dayLabel` : « le 12 octobre »).
+ */
+export function TodayHabits({
+  today,
+  onError,
+  dayLabel,
+}: {
+  today: string
+  onError: (m: string) => void
+  dayLabel?: string
+}) {
   const { habits, entries, isLoading, isError, refetch, toggleDay, setAmount } = useHabits({
     onError,
   })
@@ -47,7 +57,9 @@ export function TodayHabits({ today, onError }: { today: string; onError: (m: st
   return (
     <>
       {off && (
-        <p className="text-xs text-muted">Jour off : vos séries sont en pause aujourd'hui.</p>
+        <p className="text-xs text-muted">
+          Jour off : vos séries sont en pause {dayLabel ?? "aujourd'hui"}.
+        </p>
       )}
       <ul>
         {active.map((habit) => {
@@ -97,7 +109,7 @@ export function TodayHabits({ today, onError }: { today: string; onError: (m: st
               ) : (
                 <Checkbox
                   hideLabel
-                  label={`${habit.name} fait aujourd'hui`}
+                  label={`${habit.name} fait ${dayLabel ?? "aujourd'hui"}`}
                   checked={done}
                   onChange={() => {
                     if (!done) celebrate()
@@ -106,7 +118,7 @@ export function TodayHabits({ today, onError }: { today: string; onError: (m: st
                 />
               )}
               <span className="min-w-0 flex-1">{habit.name}</span>
-              {streak.count > 0 && (
+              {!dayLabel && streak.count > 0 && (
                 <span className="text-xs text-muted">
                   {streak.count} {streak.unit === 'day' ? 'j' : 'sem.'}
                 </span>

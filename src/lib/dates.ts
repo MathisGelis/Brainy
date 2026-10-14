@@ -64,6 +64,14 @@ const dayMonth = new Intl.DateTimeFormat('fr-FR', {
 export const formatWeekdayShort = (iso: string) => weekdayShort.format(toDate(iso)).replace('.', '')
 export const formatMonthLabel = (month: string) => monthLong.format(toDate(`${month}-01`))
 export const formatDayMonth = (iso: string) => dayMonth.format(toDate(iso))
+const longDay = new Intl.DateTimeFormat('fr-FR', {
+  weekday: 'long',
+  day: 'numeric',
+  month: 'long',
+  timeZone: 'UTC',
+})
+/** « mercredi 14 octobre » */
+export const formatLongDay = (iso: string) => longDay.format(toDate(iso))
 
 /** Nombre de jours de `from` à `to` (jours ISO). */
 export function daysBetween(from: string, to: string): number {

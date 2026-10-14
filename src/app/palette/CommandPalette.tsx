@@ -102,6 +102,13 @@ export default function CommandPalette({ onClose, onQuickAdd, onHelp }: Props) {
       run: go('/revue'),
     },
     {
+      id: 'calendar',
+      group: 'Commandes',
+      label: 'Calendrier',
+      keywords: 'mois agenda jour planning',
+      run: go('/calendrier'),
+    },
+    {
       id: 'top3',
       group: 'Commandes',
       label: 'Top 3 du jour',

@@ -67,6 +67,20 @@ export const BudgetIcon = (p: P) => (
   </Icon>
 )
 
+export const CalendarIcon = (p: P) => (
+  <Icon {...p}>
+    <rect x="3.5" y="5" width="17" height="15.5" rx="3.5" />
+    <path d="M3.5 10h17M8 3v4M16 3v4" />
+    <circle cx="12" cy="15" r="1.3" fill="currentColor" stroke="none" />
+  </Icon>
+)
+
+export const ReviewIcon = (p: P) => (
+  <Icon {...p}>
+    <path d="M5 20v-7M12 20V5M19 20v-10" />
+  </Icon>
+)
+
 export const PlusIcon = (p: P) => (
   <Icon strokeWidth="2.2" {...p}>
     <path d="M12 5v14M5 12h14" />
