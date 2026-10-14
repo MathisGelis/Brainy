@@ -26,11 +26,11 @@ _Reste pour plus tard : liste/projet par todo (champ `list_id` déjà en base), 
 - [x] Vue détail avec heatmap annuelle
 
 ## Phase 3 — Budget
-- [ ] Catégories + budgets mensuels
-- [ ] Saisie rapide de dépense (montant, puces de catégorie, date)
-- [ ] Vue mensuelle : total, reste, barres par catégorie, navigation par mois
-- [ ] Liste des dépenses éditable
-- [ ] Tests des calculs (centimes, dépassement, mois)
+- [x] Catégories + budgets mensuels
+- [x] Saisie rapide de dépense (montant, puces de catégorie, date)
+- [x] Vue mensuelle : total, reste, barres par catégorie, navigation par mois
+- [x] Liste des dépenses éditable
+- [x] Tests des calculs (centimes, dépassement, mois)
 
 ## Phase 4 — Notes
 - [ ] Liste + éditeur Markdown avec sauvegarde auto
