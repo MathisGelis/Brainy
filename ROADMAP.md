@@ -12,10 +12,12 @@ Avancer phase par phase. Cocher les tâches au fur et à mesure. Chaque phase do
 - [x] `.env.example`, README minimal
 
 ## Phase 1 — Todo (le plus simple, pose les patterns)
-- [ ] Hook `useTodos` (TanStack Query, optimiste)
-- [ ] Ajout rapide, cochage avec toast « Annuler », édition inline
-- [ ] Échéance, priorité, filtres, réordonnancement
-- [ ] Tests unitaires du hook et du filtrage
+- [x] Hook `useTodos` (TanStack Query, optimiste)
+- [x] Ajout rapide, cochage avec toast « Annuler », édition inline
+- [x] Échéance, priorité, filtres, réordonnancement
+- [x] Tests unitaires du hook et du filtrage
+
+_Reste pour plus tard : liste/projet par todo (champ `list_id` déjà en base), voir Backlog._
 
 ## Phase 2 — Habitudes
 - [ ] CRUD habitudes, archivage
@@ -51,4 +53,5 @@ Avancer phase par phase. Cocher les tâches au fur et à mesure. Chaque phase do
 - Dépenses récurrentes et revenus
 - PWA installable (hors-ligne léger)
 - Revue hebdomadaire
+- Listes/projets pour les todos (`todo_lists`, spec PRODUCT.md)
 - Liens entre éléments (todo ↔ objectif, note ↔ objectif)
