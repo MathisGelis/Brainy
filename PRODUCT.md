@@ -20,6 +20,9 @@ Barre latérale (desktop) / barre d'onglets en bas (mobile) :
 
 ### Aujourd'hui (page d'accueil)
 Vue synthèse en lecture + actions rapides :
+- Top 3 du jour : les 3 priorités choisies le matin (ou la veille au soir), en tête de page
+- Rituel du matin (choisir le Top 3) et du soir (habitudes, reports, Top 3 de demain), en 30 secondes
+- Humeur et énergie du jour (1 à 5) en un geste
 - Todos du jour (cochables, report en un geste)
 - Habitudes du jour (cochables ; quantité pour les habitudes chiffrées)
 - Prochain jalon de chaque objectif en cours (cochable)
@@ -63,12 +66,14 @@ Vue synthèse en lecture + actions rapides :
 - Vue mensuelle : total dépensé, reste, barre par catégorie, navigation mois précédent/suivant
 - Rythme : projection de fin de mois et variation par catégorie par rapport au mois précédent
 - Revenus du mois et solde (revenus − dépenses)
-- Récurrences (loyer, abonnements, salaire) : générées automatiquement chaque mois, modifiables et supprimables
+- Récurrences (loyer, abonnements, salaire) : générées automatiquement chaque mois, modifiables et supprimables ; créées directement depuis la saisie (« ↻ Chaque mois » ou « 900 loyer le 5 tous les mois »)
+- Cagnottes d'épargne : cible, versements et retraits, objectif lié ; l'épargne du mois est déduite du solde
 - Liste des dépenses et revenus du mois avec édition/suppression
 
 ### Transverse
 - Palette de commandes `Cmd/Ctrl+K` : aller à un onglet, créer, rechercher dans tout
-- Revue de la semaine : todos faites, habitudes, dépenses, jalons atteints
+- Revue de la semaine : todos faites, habitudes, dépenses, jalons atteints, humeur et énergie (avec liens simples : « les jours de sport, énergie +0,8 »)
+- Calendrier : vue du mois (échéances, habitudes, dépenses, jalons, humeur) ; le détail d'un jour est actionnable
 - Tout élément créé est modifiable et supprimable (avec « Annuler » quand c'est possible)
 
 ## Hors périmètre v1
