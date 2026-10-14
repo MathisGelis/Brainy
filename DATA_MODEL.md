@@ -123,6 +123,7 @@ create policy "own rows" on goals for all
 ## Évolutions (migrations suivantes, uniquement des ajouts)
 - `0002_enrichissements.sql` (phase 7) : récurrence et objectif lié sur `todos` ; jours précis, objectif chiffré et objectif lié sur `habits` (`habit_logs.amount`) ; `habit_days_off` ; `goal_milestones.done_at` ; `recurring_entries` (dépenses et revenus mensuels), `incomes`, `expenses.recurring_id` (une occurrence par règle et par date).
 - `0003_rituels_epargne.sql` (phase 8) : `todos.focus_on` (jour où la todo fait partie du Top 3) ; `day_checkins` (humeur et énergie 1–5, une saisie par jour) ; `savings_goals` (cagnotte : nom, cible, objectif lié, archivage) et `savings_moves` (versement > 0, retrait < 0 ; le solde est leur somme, l'épargne nette du mois est déduite du solde du budget).
+- `0004_victoires_semaine.sql` (phase 9) : `day_checkins.win` (victoire du jour, 280 caractères max) ; `todos.focus_week` (lundi de la semaine pour laquelle la todo est une des 3 priorités).
 
 ## Notes de modélisation
 - La progression d'un objectif est **calculée** (jalons faits / total), pas stockée.

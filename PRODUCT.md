@@ -21,14 +21,15 @@ Barre latérale (desktop) / barre d'onglets en bas (mobile) :
 ### Aujourd'hui (page d'accueil)
 Vue synthèse en lecture + actions rapides :
 - Top 3 du jour : les 3 priorités choisies le matin (ou la veille au soir), en tête de page
-- Rituel du matin (choisir le Top 3) et du soir (habitudes, reports, Top 3 de demain), en 30 secondes
+- Rituel du matin (choisir le Top 3) et du soir (humeur, victoire du jour, habitudes, reports, Top 3 de demain), en 30 secondes
+- Priorités de la semaine (3 todos) rappelées sous le Top 3
 - Humeur et énergie du jour (1 à 5) en un geste
 - Todos du jour (cochables, report en un geste)
 - Habitudes du jour (cochables ; quantité pour les habitudes chiffrées)
 - Prochain jalon de chaque objectif en cours (cochable)
 - Budget du mois : dépensé / budget, barre de progression
 - Note du jour (journal) en un clic
-- Le dimanche : accès à la revue de la semaine
+- Le dimanche : accès à la revue de la semaine ; du vendredi au lundi : planification de la semaine
 - Un bouton « + » global (raccourci `n`) : ajouter todo, note ou dépense
 
 ### Objectifs
@@ -62,6 +63,7 @@ Vue synthèse en lecture + actions rapides :
 
 ### Budget (dépenses & budgets)
 - Saisie rapide d'une dépense : montant, catégorie (puces), date (défaut aujourd'hui), note optionnelle ; en langage naturel : « 12,50 resto hier »
+- Catégorie devinée d'après l'historique (« 45 carrefour » → Courses si c'est l'habitude) ; un choix manuel prime toujours
 - Catégories avec budget mensuel optionnel
 - Vue mensuelle : total dépensé, reste, barre par catégorie, navigation mois précédent/suivant
 - Rythme : projection de fin de mois et variation par catégorie par rapport au mois précédent
@@ -72,7 +74,8 @@ Vue synthèse en lecture + actions rapides :
 
 ### Transverse
 - Palette de commandes `Cmd/Ctrl+K` : aller à un onglet, créer, rechercher dans tout
-- Revue de la semaine : todos faites, habitudes, dépenses, jalons atteints, humeur et énergie (avec liens simples : « les jours de sport, énergie +0,8 »)
+- Revue de la semaine : priorités tenues, todos faites, habitudes, dépenses, jalons atteints, victoires, humeur et énergie (avec liens simples : « les jours de sport, énergie +0,8 »)
+- Planification de la semaine (rituel du dimanche) : reprendre ce qui traîne, choisir 3 priorités, répartir les todos sans date sur les jours
 - Calendrier : vue du mois (échéances, habitudes, dépenses, jalons, humeur) ; le détail d'un jour est actionnable
 - Tout élément créé est modifiable et supprimable (avec « Annuler » quand c'est possible)
 
