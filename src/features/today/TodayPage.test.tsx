@@ -52,6 +52,10 @@ describe('TodayPage', () => {
         id: 'h1',
         name: 'Lecture',
         target_per_week: 7,
+        days: null,
+        goal_amount: null,
+        unit: null,
+        goal_id: null,
         archived: false,
         position: 0,
         created_at: '',
@@ -60,13 +64,18 @@ describe('TodayPage', () => {
         id: 'h2',
         name: 'Ancienne',
         target_per_week: 7,
+        days: null,
+        goal_amount: null,
+        unit: null,
+        goal_id: null,
         archived: true,
         position: 1,
         created_at: '',
       },
     ])
     vi.mocked(habitsApi.fetchLogs).mockResolvedValue([])
-    vi.mocked(habitsApi.insertLog).mockReturnValue(new Promise<void>(() => {}))
+    vi.mocked(habitsApi.fetchDaysOff).mockResolvedValue([])
+    vi.mocked(habitsApi.insertLogs).mockReturnValue(new Promise<void>(() => {}))
     vi.mocked(budgetApi.fetchCategories).mockResolvedValue([
       {
         id: 'c1',
@@ -105,9 +114,9 @@ describe('TodayPage', () => {
     expect(screen.queryByText('Ancienne')).not.toBeInTheDocument()
     await userEvent.click(box)
     await waitFor(() => expect(box).toBeChecked())
-    expect(habitsApi.insertLog).toHaveBeenCalledWith(
-      expect.objectContaining({ habit_id: 'h1', day: today }),
-    )
+    expect(habitsApi.insertLogs).toHaveBeenCalledWith([
+      expect.objectContaining({ habit_id: 'h1', amount: null, day: today }),
+    ])
   })
 
   it('résume le budget du mois', async () => {
@@ -115,5 +124,39 @@ describe('TodayPage', () => {
     const section = await screen.findByRole('region', { name: 'Budget du mois' })
     expect(await within(section).findByText(/Reste/)).toHaveTextContent(/300,00/)
     expect(within(section).getByRole('progressbar')).toHaveAttribute('aria-valuenow', '25')
+  })
+
+  it('incrémente une habitude chiffrée avec le compteur', async () => {
+    vi.mocked(habitsApi.fetchHabits).mockResolvedValue([
+      {
+        id: 'h3',
+        name: 'Eau',
+        target_per_week: 7,
+        days: null,
+        goal_amount: 8,
+        unit: 'verres',
+        goal_id: null,
+        archived: false,
+        position: 0,
+        created_at: '',
+      },
+    ])
+    let server: { id: string; habit_id: string; day: string; amount: number | null }[] = []
+    vi.mocked(habitsApi.fetchLogs).mockImplementation(async () => [...server])
+    vi.mocked(habitsApi.insertLogs).mockImplementation(async (logs) => {
+      server = [...server, ...logs]
+    })
+    vi.mocked(habitsApi.updateLogAmount).mockImplementation(async (habitId, day, amount) => {
+      server = server.map((l) => (l.habit_id === habitId && l.day === day ? { ...l, amount } : l))
+    })
+    renderPage()
+    const plus = await screen.findByRole('button', { name: 'Ajouter 1 verres à « Eau »' })
+    await userEvent.click(plus)
+    await waitFor(() => expect(screen.getByText('1/8')).toBeInTheDocument())
+    expect(habitsApi.insertLogs).toHaveBeenCalledWith([
+      expect.objectContaining({ habit_id: 'h3', amount: 1 }),
+    ])
+    await userEvent.click(plus)
+    await waitFor(() => expect(habitsApi.updateLogAmount).toHaveBeenCalledWith('h3', today, 2))
   })
 })

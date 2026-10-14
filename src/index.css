@@ -465,3 +465,17 @@ button:active > .habit-dot {
 ::view-transition-new(root) {
   animation-duration: 0.45s;
 }
+
+/* Habitudes chiffrées : anneau de progression, et jours off */
+.habit-dot[data-partial] {
+  border-color: transparent;
+  background:
+    radial-gradient(circle, var(--bg) 52%, transparent 54%),
+    conic-gradient(var(--accent) calc(var(--ratio) * 1turn), var(--surface) 0);
+}
+.habit-dot[data-off] {
+  border-style: dashed;
+}
+.heat-partial {
+  background: color-mix(in srgb, var(--accent) calc(var(--ratio) * 100%), var(--surface));
+}
