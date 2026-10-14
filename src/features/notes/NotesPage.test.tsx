@@ -92,4 +92,22 @@ describe('NotesPage', () => {
     expect(title).toHaveValue('')
     expect(title).toHaveFocus()
   })
+
+  it('coche une case de liste directement dans l’aperçu (et sauvegarde)', async () => {
+    vi.mocked(api.fetchNotes).mockResolvedValue([note('n3', 'Courses', '- [ ] Pain\n- [x] Lait')])
+    renderAt('/notes/n3')
+    await userEvent.click(await screen.findByRole('button', { name: 'Aperçu' }))
+    const pain = screen.getByRole('checkbox', { name: 'Pain' })
+    expect(pain).not.toBeChecked()
+    expect(screen.getByRole('checkbox', { name: 'Lait' })).toBeChecked()
+
+    await userEvent.click(pain)
+    expect(screen.getByRole('checkbox', { name: 'Pain' })).toBeChecked()
+    await waitFor(
+      () => expect(api.patchNote).toHaveBeenCalledWith('n3', { content: '- [x] Pain\n- [x] Lait' }),
+      {
+        timeout: 2000,
+      },
+    )
+  })
 })

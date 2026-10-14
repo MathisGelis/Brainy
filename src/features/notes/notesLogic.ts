@@ -49,3 +49,29 @@ export function snippet(content: string, max = 80): string {
   if (!line) return ''
   return line.length > max ? `${line.slice(0, max)}…` : line
 }
+
+const TASK = /^(\s*(?:[-*+]|\d+[.)])\s+)\[( |x|X)\]/
+
+/** Coche ou décoche la case `- [ ]` de la ligne `line` (1-indexée) ; texte inchangé sinon. */
+export function toggleTaskLine(content: string, line: number): string {
+  const lines = content.split('\n')
+  const current = lines[line - 1]
+  if (current === undefined || !TASK.test(current)) return content
+  lines[line - 1] = current.replace(
+    TASK,
+    (_m, prefix: string, mark: string) => `${prefix}[${mark === ' ' ? 'x' : ' '}]`,
+  )
+  return lines.join('\n')
+}
+
+/** Titre de la note du jour : « Journal — mercredi 14 octobre 2026 ». */
+export function dailyNoteTitle(today: string): string {
+  const label = new Intl.DateTimeFormat('fr-FR', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(`${today}T12:00:00Z`))
+  return `Journal — ${label}`
+}

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Markdown } from './Markdown'
-import { parseTags } from './notesLogic'
+import { parseTags, toggleTaskLine } from './notesLogic'
 import type { Note, NotePatch } from './types'
 
 /** Délai entre la dernière frappe et la sauvegarde automatique. */
@@ -128,7 +128,14 @@ export function NoteEditor({ note, onSave, onTogglePin, onDelete }: Props) {
       {preview ? (
         <div className="card min-h-64 p-4">
           {content.trim() ? (
-            <Markdown>{content}</Markdown>
+            <Markdown
+              onToggleTask={(line) => {
+                setContent((c) => toggleTaskLine(c, line))
+                setDirty(true)
+              }}
+            >
+              {content}
+            </Markdown>
           ) : (
             <p className="text-muted">Note vide.</p>
           )}

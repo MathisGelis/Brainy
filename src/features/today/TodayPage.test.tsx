@@ -5,6 +5,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { ToastProvider } from '@/components/ui'
 import * as budgetApi from '@/features/budget/budgetApi'
 import * as habitsApi from '@/features/habits/habitsApi'
+import * as notesApi from '@/features/notes/notesApi'
 import * as todosApi from '@/features/todos/todosApi'
 import { addDays, todayISO } from '@/lib/dates'
 import TodayPage from './TodayPage'
@@ -12,6 +13,7 @@ import TodayPage from './TodayPage'
 vi.mock('@/features/todos/todosApi')
 vi.mock('@/features/habits/habitsApi')
 vi.mock('@/features/budget/budgetApi')
+vi.mock('@/features/notes/notesApi')
 vi.mock('@/features/auth/useAuth', () => ({ signOut: vi.fn() }))
 
 const today = todayISO()
@@ -74,6 +76,7 @@ describe('TodayPage', () => {
       },
     ])
     vi.mocked(habitsApi.fetchLogs).mockResolvedValue([])
+    vi.mocked(notesApi.fetchNotes).mockResolvedValue([])
     vi.mocked(habitsApi.fetchDaysOff).mockResolvedValue([])
     vi.mocked(habitsApi.insertLogs).mockReturnValue(new Promise<void>(() => {}))
     vi.mocked(budgetApi.fetchCategories).mockResolvedValue([
@@ -158,5 +161,19 @@ describe('TodayPage', () => {
     ])
     await userEvent.click(plus)
     await waitFor(() => expect(habitsApi.updateLogAmount).toHaveBeenCalledWith('h3', today, 2))
+  })
+
+  it('crée la note du jour, puis la retrouve au lieu d’en créer une autre', async () => {
+    vi.mocked(notesApi.insertNote).mockReturnValue(new Promise<void>(() => {}))
+    renderPage()
+    const button = await screen.findByRole('button', { name: 'Note du jour' })
+    await waitFor(() => expect(button).toBeEnabled())
+    await userEvent.click(button)
+    expect(notesApi.insertNote).toHaveBeenCalledTimes(1)
+    expect(notesApi.insertNote).toHaveBeenCalledWith(
+      expect.objectContaining({ title: expect.stringMatching(/^Journal — /), tags: ['journal'] }),
+    )
+    await userEvent.click(button)
+    expect(notesApi.insertNote).toHaveBeenCalledTimes(1)
   })
 })

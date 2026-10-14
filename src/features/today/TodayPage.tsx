@@ -1,8 +1,17 @@
-import { Link } from 'react-router-dom'
-import { BudgetIcon, Checkbox, HabitsIcon, ProgressBar, TodoIcon, useToast } from '@/components/ui'
+import { Link, useNavigate } from 'react-router-dom'
+import {
+  BudgetIcon,
+  Checkbox,
+  HabitsIcon,
+  NotesIcon,
+  ProgressBar,
+  TodoIcon,
+  useToast,
+} from '@/components/ui'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { projectMonthEnd } from '@/features/budget/recurringLogic'
 import { useBudget } from '@/features/budget/useBudget'
+import { useNotes } from '@/features/notes/useNotes'
 import { useRecurring } from '@/features/budget/useBudgetExtras'
 import { currentStreak, isDayDone, isScheduled } from '@/features/habits/habitLogic'
 import { useDaysOff, useHabits } from '@/features/habits/useHabits'
@@ -261,6 +270,23 @@ function RetryLine({ label, onRetry }: { label: string; onRetry: () => unknown }
   )
 }
 
+/** Ouvre (ou crée) la note du jour, taguée « journal ». */
+function DailyNoteButton({ today, onError }: { today: string; onError: (m: string) => void }) {
+  const navigate = useNavigate()
+  const { openDailyNote, isLoading } = useNotes({ onError })
+  return (
+    <button
+      type="button"
+      disabled={isLoading}
+      onClick={() => navigate(`/notes/${openDailyNote(today)}`)}
+      className="flex min-h-11 items-center gap-2 rounded-full border border-[var(--field-border)] bg-bg px-4 text-sm transition-colors hover:bg-surface disabled:opacity-50 md:min-h-9"
+    >
+      <NotesIcon width={16} height={16} />
+      Note du jour
+    </button>
+  )
+}
+
 export default function TodayPage() {
   const toast = useToast()
   const today = todayISO()
@@ -275,7 +301,10 @@ export default function TodayPage() {
   return (
     <>
       <PageHeader title="Aujourd'hui" />
-      <p className="-mt-4 mb-6 text-muted first-letter:uppercase">{dateLabel}</p>
+      <div className="-mt-4 mb-6 flex flex-wrap items-center justify-between gap-2">
+        <p className="text-muted first-letter:uppercase">{dateLabel}</p>
+        <DailyNoteButton today={today} onError={onError} />
+      </div>
       <div className="grid gap-4 md:grid-cols-2">
         <Section title="Todos du jour" to="/todo" icon={TodoIcon}>
           <TodayTodos today={today} onError={onError} />

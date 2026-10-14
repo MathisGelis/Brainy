@@ -1,4 +1,12 @@
-import { filterNotes, normalize, parseTags, snippet, sortNotes } from './notesLogic'
+import {
+  dailyNoteTitle,
+  filterNotes,
+  normalize,
+  parseTags,
+  snippet,
+  sortNotes,
+  toggleTaskLine,
+} from './notesLogic'
 import type { Note } from './types'
 
 const note = (id: string, overrides: Partial<Note> = {}): Note => ({
@@ -69,5 +77,27 @@ describe('snippet / normalize', () => {
 
   it('retire les accents', () => {
     expect(normalize('Éléphant')).toBe('elephant')
+  })
+})
+
+describe('toggleTaskLine', () => {
+  const md = '# Courses\n\n- [ ] Pain\n- [x] Lait\n  1. [ ] Sous-tâche\n- Pas une case'
+
+  it('coche et décoche la bonne ligne', () => {
+    expect(toggleTaskLine(md, 3)).toContain('- [x] Pain')
+    expect(toggleTaskLine(md, 4)).toContain('- [ ] Lait')
+    expect(toggleTaskLine(md, 5)).toContain('  1. [x] Sous-tâche')
+  })
+
+  it('ne touche à rien hors d’une case', () => {
+    expect(toggleTaskLine(md, 1)).toBe(md)
+    expect(toggleTaskLine(md, 6)).toBe(md)
+    expect(toggleTaskLine(md, 99)).toBe(md)
+  })
+})
+
+describe('dailyNoteTitle', () => {
+  it('nomme la note du jour', () => {
+    expect(dailyNoteTitle('2026-10-14')).toBe('Journal — mercredi 14 octobre 2026')
   })
 })
