@@ -6,11 +6,11 @@
   --surface: #f6f6f7;
   --border: #e4e4e7;
   --text: #18181b;
-  --muted: #71717a;
+  --muted: #6b6b74;
   --accent: #4f46e5;
   --accent-fg: #ffffff;
   --success: #16a34a;
-  --danger: #dc2626;
+  --danger: #c81e1e;
   color-scheme: light;
 }
 

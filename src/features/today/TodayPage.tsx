@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { ProgressBar, useToast } from '@/components/ui'
+import { Checkbox, ProgressBar, useToast } from '@/components/ui'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { useBudget } from '@/features/budget/useBudget'
 import { currentStreak } from '@/features/habits/habitLogic'
@@ -33,8 +33,6 @@ function Section({ title, to, children }: { title: string; to: string; children:
 
 const skeleton = <div aria-hidden className="h-16 animate-pulse rounded bg-surface" />
 const rowClass = 'flex items-center gap-1 border-b border-border last:border-b-0'
-const checkboxLabel =
-  'flex min-h-11 min-w-11 shrink-0 cursor-pointer items-center justify-center md:min-h-9 md:min-w-9'
 
 function TodayTodos({ today, onError }: { today: string; onError: (m: string) => void }) {
   const toast = useToast()
@@ -55,15 +53,12 @@ function TodayTodos({ today, onError }: { today: string; onError: (m: string) =>
     <ul>
       {dueToday.map((todo) => (
         <li key={todo.id} className={rowClass}>
-          <label className={checkboxLabel}>
-            <input
-              type="checkbox"
-              checked={todo.done}
-              onChange={() => onToggle(todo)}
-              aria-label={`Terminer « ${todo.title} »`}
-              className="size-5 cursor-pointer accent-[var(--accent)]"
-            />
-          </label>
+          <Checkbox
+            hideLabel
+            label={`Terminer « ${todo.title} »`}
+            checked={todo.done}
+            onChange={() => onToggle(todo)}
+          />
           <span className={`min-w-0 flex-1 ${todo.priority === 'high' ? 'font-semibold' : ''}`}>
             {todo.title}
           </span>
@@ -99,15 +94,12 @@ function TodayHabits({ today, onError }: { today: string; onError: (m: string) =
         const streak = currentStreak(days, today, habit.target_per_week)
         return (
           <li key={habit.id} className={rowClass}>
-            <label className={checkboxLabel}>
-              <input
-                type="checkbox"
-                checked={days.has(today)}
-                onChange={() => toggleDay(habit.id, today)}
-                aria-label={`${habit.name} fait aujourd'hui`}
-                className="size-5 cursor-pointer accent-[var(--accent)]"
-              />
-            </label>
+            <Checkbox
+              hideLabel
+              label={`${habit.name} fait aujourd'hui`}
+              checked={days.has(today)}
+              onChange={() => toggleDay(habit.id, today)}
+            />
             <span className="min-w-0 flex-1">{habit.name}</span>
             {streak.count > 0 && (
               <span className="text-xs text-muted">

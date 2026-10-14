@@ -2,6 +2,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Button, useToast } from '@/components/ui'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { todayISO } from '@/lib/dates'
+import { useDocumentTitle } from '@/lib/useDocumentTitle'
 import { HabitStats } from './HabitWeekRow'
 import { Heatmap } from './Heatmap'
 import { TargetSelect } from './TargetSelect'
@@ -16,6 +17,7 @@ export default function HabitDetailPage() {
   })
   const habit = habits.find((h) => h.id === habitId)
   const today = todayISO()
+  useDocumentTitle(habit?.name ?? 'Habitudes')
 
   if (isLoading) return <div aria-hidden className="h-24 animate-pulse rounded bg-surface" />
   if (!habit) {

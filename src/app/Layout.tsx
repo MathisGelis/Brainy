@@ -41,6 +41,13 @@ export function Layout() {
   })
   return (
     <div className="min-h-dvh md:grid md:grid-cols-[14rem_1fr]">
+      <button
+        type="button"
+        onClick={() => document.getElementById('contenu')?.focus()}
+        className="sr-only z-50 rounded bg-accent px-4 py-2 text-accent-fg focus:not-sr-only focus:fixed focus:top-2 focus:left-2"
+      >
+        Aller au contenu
+      </button>
       <nav
         aria-label="Navigation principale"
         className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-6 border-t border-border bg-bg pb-[env(safe-area-inset-bottom)] md:static md:flex md:flex-col md:gap-1 md:border-t-0 md:border-r md:p-4"
@@ -68,7 +75,9 @@ export function Layout() {
         </button>
       </nav>
       <main
-        className={`mx-auto w-full px-4 pt-6 pb-40 md:px-8 md:pb-24 ${wide ? 'max-w-5xl' : 'max-w-3xl'}`}
+        id="contenu"
+        tabIndex={-1}
+        className={`mx-auto w-full px-4 pt-6 focus:outline-none pb-40 md:px-8 md:pb-24 ${wide ? 'max-w-5xl' : 'max-w-3xl'}`}
       >
         <Outlet />
       </main>

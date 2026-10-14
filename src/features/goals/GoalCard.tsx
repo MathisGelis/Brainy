@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { ProgressBar } from '@/components/ui'
+import { Checkbox, ProgressBar } from '@/components/ui'
 import { formatDayMonth } from '@/lib/dates'
 import { HORIZONS, STATUSES, goalProgress } from './goalLogic'
 import type { Goal, GoalPatch, GoalStatus, Horizon, Milestone, MilestonePatch } from './types'
@@ -27,15 +27,12 @@ function MilestoneRow({
 }) {
   return (
     <li className="flex items-center gap-1">
-      <label className="flex min-h-11 min-w-11 shrink-0 cursor-pointer items-center justify-center md:min-h-9 md:min-w-9">
-        <input
-          type="checkbox"
-          checked={milestone.done}
-          onChange={() => onUpdate(milestone.id, { done: !milestone.done })}
-          aria-label={`Jalon « ${milestone.title} » fait`}
-          className="size-5 cursor-pointer accent-[var(--accent)]"
-        />
-      </label>
+      <Checkbox
+        hideLabel
+        label={`Jalon « ${milestone.title} » fait`}
+        checked={milestone.done}
+        onChange={() => onUpdate(milestone.id, { done: !milestone.done })}
+      />
       <input
         key={milestone.title}
         defaultValue={milestone.title}

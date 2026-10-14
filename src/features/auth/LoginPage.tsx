@@ -1,12 +1,14 @@
 import { useState, type FormEvent } from 'react'
 import { Navigate } from 'react-router-dom'
 import { Button, Input } from '@/components/ui'
+import { useDocumentTitle } from '@/lib/useDocumentTitle'
 import { signIn, useAuth } from './useAuth'
 
 export default function LoginPage() {
   const { session } = useAuth()
   const [error, setError] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
+  useDocumentTitle('Connexion')
 
   if (session) return <Navigate to="/" replace />
 

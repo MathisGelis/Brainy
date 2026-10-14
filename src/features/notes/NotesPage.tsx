@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Button, useToast } from '@/components/ui'
+import { useDocumentTitle } from '@/lib/useDocumentTitle'
 import { filterNotes, snippet } from './notesLogic'
 import { NoteEditor } from './NoteEditor'
 import type { Note } from './types'
@@ -16,6 +17,7 @@ export default function NotesPage() {
 
   const visible = filterNotes(notes, query)
   const selected = notes.find((n) => n.id === noteId)
+  useDocumentTitle(selected?.title || 'Notes')
 
   function onCreate() {
     navigate(`/notes/${createNote()}`)

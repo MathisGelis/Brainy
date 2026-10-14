@@ -1,3 +1,4 @@
+import { formatDayMonth, formatWeekdayShort } from '@/lib/dates'
 import { heatmapWeeks } from './habitLogic'
 
 type Props = {
@@ -20,8 +21,8 @@ export function Heatmap({ days, today, onToggle }: Props) {
                 type="button"
                 disabled={cell.future}
                 aria-pressed={cell.done}
-                aria-label={cell.day}
-                title={cell.day}
+                aria-label={`${formatWeekdayShort(cell.day)} ${formatDayMonth(cell.day)}`}
+                title={`${formatWeekdayShort(cell.day)} ${formatDayMonth(cell.day)}`}
                 onClick={() => onToggle(cell.day)}
                 className={`size-3 rounded-[3px] border ${
                   cell.future

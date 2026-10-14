@@ -1,6 +1,7 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useState } from 'react'
+import { Checkbox } from '@/components/ui'
 import type { Todo, TodoPatch } from './types'
 
 type Props = {
@@ -46,15 +47,12 @@ export function TodoItem({ todo, today, reorderable, onToggle, onUpdate, onDelet
             ⋮⋮
           </button>
         )}
-        <label className="flex min-h-11 min-w-11 shrink-0 cursor-pointer items-center justify-center md:min-h-9 md:min-w-9">
-          <input
-            type="checkbox"
-            checked={todo.done}
-            onChange={() => onToggle(todo)}
-            aria-label={`Terminer « ${todo.title} »`}
-            className="size-5 cursor-pointer accent-[var(--accent)]"
-          />
-        </label>
+        <Checkbox
+          hideLabel
+          label={`Terminer « ${todo.title} »`}
+          checked={todo.done}
+          onChange={() => onToggle(todo)}
+        />
         {editing ? (
           <input
             autoFocus
