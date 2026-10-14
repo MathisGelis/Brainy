@@ -75,6 +75,7 @@ const pages = [
     ready: { role: 'textbox', name: 'Titre de la note' },
   },
   { path: '#/objectifs', ready: { role: 'heading', name: 'Objectifs' } },
+  { path: '#/revue', ready: { role: 'heading', name: 'Revue de la semaine' } },
 ] as const
 
 const WCAG = ['wcag2a', 'wcag2aa', 'wcag21aa']
@@ -103,4 +104,17 @@ test('aucune violation axe (WCAG A/AA) : connexion', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Se connecter' })).toBeVisible()
   const results = await new AxeBuilder({ page }).withTags(WCAG).analyze()
   expect(results.violations.map((v) => v.id)).toEqual([])
+})
+
+test('aucune violation axe (WCAG A/AA) : palette de commandes ouverte', async ({ page }) => {
+  await installFakeSupabase(page, seed)
+  await page.goto('')
+  await expect(page.getByRole('heading', { name: "Aujourd'hui", level: 1 })).toBeVisible()
+  await page.keyboard.press('Control+k')
+  await page.getByRole('combobox', { name: 'Rechercher ou créer' }).fill('loyer')
+  await expect(page.getByRole('option').first()).toBeVisible()
+  const results = await new AxeBuilder({ page }).withTags(WCAG).analyze()
+  expect(
+    results.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target).join(' | ')}`),
+  ).toEqual([])
 })

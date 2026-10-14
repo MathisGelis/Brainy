@@ -71,3 +71,46 @@ test('saisir une dépense en centimes et voir le reste du mois', async ({ page }
     .poll(() => db.expenses?.map((e) => [e.amount_cents, e.spent_on]))
     .toEqual([[1250, parisToday()]])
 })
+
+test('saisie naturelle : todo datée, prioritaire, rangée dans une nouvelle liste', async ({
+  page,
+}) => {
+  const db = await installFakeSupabase(page)
+  await page.goto('#/todo')
+  const input = page.getByLabel('Nouvelle todo')
+  await input.fill('Payer le loyer demain ! #maison')
+  await expect(page.getByText('#maison', { exact: true })).toBeVisible() // aperçu
+  await input.press('Enter')
+
+  await expect(page.getByRole('button', { name: 'Payer le loyer', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: '#maison' })).toBeVisible() // filtre de liste
+  await expect.poll(() => db.todo_lists?.map((l) => l.name)).toEqual(['maison'])
+  await expect
+    .poll(() => db.todos?.map((t) => [t.title, t.priority, t.list_id === db.todo_lists?.[0]?.id]))
+    .toEqual([['Payer le loyer', 'high', true]])
+})
+
+test('palette Ctrl+K : ajouter une dépense en une phrase', async ({ page }) => {
+  const db = await installFakeSupabase(page, {
+    expense_categories: [
+      {
+        id: '22222222-2222-4222-8222-222222222222',
+        name: 'Restaurants',
+        color: null,
+        monthly_budget_cents: null,
+        position: 0,
+        archived: false,
+      },
+    ],
+  })
+  await page.goto('')
+  await expect(page.getByRole('heading', { name: "Aujourd'hui", level: 1 })).toBeVisible()
+  await page.keyboard.press('Control+k')
+  await page.getByRole('combobox', { name: 'Rechercher ou créer' }).fill('12,50 resto')
+  await page.getByRole('option', { name: /Ajouter la dépense de 12,50/ }).click()
+
+  await expect(page.getByText('Dépense ajoutée')).toBeVisible()
+  await expect
+    .poll(() => db.expenses?.map((e) => [e.amount_cents, e.category_id]))
+    .toEqual([[1250, '22222222-2222-4222-8222-222222222222']])
+})

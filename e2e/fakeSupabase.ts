@@ -26,7 +26,15 @@ function matches(row: Row, params: URLSearchParams): boolean {
     if (RESERVED.has(column)) continue
     const [op, ...rest] = expr.split('.')
     const expected = rest.join('.')
-    const actual = row[column] === null ? 'null' : String(row[column])
+    const actual = row[column] === null || row[column] === undefined ? 'null' : String(row[column])
+    if (op === 'in') {
+      const values = expected
+        .replace(/^\(|\)$/g, '')
+        .split(',')
+        .map((v) => v.replace(/^"|"$/g, ''))
+      if (!values.includes(actual)) return false
+      continue
+    }
     const ok =
       op === 'eq'
         ? actual === expected
@@ -83,11 +91,19 @@ async function handleRest(route: Route, db: FakeDb) {
     }
     case 'POST': {
       const body = request.postDataJSON() as Row | Row[]
-      const inserted = (Array.isArray(body) ? body : [body]).map((r) => ({
+      const inserted = (Array.isArray(body) ? body : [body]).map((r): Row => ({
         user_id: USER_ID,
         ...r,
       }))
-      rows.push(...inserted)
+      // upsert : on_conflict=col1,col2 + Prefer resolution=ignore-duplicates / merge-duplicates
+      const conflict = params.get('on_conflict')?.split(',')
+      const prefer = request.headers()['prefer'] ?? ''
+      for (const row of inserted) {
+        const existing =
+          conflict && rows.find((r) => conflict.every((c) => String(r[c]) === String(row[c])))
+        if (!existing) rows.push(row)
+        else if (prefer.includes('merge-duplicates')) Object.assign(existing, row)
+      }
       return route.fulfill({ status: 201, body: '' })
     }
     case 'PATCH': {
