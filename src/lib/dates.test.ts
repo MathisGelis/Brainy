@@ -37,3 +37,22 @@ describe('calculs de dates', () => {
     expect(formatMonthLabel('2026-03')).toBe('mars 2026')
   })
 })
+
+import { daysBetween, formatDue } from './dates'
+
+describe('échéances lisibles', () => {
+  const today = '2026-10-14'
+  it.each([
+    ['2026-10-14', "Aujourd'hui"],
+    ['2026-10-15', 'Demain'],
+    ['2026-10-13', 'Hier'],
+    ['2026-10-19', 'Lundi'],
+    ['2026-10-25', '25 oct.'],
+  ])('%s → %s', (iso, label) => {
+    expect(formatDue(iso, today)).toBe(label)
+  })
+  it('compte les jours', () => {
+    expect(daysBetween('2026-10-14', '2026-11-14')).toBe(31)
+    expect(daysBetween('2026-03-28', '2026-03-30')).toBe(2)
+  })
+})

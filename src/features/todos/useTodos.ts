@@ -1,21 +1,50 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { todayISO } from '@/lib/dates'
+import { fold } from '@/lib/naturalDate'
 import { useOptimisticMutation } from '@/lib/useOptimisticMutation'
-import { fetchTodos, insertTodo, patchPositions, patchTodo, removeTodo } from './todosApi'
+import { nextOccurrence, parseRecurrence } from './recurrence'
+import {
+  fetchLists,
+  fetchTodos,
+  insertList,
+  insertTodo,
+  patchList,
+  patchPositions,
+  patchTodo,
+  removeList,
+  removeTodo,
+} from './todosApi'
 import { applyPatch, nextPosition } from './todoLogic'
-import type { PositionUpdate, Priority, Todo, TodoPatch } from './types'
+import type { PositionUpdate, Priority, Todo, TodoList, TodoPatch } from './types'
 
 export const TODOS_KEY = ['todos'] as const
+export const LISTS_KEY = ['todo_lists'] as const
 
-export type NewTodoInput = { title: string; due_date?: string | null; priority?: Priority }
+type Options = { onError?: (message: string) => void }
 
-export function useTodos({ onError }: { onError?: (message: string) => void } = {}) {
+export type NewTodoInput = {
+  title: string
+  due_date?: string | null
+  priority?: Priority
+  recurrence?: string | null
+  list_id?: string | null
+  goal_id?: string | null
+}
+
+export function useTodos({ onError }: Options = {}) {
+  const queryClient = useQueryClient()
   const query = useQuery({ queryKey: TODOS_KEY, queryFn: fetchTodos })
 
-  const add = useOptimisticMutation<Todo, Todo>(
+  // Une liste créée à la volée (« #maison ») est enregistrée avant la todo (clé étrangère).
+  const add = useOptimisticMutation<Todo, { todo: Todo; newList?: TodoList }>(
     TODOS_KEY,
-    insertTodo,
-    (todos, todo) => [...todos, todo],
+    async ({ todo, newList }) => {
+      if (newList) await insertList(newList)
+      await insertTodo(todo)
+    },
+    (todos, { todo }) => [...todos.filter((t) => t.id !== todo.id), todo],
     onError,
+    [LISTS_KEY],
   )
   const update = useOptimisticMutation<Todo, { id: string; patch: TodoPatch }>(
     TODOS_KEY,
@@ -42,32 +71,167 @@ export function useTodos({ onError }: { onError?: (message: string) => void } = 
 
   const todos = query.data ?? []
 
+  const build = (input: NewTodoInput, position = nextPosition(todos)): Todo => ({
+    id: crypto.randomUUID(),
+    list_id: input.list_id ?? null,
+    goal_id: input.goal_id ?? null,
+    title: input.title,
+    done: false,
+    done_at: null,
+    due_date: input.due_date ?? null,
+    priority: input.priority ?? 'normal',
+    recurrence: input.recurrence ?? null,
+    position,
+    created_at: new Date().toISOString(),
+  })
+
+  const setDone = (id: string, done: boolean) =>
+    update.mutate({ id, patch: { done, done_at: done ? new Date().toISOString() : null } })
+
   return {
     todos,
     isLoading: query.isPending,
     isError: query.isError,
     refetch: query.refetch,
 
-    addTodo: ({ title, due_date = null, priority = 'normal' }: NewTodoInput) =>
-      add.mutate({
-        id: crypto.randomUUID(),
-        list_id: null,
-        title,
-        done: false,
-        done_at: null,
-        due_date,
-        priority,
-        position: nextPosition(todos),
-        created_at: new Date().toISOString(),
-      }),
+    /** Ajoute une todo (et la liste `newList` si elle vient d'être créée) ; renvoie son id. */
+    addTodo: (input: NewTodoInput, newList?: TodoList): string => {
+      if (newList) {
+        queryClient.setQueryData<TodoList[]>(LISTS_KEY, (old) => [...(old ?? []), newList])
+      }
+      const todo = build(input)
+      add.mutate({ todo, newList })
+      return todo.id
+    },
     /** Remet une todo supprimée (annulation), avec son id d'origine. */
-    restoreTodo: (todo: Todo) => add.mutate(todo),
+    restoreTodo: (todo: Todo) => add.mutate({ todo }),
     updateTodo: (id: string, patch: TodoPatch) => update.mutate({ id, patch }),
-    setDone: (id: string, done: boolean) =>
-      update.mutate({ id, patch: { done, done_at: done ? new Date().toISOString() : null } }),
+    setDone,
+    /**
+     * Termine une todo. Pour une todo récurrente, crée aussitôt l'occurrence suivante.
+     * Renvoie la fonction d'annulation (rouvre la todo et retire l'occurrence créée).
+     */
+    completeTodo: (todo: Todo): (() => void) => {
+      setDone(todo.id, true)
+      const recurrence = parseRecurrence(todo.recurrence)
+      let nextId: string | null = null
+      if (recurrence) {
+        const next = build(
+          {
+            title: todo.title,
+            priority: todo.priority,
+            recurrence: todo.recurrence,
+            list_id: todo.list_id,
+            goal_id: todo.goal_id,
+            due_date: nextOccurrence(recurrence, todo.due_date, todayISO()),
+          },
+          todo.position,
+        )
+        nextId = next.id
+        add.mutate({ todo: next })
+      }
+      return () => {
+        setDone(todo.id, false)
+        if (nextId) remove.mutate(nextId)
+      }
+    },
+    /** Reporte l'échéance (« Demain », « Lundi »…). */
+    snoozeTodo: (id: string, due_date: string) => update.mutate({ id, patch: { due_date } }),
     deleteTodo: (id: string) => remove.mutate(id),
     reorderTodos: (updates: PositionUpdate[]) => {
       if (updates.length > 0) reorder.mutate(updates)
     },
+  }
+}
+
+/** Liste par nom, sans tenir compte de la casse ni des accents. */
+export function findListByName(lists: TodoList[], name: string): TodoList | undefined {
+  const target = fold(name.trim())
+  return lists.find((l) => fold(l.name.trim()) === target)
+}
+
+export function useTodoLists({ onError }: Options = {}) {
+  const queryClient = useQueryClient()
+  const query = useQuery({ queryKey: LISTS_KEY, queryFn: fetchLists })
+  const lists = query.data ?? []
+
+  const add = useOptimisticMutation<TodoList, TodoList>(
+    LISTS_KEY,
+    insertList,
+    (all, list) => [...all.filter((l) => l.id !== list.id), list],
+    onError,
+  )
+  const rename = useOptimisticMutation<TodoList, { id: string; name: string }>(
+    LISTS_KEY,
+    ({ id, name }) => patchList(id, { name }),
+    (all, { id, name }) => all.map((l) => (l.id === id ? { ...l, name } : l)),
+    onError,
+  )
+  const remove = useOptimisticMutation<TodoList, string>(
+    LISTS_KEY,
+    removeList,
+    (all, id) => all.filter((l) => l.id !== id),
+    onError,
+    [TODOS_KEY],
+  )
+  const relink = useOptimisticMutation<Todo, { ids: string[]; listId: string }>(
+    TODOS_KEY,
+    ({ ids, listId }) => Promise.all(ids.map((id) => patchTodo(id, { list_id: listId }))),
+    (todos, { ids, listId }) =>
+      todos.map((t) => (ids.includes(t.id) ? { ...t, list_id: listId } : t)),
+    onError,
+  )
+
+  const makeList = (name: string): TodoList => ({
+    id: crypto.randomUUID(),
+    name: name.trim(),
+    position: lists.reduce((max, l) => Math.max(max, l.position), -1) + 1,
+  })
+
+  return {
+    lists,
+    isLoading: query.isPending,
+    makeList,
+    addList: (name: string) => add.mutate(makeList(name)),
+    renameList: (id: string, name: string) => rename.mutate({ id, name }),
+    /** Supprime une liste ; ses todos restent sans liste. Renvoie l'annulation. */
+    deleteList: (list: TodoList): (() => void) => {
+      const affected = (queryClient.getQueryData<Todo[]>(TODOS_KEY) ?? [])
+        .filter((t) => t.list_id === list.id)
+        .map((t) => t.id)
+      queryClient.setQueryData<Todo[]>(TODOS_KEY, (old) =>
+        (old ?? []).map((t) => (t.list_id === list.id ? { ...t, list_id: null } : t)),
+      )
+      remove.mutate(list.id)
+      return () =>
+        add.mutate(list, {
+          onSuccess: () => {
+            if (affected.length > 0) relink.mutate({ ids: affected, listId: list.id })
+          },
+        })
+    },
+  }
+}
+
+/** Ajout depuis une saisie analysée : résout (ou crée) la liste nommée « #nom ». */
+export function useQuickTodo({
+  onError,
+  defaultListId = null,
+}: Options & { defaultListId?: string | null } = {}) {
+  const { addTodo } = useTodos({ onError })
+  const { lists, makeList } = useTodoLists({ onError })
+  return (input: NewTodoInput & { listName?: string | null }) => {
+    const { listName, ...todo } = input
+    let listId = todo.list_id ?? defaultListId
+    let newList: TodoList | undefined
+    if (listName) {
+      const found = findListByName(lists, listName)
+      if (found) listId = found.id
+      else {
+        newList = makeList(listName)
+        listId = newList.id
+      }
+    }
+    return addTodo({ ...todo, list_id: listId }, newList)
   }
 }

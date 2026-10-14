@@ -10,6 +10,8 @@ vi.mock('./todosApi')
 const base: Todo = {
   id: 't1',
   list_id: null,
+  goal_id: null,
+  recurrence: null,
   title: 'Acheter du pain',
   done: false,
   done_at: null,

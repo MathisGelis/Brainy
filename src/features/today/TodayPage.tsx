@@ -8,7 +8,7 @@ import { filterTodos } from '@/features/todos/todoLogic'
 import type { Todo } from '@/features/todos/types'
 import { useTodos } from '@/features/todos/useTodos'
 import { celebrate } from '@/lib/celebrate'
-import { formatDayMonth, monthOf, todayISO } from '@/lib/dates'
+import { addDays, formatDayMonth, monthOf, todayISO } from '@/lib/dates'
 import { formatCents } from '@/lib/money'
 import type { ComponentType, ReactNode, SVGProps } from 'react'
 import { DataMenu } from './DataMenu'
@@ -56,13 +56,19 @@ const rowClass = 'flex items-center gap-1 border-b border-border last:border-b-0
 
 function TodayTodos({ today, onError }: { today: string; onError: (m: string) => void }) {
   const toast = useToast()
-  const { todos, isLoading, isError, refetch, setDone } = useTodos({ onError })
+  const { todos, isLoading, isError, refetch, completeTodo, snoozeTodo } = useTodos({ onError })
   const dueToday = filterTodos(todos, 'today', today)
 
   function onToggle(todo: Todo) {
-    setDone(todo.id, true)
+    const undo = completeTodo(todo)
     celebrate()
-    toast.show('Todo terminée', () => setDone(todo.id, false))
+    toast.show('Todo terminée', undo)
+  }
+
+  function onSnooze(todo: Todo) {
+    const previous = todo.due_date
+    snoozeTodo(todo.id, addDays(today, 1))
+    toast.show('Reportée à demain', () => previous && snoozeTodo(todo.id, previous))
   }
 
   if (isError) return <RetryLine label="les todos" onRetry={refetch} />
@@ -86,6 +92,14 @@ function TodayTodos({ today, onError }: { today: string; onError: (m: string) =>
           {todo.due_date !== null && todo.due_date < today && (
             <span className="text-xs text-danger">{formatDayMonth(todo.due_date)}</span>
           )}
+          <button
+            type="button"
+            onClick={() => onSnooze(todo)}
+            aria-label={`Reporter « ${todo.title} » à demain`}
+            className="min-h-11 rounded-full px-2.5 text-xs text-muted transition-colors hover:bg-surface hover:text-text md:min-h-8"
+          >
+            Demain
+          </button>
         </li>
       ))}
     </ul>

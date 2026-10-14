@@ -2,19 +2,45 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useState } from 'react'
 import { Checkbox } from '@/components/ui'
-import type { Todo, TodoPatch } from './types'
+import { addDays, formatDue } from '@/lib/dates'
+import { isoWeekday } from '@/lib/naturalDate'
+import { RecurrencePicker } from './RecurrencePicker'
+import { describeRecurrence, parseRecurrence } from './recurrence'
+import type { Todo, TodoList, TodoPatch } from './types'
+
+type Option = { id: string; name: string }
 
 type Props = {
   todo: Todo
   today: string
   reorderable: boolean
+  lists: TodoList[]
+  goals: Option[]
   onToggle: (todo: Todo) => void
   onUpdate: (id: string, patch: TodoPatch) => void
+  onSnooze: (id: string, due: string) => void
   onDelete: (todo: Todo) => void
 }
 
-export function TodoItem({ todo, today, reorderable, onToggle, onUpdate, onDelete }: Props) {
+const small =
+  'min-h-9 rounded-full px-3 text-xs text-muted transition-colors hover:bg-surface hover:text-text'
+
+/** Lundi suivant (strictement après aujourd'hui). */
+export const nextMonday = (today: string) => addDays(today, 8 - isoWeekday(today))
+
+export function TodoItem({
+  todo,
+  today,
+  reorderable,
+  lists,
+  goals,
+  onToggle,
+  onUpdate,
+  onSnooze,
+  onDelete,
+}: Props) {
   const [editing, setEditing] = useState(false)
+  const [open, setOpen] = useState(false)
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: todo.id,
     disabled: !reorderable,
@@ -28,6 +54,11 @@ export function TodoItem({ todo, today, reorderable, onToggle, onUpdate, onDelet
   }
 
   const overdue = !todo.done && todo.due_date !== null && todo.due_date < today
+  const snoozable = !todo.done && todo.due_date !== null && todo.due_date <= today
+  const recurrence = parseRecurrence(todo.recurrence)
+  const list = lists.find((l) => l.id === todo.list_id)
+  const goal = goals.find((g) => g.id === todo.goal_id)
+  const field = 'field min-h-11 px-3 md:min-h-9'
 
   return (
     <li
@@ -77,7 +108,8 @@ export function TodoItem({ todo, today, reorderable, onToggle, onUpdate, onDelet
           </button>
         )}
       </div>
-      <div className="flex items-center gap-2 pb-1 pl-1">
+
+      <div className="flex flex-wrap items-center gap-1 pb-1 pl-1">
         <input
           type="date"
           value={todo.due_date ?? ''}
@@ -98,15 +130,90 @@ export function TodoItem({ todo, today, reorderable, onToggle, onUpdate, onDelet
         >
           !
         </button>
-        <button
-          type="button"
-          onClick={() => onDelete(todo)}
-          aria-label={`Supprimer « ${todo.title} »`}
-          className="ml-auto min-h-9 rounded-full px-3 text-xs text-muted transition-colors hover:text-danger"
-        >
-          Supprimer
-        </button>
+        {snoozable && (
+          <>
+            <button
+              type="button"
+              className={small}
+              onClick={() => onSnooze(todo.id, addDays(today, 1))}
+            >
+              Demain
+            </button>
+            <button
+              type="button"
+              className={small}
+              onClick={() => onSnooze(todo.id, nextMonday(today))}
+            >
+              Lundi
+            </button>
+          </>
+        )}
+        {recurrence && (
+          <span className="px-1 text-xs text-muted">↻ {describeRecurrence(recurrence)}</span>
+        )}
+        {list && <span className="px-1 text-xs text-muted">#{list.name}</span>}
+        {goal && <span className="px-1 text-xs text-muted">◎ {goal.name}</span>}
+        <span className="ml-auto flex">
+          <button
+            type="button"
+            aria-expanded={open}
+            aria-label={`Détails de « ${todo.title} »`}
+            onClick={() => setOpen((v) => !v)}
+            className={small}
+          >
+            Détails
+          </button>
+          <button
+            type="button"
+            onClick={() => onDelete(todo)}
+            aria-label={`Supprimer « ${todo.title} »`}
+            className="min-h-9 rounded-full px-3 text-xs text-muted transition-colors hover:text-danger"
+          >
+            Supprimer
+          </button>
+        </span>
       </div>
+
+      {open && (
+        <div className="mb-2 flex flex-col gap-2 border-t border-border px-1 pt-3">
+          <div className="flex flex-wrap gap-2">
+            <select
+              aria-label="Liste"
+              value={todo.list_id ?? ''}
+              onChange={(e) => onUpdate(todo.id, { list_id: e.target.value || null })}
+              className={field}
+            >
+              <option value="">Sans liste</option>
+              {lists.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.name}
+                </option>
+              ))}
+            </select>
+            <select
+              aria-label="Objectif lié"
+              value={todo.goal_id ?? ''}
+              onChange={(e) => onUpdate(todo.id, { goal_id: e.target.value || null })}
+              className={`${field} max-w-full`}
+            >
+              <option value="">Aucun objectif</option>
+              {goals.map((g) => (
+                <option key={g.id} value={g.id}>
+                  {g.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <RecurrencePicker
+            value={todo.recurrence}
+            defaultWeekday={isoWeekday(todo.due_date ?? today)}
+            onChange={(recurrenceValue) => onUpdate(todo.id, { recurrence: recurrenceValue })}
+          />
+          {todo.due_date && (
+            <p className="text-xs text-muted">Échéance : {formatDue(todo.due_date, today)}</p>
+          )}
+        </div>
+      )}
     </li>
   )
 }

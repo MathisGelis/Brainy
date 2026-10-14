@@ -5,7 +5,7 @@ import { ExpenseForm } from '@/features/budget/ExpenseForm'
 import { useBudget } from '@/features/budget/useBudget'
 import { useNotes } from '@/features/notes/useNotes'
 import { AddTodoForm } from '@/features/todos/AddTodoForm'
-import { useTodos } from '@/features/todos/useTodos'
+import { useQuickTodo } from '@/features/todos/useTodos'
 import { monthOf, todayISO } from '@/lib/dates'
 
 export type QuickAddTab = 'todo' | 'note' | 'expense'
@@ -18,12 +18,12 @@ const TABS: { value: QuickAddTab; label: string }[] = [
 
 function TodoTab() {
   const toast = useToast()
-  const { addTodo } = useTodos({ onError: (m) => toast.show(m) })
+  const addQuick = useQuickTodo({ onError: (m) => toast.show(m) })
   return (
     <AddTodoForm
       defaultDue={null}
       onAdd={(todo) => {
-        addTodo(todo)
+        addQuick(todo)
         toast.show('Todo ajoutée')
       }}
     />

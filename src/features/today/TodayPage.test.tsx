@@ -17,6 +17,8 @@ vi.mock('@/features/auth/useAuth', () => ({ signOut: vi.fn() }))
 const today = todayISO()
 const baseTodo = {
   list_id: null,
+  goal_id: null,
+  recurrence: null,
   done: false,
   done_at: null,
   priority: 'normal' as const,

@@ -13,6 +13,8 @@ export function useOptimisticMutation<T, V>(
   request: (variables: V) => Promise<unknown>,
   apply: (items: T[], variables: V) => T[],
   onError?: (message: string) => void,
+  /** Autres listes à resynchroniser après coup (ex. une suppression qui touche aussi les todos). */
+  alsoInvalidate: QueryKey[] = [],
 ) {
   const queryClient = useQueryClient()
   return useMutation({
@@ -28,6 +30,11 @@ export function useOptimisticMutation<T, V>(
       if (context?.previous) queryClient.setQueryData(queryKey, context.previous)
       onError?.("L'enregistrement a échoué. Vos modifications ont été annulées.")
     },
-    onSettled: () => queryClient.invalidateQueries({ queryKey }),
+    onSettled: () =>
+      Promise.all(
+        [queryKey, ...alsoInvalidate].map((key) =>
+          queryClient.invalidateQueries({ queryKey: key }),
+        ),
+      ),
   })
 }

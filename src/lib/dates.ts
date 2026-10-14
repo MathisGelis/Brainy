@@ -64,3 +64,23 @@ const dayMonth = new Intl.DateTimeFormat('fr-FR', {
 export const formatWeekdayShort = (iso: string) => weekdayShort.format(toDate(iso)).replace('.', '')
 export const formatMonthLabel = (month: string) => monthLong.format(toDate(`${month}-01`))
 export const formatDayMonth = (iso: string) => dayMonth.format(toDate(iso))
+
+/** Nombre de jours de `from` à `to` (jours ISO). */
+export function daysBetween(from: string, to: string): number {
+  return Math.round((Date.parse(`${to}T12:00:00Z`) - Date.parse(`${from}T12:00:00Z`)) / 86_400_000)
+}
+
+const weekdayLong = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', timeZone: 'UTC' })
+
+/** Échéance lisible : « Aujourd'hui », « Demain », « Hier », « Lundi » (sous 7 jours) ou « 12 nov. ». */
+export function formatDue(iso: string, today: string): string {
+  const diff = daysBetween(today, iso)
+  if (diff === 0) return "Aujourd'hui"
+  if (diff === 1) return 'Demain'
+  if (diff === -1) return 'Hier'
+  if (diff > 1 && diff < 7) {
+    const day = weekdayLong.format(new Date(`${iso}T12:00:00Z`))
+    return day.charAt(0).toUpperCase() + day.slice(1)
+  }
+  return formatDayMonth(iso)
+}

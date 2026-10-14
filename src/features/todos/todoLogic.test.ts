@@ -7,6 +7,8 @@ function todo(id: string, overrides: Partial<Todo> = {}): Todo {
   return {
     id,
     list_id: null,
+    goal_id: null,
+    recurrence: null,
     title: id,
     done: false,
     done_at: null,

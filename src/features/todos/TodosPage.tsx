@@ -15,13 +15,15 @@ import {
 import { useState } from 'react'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { useToast } from '@/components/ui'
+import { useGoals } from '@/features/goals/useGoals'
 import { celebrate } from '@/lib/celebrate'
 import { todayISO } from '@/lib/dates'
 import { AddTodoForm } from './AddTodoForm'
+import { ListsManager } from './ListsManager'
 import { TodoItem } from './TodoItem'
 import { filterTodos, reorderPositions } from './todoLogic'
-import type { Todo, TodoFilter } from './types'
-import { useTodos } from './useTodos'
+import type { Todo, TodoFilter, TodoList } from './types'
+import { useQuickTodo, useTodoLists, useTodos } from './useTodos'
 
 const FILTERS: { value: TodoFilter; label: string; empty: string }[] = [
   {
@@ -37,21 +39,33 @@ const FILTERS: { value: TodoFilter; label: string; empty: string }[] = [
 export default function TodosPage() {
   const toast = useToast()
   const [filter, setFilter] = useState<TodoFilter>('all')
+  /** Liste affichée : null = toutes les listes */
+  const [listFilter, setListFilter] = useState<string | null>(null)
+  const onError = (message: string) => toast.show(message)
   const {
     todos,
     isLoading,
     isError,
     refetch,
-    addTodo,
     restoreTodo,
     updateTodo,
     setDone,
+    completeTodo,
+    snoozeTodo,
     deleteTodo,
     reorderTodos,
-  } = useTodos({ onError: (message) => toast.show(message) })
+  } = useTodos({ onError })
+  const { lists, addList, renameList, deleteList } = useTodoLists({ onError })
+  const addQuick = useQuickTodo({ onError, defaultListId: listFilter })
+  const { goals } = useGoals({ onError })
+  const goalOptions = goals
+    .filter((g) => g.status === 'active' || todos.some((t) => t.goal_id === g.id))
+    .map((g) => ({ id: g.id, name: g.title }))
 
   const today = todayISO()
-  const visible = filterTodos(todos, filter, today)
+  const visible = filterTodos(todos, filter, today).filter(
+    (t) => listFilter === null || t.list_id === listFilter,
+  )
   const reorderable = filter !== 'done'
   const current = FILTERS.find((f) => f.value === filter)!
 
@@ -66,10 +80,20 @@ export default function TodosPage() {
   }
 
   function onToggle(todo: Todo) {
-    const done = !todo.done
-    setDone(todo.id, done)
-    if (done) celebrate()
-    toast.show(done ? 'Todo terminée' : 'Todo rouverte', () => setDone(todo.id, !done))
+    if (todo.done) {
+      setDone(todo.id, false)
+      toast.show('Todo rouverte', () => setDone(todo.id, true))
+      return
+    }
+    const undo = completeTodo(todo)
+    celebrate()
+    toast.show(todo.recurrence ? 'Terminée, prochaine occurrence planifiée' : 'Todo terminée', undo)
+  }
+
+  function onDeleteList(list: TodoList) {
+    if (listFilter === list.id) setListFilter(null)
+    const undo = deleteList(list)
+    toast.show(`Liste « ${list.name} » supprimée`, undo)
   }
 
   function onDelete(todo: Todo) {
@@ -80,7 +104,31 @@ export default function TodosPage() {
   return (
     <>
       <PageHeader title="Todo" />
-      <AddTodoForm defaultDue={filter === 'today' ? today : null} onAdd={addTodo} />
+      <AddTodoForm defaultDue={filter === 'today' ? today : null} onAdd={addQuick} />
+
+      {lists.length > 0 && (
+        <div role="group" aria-label="Listes" className="mb-3 flex flex-wrap gap-1.5">
+          <button
+            type="button"
+            aria-pressed={listFilter === null}
+            onClick={() => setListFilter(null)}
+            className="pill min-h-9 border border-[var(--field-border)] px-3 text-xs"
+          >
+            Toutes les listes
+          </button>
+          {lists.map((l) => (
+            <button
+              key={l.id}
+              type="button"
+              aria-pressed={listFilter === l.id}
+              onClick={() => setListFilter(listFilter === l.id ? null : l.id)}
+              className="pill min-h-9 border border-[var(--field-border)] px-3 text-xs"
+            >
+              #{l.name}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div
         role="group"
@@ -114,7 +162,9 @@ export default function TodosPage() {
       ) : isLoading ? (
         <div aria-hidden className="h-24 animate-pulse rounded-2xl bg-surface" />
       ) : visible.length === 0 ? (
-        <p className="text-muted">{current.empty}</p>
+        <p className="text-muted">
+          {listFilter ? 'Aucune todo ici dans cette liste.' : current.empty}
+        </p>
       ) : (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
           <SortableContext items={visible.map((t) => t.id)} strategy={verticalListSortingStrategy}>
@@ -125,8 +175,11 @@ export default function TodosPage() {
                   todo={todo}
                   today={today}
                   reorderable={reorderable}
+                  lists={lists}
+                  goals={goalOptions}
                   onToggle={onToggle}
                   onUpdate={updateTodo}
+                  onSnooze={snoozeTodo}
                   onDelete={onDelete}
                 />
               ))}
@@ -134,6 +187,8 @@ export default function TodosPage() {
           </SortableContext>
         </DndContext>
       )}
+
+      <ListsManager lists={lists} onAdd={addList} onRename={renameList} onDelete={onDeleteList} />
     </>
   )
 }
