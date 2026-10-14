@@ -6,7 +6,7 @@ Avancer phase par phase. Cocher les tâches au fur et à mesure. Chaque phase do
 - [x] Init Vite + React + TS strict + Tailwind + ESLint/Prettier + Vitest
 - [x] Thème (tokens clair/sombre) + primitives UI (Button, Input, Checkbox, Toast, Layout)
 - [x] Layout : sidebar desktop / tab bar mobile, HashRouter, 6 routes vides
-- [ ] Projet Supabase + migration `0001_init.sql` + RLS _(migration écrite ; création du projet et application : manuel, voir README)_
+- [x] Projet Supabase + migration `0001_init.sql` + RLS
 - [x] Client Supabase, auth (login, session persistée, route protégée), inscriptions désactivées _(à désactiver côté dashboard Supabase)_
 - [ ] Workflow GitHub Actions → GitHub Pages ; vérifier le déploiement _(workflow écrit ; déploiement à vérifier après ajout des secrets)_
 - [x] `.env.example`, README minimal
@@ -44,11 +44,13 @@ _Recherche faite côté client (instantanée, sans accents, `#tag`) : suffisant 
 - [x] Progression calculée, regroupement par horizon, statuts
 
 ## Phase 6 — « Aujourd'hui » + finitions
-- [ ] Page d'accueil synthèse (todos du jour, habitudes du jour, budget du mois)
-- [ ] Bouton « + » global et raccourcis clavier
-- [ ] Export JSON/CSV
-- [ ] Passe accessibilité, perf (Lighthouse > 90), états vides
-- [ ] 2-3 tests e2e Playwright (ajout todo, cochage habitude, ajout dépense)
+- [x] Page d'accueil synthèse (todos du jour, habitudes du jour, budget du mois)
+- [x] Bouton « + » global et raccourcis clavier
+- [x] Export JSON/CSV
+- [x] Passe accessibilité, perf (Lighthouse > 90), états vides
+- [x] 2-3 tests e2e Playwright (ajout todo, cochage habitude, ajout dépense)
+
+_Lighthouse (mobile, build de prod) sur la page de connexion : performance 97, accessibilité 100. Les pages connectées sont vérifiées par axe-core (WCAG A/AA) dans les tests e2e, desktop et mobile. Les tests e2e tournent sur un faux Supabase en mémoire (`e2e/fakeSupabase.ts`)._
 
 ## Backlog (idées, ne pas implémenter sans validation)
 - Palette de commandes `Cmd/Ctrl+K`
