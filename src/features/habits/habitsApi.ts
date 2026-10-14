@@ -1,3 +1,4 @@
+import { fetchAllRows } from '@/lib/fetchAllRows'
 import { supabase } from '@/lib/supabase'
 import type { Habit, HabitLog, HabitPatch } from './types'
 
@@ -13,12 +14,15 @@ export async function fetchHabits(): Promise<Habit[]> {
 
 /** Logs depuis un jour donné (la heatmap couvre un an). */
 export async function fetchLogs(since: string): Promise<HabitLog[]> {
-  const { data, error } = await supabase
-    .from('habit_logs')
-    .select('id, habit_id, day')
-    .gte('day', since)
-  if (error) throw error
-  return data as HabitLog[]
+  return fetchAllRows<HabitLog>((from, to) =>
+    supabase
+      .from('habit_logs')
+      .select('id, habit_id, day')
+      .gte('day', since)
+      .order('day')
+      .order('id')
+      .range(from, to),
+  )
 }
 
 export async function insertHabit(habit: Habit): Promise<void> {

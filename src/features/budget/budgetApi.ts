@@ -1,4 +1,5 @@
 import { monthBounds } from '@/lib/dates'
+import { fetchAllRows } from '@/lib/fetchAllRows'
 import { supabase } from '@/lib/supabase'
 import type { Category, CategoryPatch, Expense, ExpensePatch } from './types'
 
@@ -25,15 +26,17 @@ export async function patchCategory(id: string, patch: CategoryPatch): Promise<v
 /** Dépenses d'un mois `YYYY-MM`, les plus récentes d'abord. */
 export async function fetchExpenses(month: string): Promise<Expense[]> {
   const { from, to } = monthBounds(month)
-  const { data, error } = await supabase
-    .from('expenses')
-    .select('id, category_id, amount_cents, spent_on, note, created_at')
-    .gte('spent_on', from)
-    .lt('spent_on', to)
-    .order('spent_on', { ascending: false })
-    .order('created_at', { ascending: false })
-  if (error) throw error
-  return data as Expense[]
+  return fetchAllRows<Expense>((start, end) =>
+    supabase
+      .from('expenses')
+      .select('id, category_id, amount_cents, spent_on, note, created_at')
+      .gte('spent_on', from)
+      .lt('spent_on', to)
+      .order('spent_on', { ascending: false })
+      .order('created_at', { ascending: false })
+      .order('id')
+      .range(start, end),
+  )
 }
 
 export async function insertExpense(expense: Expense): Promise<void> {

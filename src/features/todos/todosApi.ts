@@ -1,16 +1,19 @@
+import { fetchAllRows } from '@/lib/fetchAllRows'
 import { supabase } from '@/lib/supabase'
 import type { PositionUpdate, Todo, TodoPatch } from './types'
 
 // `user_id` est rempli côté base (default auth.uid()) et protégé par la RLS.
 
 export async function fetchTodos(): Promise<Todo[]> {
-  const { data, error } = await supabase
-    .from('todos')
-    .select('*')
-    .order('position')
-    .order('created_at')
-  if (error) throw error
-  return data as Todo[]
+  return fetchAllRows<Todo>((from, to) =>
+    supabase
+      .from('todos')
+      .select('*')
+      .order('position')
+      .order('created_at')
+      .order('id')
+      .range(from, to),
+  )
 }
 
 /** L'id est fourni par le client pour que la mise à jour optimiste reste stable. */

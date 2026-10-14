@@ -1,3 +1,4 @@
+import { fetchAllRows } from '@/lib/fetchAllRows'
 import { supabase } from '@/lib/supabase'
 import type { Goal, GoalPatch, Milestone, MilestonePatch } from './types'
 
@@ -8,12 +9,14 @@ export async function fetchGoals(): Promise<Goal[]> {
 }
 
 export async function fetchMilestones(): Promise<Milestone[]> {
-  const { data, error } = await supabase
-    .from('goal_milestones')
-    .select('id, goal_id, title, done, position, created_at')
-    .order('position')
-  if (error) throw error
-  return data as Milestone[]
+  return fetchAllRows<Milestone>((from, to) =>
+    supabase
+      .from('goal_milestones')
+      .select('id, goal_id, title, done, position, created_at')
+      .order('position')
+      .order('id')
+      .range(from, to),
+  )
 }
 
 export async function insertGoal(goal: Goal): Promise<void> {

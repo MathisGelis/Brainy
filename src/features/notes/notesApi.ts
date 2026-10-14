@@ -1,13 +1,16 @@
+import { fetchAllRows } from '@/lib/fetchAllRows'
 import { supabase } from '@/lib/supabase'
 import type { Note, NotePatch } from './types'
 
 export async function fetchNotes(): Promise<Note[]> {
-  const { data, error } = await supabase
-    .from('notes')
-    .select('*')
-    .order('updated_at', { ascending: false })
-  if (error) throw error
-  return data as Note[]
+  return fetchAllRows<Note>((from, to) =>
+    supabase
+      .from('notes')
+      .select('*')
+      .order('updated_at', { ascending: false })
+      .order('id')
+      .range(from, to),
+  )
 }
 
 export async function insertNote(note: Note): Promise<void> {
