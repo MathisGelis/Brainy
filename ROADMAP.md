@@ -40,8 +40,8 @@ _Reste pour plus tard : liste/projet par todo (champ `list_id` déjà en base), 
 _Recherche faite côté client (instantanée, sans accents, `#tag`) : suffisant au volume mono-utilisateur ; l'index GIN reste disponible si besoin._
 
 ## Phase 5 — Objectifs
-- [ ] CRUD objectifs + jalons
-- [ ] Progression calculée, regroupement par horizon, statuts
+- [x] CRUD objectifs + jalons
+- [x] Progression calculée, regroupement par horizon, statuts
 
 ## Phase 6 — « Aujourd'hui » + finitions
 - [ ] Page d'accueil synthèse (todos du jour, habitudes du jour, budget du mois)
