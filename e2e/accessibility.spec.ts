@@ -70,6 +70,36 @@ const seed = {
       created_at: '2026-01-01T00:00:00Z',
     },
   ],
+  foods: [
+    {
+      id: '88888888-8888-4888-8888-888888888888',
+      name: 'Riz blanc (cuit)',
+      kcal: 130,
+      protein_dg: 27,
+      carbs_dg: 280,
+      fat_dg: 3,
+      portion_g: null,
+      portion_label: null,
+      created_at: '2026-01-01T00:00:00Z',
+    },
+  ],
+  meal_items: [
+    {
+      id: '99999999-9999-4999-8999-999999999999',
+      day: parisToday(),
+      meal: 'lunch',
+      food_id: '88888888-8888-4888-8888-888888888888',
+      name: 'Riz blanc (cuit)',
+      grams: 200,
+      kcal: 260,
+      protein_dg: 54,
+      carbs_dg: 560,
+      fat_dg: 6,
+      position: 0,
+      created_at: '2026-01-01T00:00:00Z',
+    },
+  ],
+  macro_targets: [{ id: 'mt1', kcal: 2000, protein_g: 120, carbs_g: 250, fat_g: 70 }],
   goals: [
     {
       id: '55555555-5555-4555-8555-555555555555',
@@ -102,6 +132,7 @@ const pages = [
   { path: '#/rituel', ready: { role: 'heading', name: 'Rituel du soir' } },
   { path: '#/calendrier', ready: { role: 'heading', name: 'Calendrier' } },
   { path: '#/semaine', ready: { role: 'heading', name: 'Planifier la semaine' } },
+  { path: '#/menu', ready: { role: 'heading', name: 'Menu' } },
 ] as const
 
 const WCAG = ['wcag2a', 'wcag2aa', 'wcag21aa']
