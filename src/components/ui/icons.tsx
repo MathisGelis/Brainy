@@ -81,6 +81,13 @@ export const ReviewIcon = (p: P) => (
   </Icon>
 )
 
+export const MenuIcon = (p: P) => (
+  <Icon {...p}>
+    <path d="M7 3v8M4.5 3v5a2.5 2.5 0 0 0 5 0V3M7 11v10" />
+    <path d="M17.5 21V3c-2 1.2-3.5 4-3.5 7.5 0 1.4.9 2.5 2.2 2.5h1.3" />
+  </Icon>
+)
+
 export const PlusIcon = (p: P) => (
   <Icon strokeWidth="2.2" {...p}>
     <path d="M12 5v14M5 12h14" />

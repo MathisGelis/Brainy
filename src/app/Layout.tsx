@@ -112,8 +112,8 @@ export function Layout() {
       </button>
 
       {/* Barre latérale (desktop) / barre d'onglets flottante (mobile) */}
-      <div className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+10px)] z-40 md:inset-x-auto md:top-4 md:bottom-4 md:left-4 md:w-60">
-        <div className="glass flex h-full flex-col rounded-[30px] p-1.5 md:rounded-[28px] md:p-3">
+      <div className="fixed inset-x-2 bottom-[calc(env(safe-area-inset-bottom)+10px)] z-40 md:inset-x-auto md:top-4 md:bottom-4 md:left-4 md:w-60">
+        <div className="glass flex h-full flex-col rounded-[30px] p-1 md:rounded-[28px] md:p-3">
           <div className="hidden px-3 pt-2 pb-4 md:block">
             <Brand />
           </div>
@@ -129,26 +129,33 @@ export function Layout() {
           <nav
             ref={navRef}
             aria-label="Navigation principale"
-            className="relative grid grid-cols-6 md:flex md:flex-col md:gap-1"
+            className="relative grid grid-cols-7 md:flex md:flex-col md:gap-1"
           >
             <span
               ref={indicatorRef}
               aria-hidden
               className="nav-indicator absolute top-0 left-0 rounded-[24px] md:rounded-2xl"
             />
-            {navItems.map(({ to, label, end, icon: Icon }) => (
+            {navItems.map(({ to, label, short, end, icon: Icon }) => (
               <NavLink
                 key={to}
                 to={to}
                 end={end}
                 className={({ isActive }) =>
-                  `relative z-10 flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-[24px] text-[10px] leading-tight transition-colors md:min-h-10 md:flex-row md:justify-start md:gap-3 md:rounded-2xl md:px-3 md:text-sm ${
+                  `relative z-10 flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-[24px] text-[10px] leading-tight tracking-tight transition-colors md:min-h-10 md:tracking-normal md:flex-row md:justify-start md:gap-3 md:rounded-2xl md:px-3 md:text-sm ${
                     isActive ? 'font-semibold text-accent' : 'text-muted hover:text-text'
                   }`
                 }
               >
                 <Icon />
-                <span>{label}</span>
+                {short ? (
+                  <>
+                    <span className="md:hidden">{short}</span>
+                    <span className="hidden md:inline">{label}</span>
+                  </>
+                ) : (
+                  <span>{label}</span>
+                )}
               </NavLink>
             ))}
           </nav>

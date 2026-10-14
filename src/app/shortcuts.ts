@@ -9,6 +9,7 @@ export const NAV_SHORTCUTS: { key: string; to: string; label: string }[] = [
   { key: 'h', to: '/habitudes', label: 'Habitudes' },
   { key: 't', to: '/todo', label: 'Todo' },
   { key: 'b', to: '/budget', label: 'Budget' },
+  { key: 'm', to: '/menu', label: 'Menu' },
   { key: 'c', to: '/calendrier', label: 'Calendrier' },
   { key: 'r', to: '/revue', label: 'Revue de la semaine' },
   { key: 'p', to: '/semaine', label: 'Planifier la semaine' },

@@ -17,6 +17,9 @@ export const EXPORTED_TABLES = [
   'day_checkins',
   'savings_goals',
   'savings_moves',
+  'foods',
+  'meal_items',
+  'macro_targets',
 ] as const
 
 export type ExportedTable = (typeof EXPORTED_TABLES)[number]
