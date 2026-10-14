@@ -24,6 +24,7 @@ import type { Todo } from '@/features/todos/types'
 import { useTodos } from '@/features/todos/useTodos'
 import { celebrate } from '@/lib/celebrate'
 import { addDays, formatDayMonth, monthOf, todayISO } from '@/lib/dates'
+import { isoWeekday } from '@/lib/naturalDate'
 import { formatCents } from '@/lib/money'
 import type { ComponentType, ReactNode, SVGProps } from 'react'
 import { DataMenu } from './DataMenu'
@@ -365,6 +366,26 @@ export default function TodayPage() {
         <p className="text-muted first-letter:uppercase">{dateLabel}</p>
         <DailyNoteButton today={today} onError={onError} />
       </div>
+      {isoWeekday(today) >= 7 || isoWeekday(today) === 1 ? (
+        <Link
+          to="/revue"
+          className="card mb-4 flex min-h-14 items-center justify-between gap-3 p-4 transition-colors hover:bg-surface"
+        >
+          <span>
+            <span className="font-semibold">
+              {isoWeekday(today) === 1
+                ? 'La revue de la semaine dernière est prête'
+                : 'Votre revue de la semaine est prête'}
+            </span>
+            <span className="block text-xs text-muted">
+              Todos, habitudes, dépenses et jalons en un coup d'œil
+            </span>
+          </span>
+          <span aria-hidden className="text-accent">
+            →
+          </span>
+        </Link>
+      ) : null}
       <div className="grid gap-4 md:grid-cols-2">
         <Section title="Todos du jour" to="/todo" icon={TodoIcon}>
           <TodayTodos today={today} onError={onError} />

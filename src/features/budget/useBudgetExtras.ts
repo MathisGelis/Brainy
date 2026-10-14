@@ -4,6 +4,7 @@ import { todayISO } from '@/lib/dates'
 import { useOptimisticMutation } from '@/lib/useOptimisticMutation'
 import {
   fetchExpenses,
+  fetchExpensesBetween,
   fetchIncomes,
   fetchRecurring,
   insertGenerated,
@@ -35,6 +36,15 @@ export const RECURRING_KEY = ['recurring_entries'] as const
 export function useMonthExpenses(month: string) {
   const query = useQuery({ queryKey: expensesKey(month), queryFn: () => fetchExpenses(month) })
   return query.data ?? []
+}
+
+/** Dépenses entre deux jours inclus, en lecture seule (clé sous ['expenses'] : rafraîchie avec le reste). */
+export function useExpensesBetween(from: string, to: string) {
+  const query = useQuery({
+    queryKey: ['expenses', 'range', from, to],
+    queryFn: () => fetchExpensesBetween(from, to),
+  })
+  return { expenses: query.data ?? [], isLoading: query.isPending }
 }
 
 export type NewIncomeInput = { amount_cents: number; received_on: string; note: string | null }

@@ -181,3 +181,17 @@ export async function insertGenerated(rule: RecurringEntry, dates: string[]): Pr
     if (error) throw error
   }
 }
+
+/** Dépenses entre deux jours inclus (ex. une semaine à cheval sur deux mois). */
+export async function fetchExpensesBetween(from: string, to: string): Promise<Expense[]> {
+  return fetchAllRows<Expense>((start, end) =>
+    supabase
+      .from('expenses')
+      .select('*')
+      .gte('spent_on', from)
+      .lte('spent_on', to)
+      .order('spent_on')
+      .order('id')
+      .range(start, end),
+  )
+}
