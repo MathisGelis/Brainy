@@ -33,9 +33,11 @@ _Reste pour plus tard : liste/projet par todo (champ `list_id` déjà en base), 
 - [x] Tests des calculs (centimes, dépassement, mois)
 
 ## Phase 4 — Notes
-- [ ] Liste + éditeur Markdown avec sauvegarde auto
-- [ ] Épingler, tags, recherche plein texte
-- [ ] Responsive (liste → plein écran sur mobile)
+- [x] Liste + éditeur Markdown avec sauvegarde auto
+- [x] Épingler, tags, recherche plein texte
+- [x] Responsive (liste → plein écran sur mobile)
+
+_Recherche faite côté client (instantanée, sans accents, `#tag`) : suffisant au volume mono-utilisateur ; l'index GIN reste disponible si besoin._
 
 ## Phase 5 — Objectifs
 - [ ] CRUD objectifs + jalons

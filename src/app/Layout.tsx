@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useMatch } from 'react-router-dom'
 import { signOut } from '@/features/auth/useAuth'
 import { navItems } from './navItems'
 
@@ -6,6 +6,8 @@ const linkBase = 'flex items-center rounded px-3 text-sm'
 
 /** Sidebar sur desktop, tab bar en bas sur mobile (zones tactiles ≥ 44px). */
 export function Layout() {
+  // Les notes (liste + éditeur) ont besoin de plus de largeur que les autres écrans.
+  const wide = useMatch('/notes/*') !== null
   return (
     <div className="min-h-dvh md:grid md:grid-cols-[14rem_1fr]">
       <nav
@@ -34,7 +36,9 @@ export function Layout() {
           Déconnexion
         </button>
       </nav>
-      <main className="mx-auto w-full max-w-3xl px-4 pt-6 pb-24 md:px-8 md:pb-8">
+      <main
+        className={`mx-auto w-full px-4 pt-6 pb-24 md:px-8 md:pb-8 ${wide ? 'max-w-5xl' : 'max-w-3xl'}`}
+      >
         <Outlet />
       </main>
     </div>

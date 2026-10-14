@@ -22,7 +22,7 @@ export function App() {
             <Route element={<Layout />}>
               <Route index element={<TodayPage />} />
               <Route path="objectifs" element={<GoalsPage />} />
-              <Route path="notes" element={<NotesPage />} />
+              <Route path="notes/:noteId?" element={<NotesPage />} />
               <Route path="habitudes" element={<HabitsPage />} />
               <Route path="habitudes/:habitId" element={<HabitDetailPage />} />
               <Route path="todo" element={<TodosPage />} />
