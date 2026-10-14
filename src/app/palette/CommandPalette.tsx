@@ -244,7 +244,7 @@ export default function CommandPalette({ onClose, onQuickAdd, onHelp }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-start justify-center bg-black/25 px-3 pt-[10vh]"
+      className="fixed inset-0 z-[60] flex items-start justify-center bg-black/25 px-3 pt-[10vh] backdrop-blur-[3px]"
       onMouseDown={(e) => e.target === e.currentTarget && onClose()}
     >
       <div

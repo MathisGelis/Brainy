@@ -203,10 +203,7 @@ function TodayHabits({ today, onError }: { today: string; onError: (m: string) =
                   }}
                 />
               )}
-              <span className="min-w-0 flex-1">
-                {habit.name}
-                {habit.goal_amount && unit && <span className="text-xs text-muted"> · {unit}</span>}
-              </span>
+              <span className="min-w-0 flex-1">{habit.name}</span>
               {streak.count > 0 && (
                 <span className="text-xs text-muted">
                   {streak.count} {streak.unit === 'day' ? 'j' : 'sem.'}
