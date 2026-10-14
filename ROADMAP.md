@@ -85,6 +85,13 @@ _Lighthouse (mobile, build de prod) sur la page de connexion : performance 97, a
 - [x] Planification de la semaine (ce qui traîne, 3 priorités, répartition sur les jours)
 - [x] Tests (unitaires, e2e, axe dans les deux thèmes), Lighthouse
 
+## Phase 10 — Menu et macros (migration `0005_menu.sql`)
+- [ ] Migration 0005 (aliments, repas, objectifs de macros)
+- [ ] Base d'aliments courants + saisie en langage naturel
+- [ ] Écran Menu : repas du jour, semaine, tracker de macros, objectifs, mes aliments
+- [ ] Liste de courses alimentée depuis le menu
+- [ ] Tests (unitaires, e2e, axe dans les deux thèmes), Lighthouse
+
 ## Backlog (idées, ne pas implémenter sans validation)
 - PWA installable (hors-ligne léger)
 - Restauration d'une sauvegarde JSON
@@ -92,3 +99,4 @@ _Lighthouse (mobile, build de prod) sur la page de connexion : performance 97, a
 - Abonnements (coût annuel), anniversaires, suivis chiffrés, rétrospective annuelle, flux ICS
 - Liens note ↔ objectif
 - Assistant mails (Claude + Gmail) : tri et résumés, mail → todo ou dépense, brouillons validés à la main ; nécessite des Edge Functions Supabase, OAuth Google et une clé API Anthropic (« IA intégrée » est hors périmètre v1)
+- Menu : recherche Open Food Facts et scan de code-barres ; quantités cumulées dans la liste de courses

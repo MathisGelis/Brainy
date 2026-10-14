@@ -14,7 +14,7 @@ Un seul utilisateur (Mathis). Auth simple (magic link ou email/mot de passe Supa
 
 ## Navigation
 Barre latérale (desktop) / barre d'onglets en bas (mobile) :
-`Aujourd'hui · Objectifs · Notes · Habitudes · Todo · Budget`
+`Aujourd'hui · Objectifs · Notes · Habitudes · Todo · Budget · Menu`
 
 ## Specs par onglet
 
@@ -71,6 +71,14 @@ Vue synthèse en lecture + actions rapides :
 - Récurrences (loyer, abonnements, salaire) : générées automatiquement chaque mois, modifiables et supprimables ; créées directement depuis la saisie (« ↻ Chaque mois » ou « 900 loyer le 5 tous les mois »)
 - Cagnottes d'épargne : cible, versements et retraits, objectif lié ; l'épargne du mois est déduite du solde
 - Liste des dépenses et revenus du mois avec édition/suppression
+
+### Menu (repas et macros)
+- Repas du jour (petit-déjeuner, déjeuner, dîner, collation) : passés = ce qui a été mangé, à venir = menu prévu
+- Ajout en langage naturel : « 200 g poulet midi », « 2 œufs », « 1 banane collation demain »
+- Base d'aliments courants (valeurs indicatives pour 100 g) ; chaque aliment est copié dans « Mes aliments » et devient modifiable ; aliment inconnu : on saisit ses valeurs une fois
+- Tracker de macros : kcal, protéines, glucides, lipides du jour face aux objectifs ; kcal par jour de la semaine
+- Liste de courses (liste de todos « Courses ») : quand on ajoute un aliment au menu, proposition de l'y ajouter ; « tout ajouter » pour les aliments de la semaine, sans doublon
+- Repas, aliments et objectifs modifiables et supprimables
 
 ### Transverse
 - Palette de commandes `Cmd/Ctrl+K` : aller à un onglet, créer, rechercher dans tout
