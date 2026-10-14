@@ -90,4 +90,22 @@ describe('useTodos', () => {
 
     await waitFor(() => expect(result.current.todos).toHaveLength(0))
   })
+
+  it('envoie la restauration seulement après la fin de la suppression', async () => {
+    let finishDelete!: () => void
+    vi.mocked(api.removeTodo).mockReturnValue(new Promise<void>((r) => (finishDelete = r)))
+    vi.mocked(api.insertTodo).mockReturnValue(new Promise<void>(() => {}))
+    const { result } = setup()
+    await waitFor(() => expect(result.current.todos).toHaveLength(1))
+
+    act(() => result.current.deleteTodo('t1'))
+    act(() => result.current.restoreTodo(base))
+
+    // affichage immédiat, requête de restauration en attente
+    await waitFor(() => expect(result.current.todos).toHaveLength(1))
+    expect(api.insertTodo).not.toHaveBeenCalled()
+
+    finishDelete()
+    await waitFor(() => expect(api.insertTodo).toHaveBeenCalledWith(base))
+  })
 })

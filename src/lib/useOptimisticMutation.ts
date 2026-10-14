@@ -3,6 +3,10 @@ import { useMutation, useQueryClient, type QueryKey } from '@tanstack/react-quer
 /**
  * Mutation à mise à jour optimiste sur une liste mise en cache : le cache est modifié tout de suite,
  * restauré en cas d'erreur, puis resynchronisé avec le serveur.
+ *
+ * Les requêtes d'une même liste partagent un `scope` : elles partent dans l'ordre
+ * (ex. « supprimer » puis « annuler » ne peuvent pas s'inverser), tandis que la mise à jour
+ * optimiste (`onMutate`) reste immédiate.
  */
 export function useOptimisticMutation<T, V>(
   queryKey: QueryKey,
@@ -13,6 +17,7 @@ export function useOptimisticMutation<T, V>(
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (variables: V) => request(variables),
+    scope: { id: JSON.stringify(queryKey) },
     onMutate: async (variables: V) => {
       await queryClient.cancelQueries({ queryKey })
       const previous = queryClient.getQueryData<T[]>(queryKey)

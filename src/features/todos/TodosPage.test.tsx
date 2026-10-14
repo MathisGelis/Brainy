@@ -51,6 +51,7 @@ describe('TodosPage', () => {
   })
 
   it('coche une todo et propose « Annuler »', async () => {
+    vi.mocked(api.patchTodo).mockResolvedValue()
     renderPage()
     await userEvent.click(await screen.findByRole('checkbox', { name: /Acheter du pain/ }))
 
