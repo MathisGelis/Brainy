@@ -79,11 +79,11 @@ _Lighthouse (mobile, build de prod) sur la page de connexion : performance 97, a
 - [x] Tests (unitaires, e2e, axe dans les deux thèmes), Lighthouse
 
 ## Phase 9 — Semaine et victoires (migration `0004_victoires_semaine.sql`)
-- [ ] Migration 0004 (victoire du jour, priorités de la semaine)
-- [ ] Catégorie devinée d'après l'historique des dépenses
-- [ ] Victoire du jour (rituel du soir, calendrier, revue)
-- [ ] Planification de la semaine (ce qui traîne, 3 priorités, répartition sur les jours)
-- [ ] Tests (unitaires, e2e, axe dans les deux thèmes), Lighthouse
+- [x] Migration 0004 (victoire du jour, priorités de la semaine)
+- [x] Catégorie devinée d'après l'historique des dépenses
+- [x] Victoire du jour (rituel du soir, calendrier, revue)
+- [x] Planification de la semaine (ce qui traîne, 3 priorités, répartition sur les jours)
+- [x] Tests (unitaires, e2e, axe dans les deux thèmes), Lighthouse
 
 ## Backlog (idées, ne pas implémenter sans validation)
 - PWA installable (hors-ligne léger)
