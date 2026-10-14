@@ -22,16 +22,17 @@ Les tests e2e n'utilisent pas votre base : les appels à Supabase sont servis pa
 (`e2e/fakeSupabase.ts`). Avant la première exécution : `pnpm exec playwright install chromium`
 (ou `PLAYWRIGHT_CHROMIUM_PATH=/chemin/vers/chromium` si Chromium est déjà installé).
 
-## Mettre à jour la base (phase 7)
+## Mettre à jour la base
 
-Cette version ajoute des colonnes et des tables (récurrences, revenus, jours off, habitudes chiffrées,
-liens avec les objectifs). **Avant d'ouvrir la nouvelle version**, exécutez dans l'éditeur SQL Supabase :
+**Avant d'ouvrir une nouvelle version**, exécutez dans l'éditeur SQL Supabase les migrations
+pas encore appliquées, dans l'ordre :
 
-```
-supabase/migrations/0002_enrichissements.sql
-```
+| Migration | Phase | Ajoute |
+|---|---|---|
+| `supabase/migrations/0002_enrichissements.sql` | 7 | récurrences, revenus, jours off, habitudes chiffrées, liens avec les objectifs |
+| `supabase/migrations/0003_rituels_epargne.sql` | 8 | Top 3 du jour, humeur et énergie, cagnottes d'épargne |
 
-La migration ne fait qu'ajouter : aucune donnée existante n'est modifiée ni supprimée.
+Les migrations ne font qu'ajouter : aucune donnée existante n'est modifiée ni supprimée.
 
 ## Fonctionnalités en bref
 
@@ -44,7 +45,15 @@ La migration ne fait qu'ajouter : aucune donnée existante n'est modifiée ni su
 - **Habitudes** : jours précis, jours off (vacances), objectifs chiffrés.
 - **Notes** : cases `- [ ]` cochables dans l'aperçu, note du jour.
 - **Objectifs** : todos et habitudes liées, prochains jalons sur l'accueil.
-- **Revue de la semaine** (`#/revue`, ou la carte de l'accueil le dimanche et le lundi).
+- **Top 3 du jour** en tête de l'accueil (suggestions ou saisie directe) ; **rituel du soir**
+  (`#/rituel`, proposé à partir de 18 h) : humeur, habitudes, reports, Top 3 de demain.
+- **Humeur et énergie** (1 à 5) en un geste sur l'accueil.
+- **Budget** : dépenses récurrentes depuis la saisie (« ↻ Chaque mois » ou « 900 loyer le 5 tous les mois »),
+  **cagnottes d'épargne** (versements, retraits, objectif lié ; l'épargne du mois est déduite du solde).
+- **Revue de la semaine** (`#/revue`, ou la carte de l'accueil le dimanche et le lundi), avec humeur,
+  énergie et liens simples (« les jours de sport, énergie +0,8 »).
+- **Calendrier** (`#/calendrier`) : vue du mois ; le détail d'un jour permet de cocher, d'ajouter
+  une todo à cette date, de noter l'humeur.
 - Tout élément créé est modifiable et supprimable, avec « Annuler ».
 
 ## Design « Liquid glass »
@@ -59,7 +68,7 @@ Panneaux de verre dépoli sur un fond animé three.js (orbe irisé + aurore), th
 ## Raccourcis clavier (desktop)
 
 `⌘K` / `Ctrl+K` palette · `n` ajout rapide (todo, note, dépense) · `/` rechercher dans les notes · `g` puis `a` `o` `n` `h` `t` `b`
-pour changer d'onglet · `?` liste des raccourcis · `Échap` fermer.
+pour changer d'onglet, `c` calendrier, `r` revue · `?` liste des raccourcis · `Échap` fermer.
 
 ## Données
 

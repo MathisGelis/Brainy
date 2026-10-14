@@ -70,13 +70,13 @@ _Lighthouse (mobile, build de prod) sur la page de connexion : performance 97, a
 - [x] Tests (unitaires, e2e, axe dans les deux thèmes), Lighthouse
 
 ## Phase 8 — Rituels, épargne, calendrier (migration `0003_rituels_epargne.sql`)
-- [ ] Migration 0003 (Top 3, humeur/énergie, cagnottes)
-- [ ] Dépenses récurrentes dans la saisie principale (interrupteur + langage naturel)
-- [ ] Top 3 du jour + rituels du matin et du soir
-- [ ] Humeur et énergie + liens dans la revue de la semaine
-- [ ] Cagnottes d'épargne
-- [ ] Vue calendrier
-- [ ] Tests (unitaires, e2e, axe dans les deux thèmes), Lighthouse
+- [x] Migration 0003 (Top 3, humeur/énergie, cagnottes)
+- [x] Dépenses récurrentes dans la saisie principale (interrupteur + langage naturel)
+- [x] Top 3 du jour + rituels du matin et du soir
+- [x] Humeur et énergie + liens dans la revue de la semaine
+- [x] Cagnottes d'épargne
+- [x] Vue calendrier
+- [x] Tests (unitaires, e2e, axe dans les deux thèmes), Lighthouse
 
 ## Backlog (idées, ne pas implémenter sans validation)
 - PWA installable (hors-ligne léger)
