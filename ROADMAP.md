@@ -84,3 +84,4 @@ _Lighthouse (mobile, build de prod) sur la page de connexion : performance 97, a
 - Minuteur de concentration (Pomodoro)
 - Abonnements (coût annuel), anniversaires, suivis chiffrés, rétrospective annuelle, flux ICS
 - Liens note ↔ objectif
+- Assistant mails (Claude + Gmail) : tri et résumés, mail → todo ou dépense, brouillons validés à la main ; nécessite des Edge Functions Supabase, OAuth Google et une clé API Anthropic (« IA intégrée » est hors périmètre v1)
