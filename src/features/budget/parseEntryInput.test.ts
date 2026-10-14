@@ -27,6 +27,8 @@ describe('parseEntryInput', () => {
       category_id: 'c2',
       spent_on: null,
       note: null,
+      monthly: false,
+      dayOfMonth: null,
     })
   })
 
@@ -37,6 +39,8 @@ describe('parseEntryInput', () => {
       category_id: 'c2',
       spent_on: '2026-10-13',
       note: 'dîner entre amis',
+      monthly: false,
+      dayOfMonth: null,
     })
   })
 
@@ -56,6 +60,8 @@ describe('parseEntryInput', () => {
       category_id: null,
       spent_on: null,
       note: 'salaire',
+      monthly: false,
+      dayOfMonth: null,
     })
   })
 
@@ -74,6 +80,26 @@ describe('parseEntryInput', () => {
       amount_cents: 4500,
       spent_on: '2025-11-15',
       category_id: 'c1',
+    })
+  })
+
+  it('« tous les mois » et le jour du mois', () => {
+    expect(parse('900 loyer le 5 tous les mois')).toMatchObject({
+      amount_cents: 90000,
+      monthly: true,
+      dayOfMonth: 5,
+      spent_on: null,
+      note: 'loyer',
+    })
+    expect(parse('13,99 netflix chaque mois')).toMatchObject({
+      monthly: true,
+      dayOfMonth: null,
+      amount_cents: 1399,
+    })
+    expect(parse('+2400 salaire le 28 tous les mois')).toMatchObject({
+      kind: 'income',
+      monthly: true,
+      dayOfMonth: 28,
     })
   })
 })

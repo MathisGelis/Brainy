@@ -3,7 +3,8 @@ import { Button } from '@/components/ui'
 import { formatDue, todayISO } from '@/lib/dates'
 import { formatCents } from '@/lib/money'
 import { parseEntryInput } from './parseEntryInput'
-import type { NewIncomeInput } from './useBudgetExtras'
+import { occurrenceIn } from './recurringLogic'
+import type { NewIncomeInput, NewRecurringEntryInput } from './useBudgetExtras'
 import type { NewExpenseInput } from './useBudget'
 import type { Category, EntryKind } from './types'
 
@@ -30,6 +31,8 @@ type Props = {
   onAdd: (expense: NewExpenseInput) => void
   /** Absent : formulaire limité aux dépenses */
   onAddIncome?: (income: NewIncomeInput) => void
+  /** Absent : pas d'option « Chaque mois » */
+  onAddRecurring?: (entry: NewRecurringEntryInput) => void
 }
 
 const chip = 'rounded-full bg-surface px-2.5 py-1 text-xs text-text'
@@ -38,7 +41,7 @@ const chip = 'rounded-full bg-surface px-2.5 py-1 text-xs text-text'
  * Saisie rapide en langage naturel : « 12,50 resto hier », « +2400 salaire ».
  * Puces de catégorie (dernière utilisée présélectionnée), date du jour par défaut.
  */
-export function ExpenseForm({ categories, onAdd, onAddIncome }: Props) {
+export function ExpenseForm({ categories, onAdd, onAddIncome, onAddRecurring }: Props) {
   const active = categories.filter((c) => !c.archived)
   const [kind, setKind] = useState<EntryKind>('expense')
   const [text, setText] = useState('')
@@ -46,6 +49,7 @@ export function ExpenseForm({ categories, onAdd, onAddIncome }: Props) {
   const [date, setDate] = useState<string | null>(null)
   const [note, setNote] = useState('')
   const [invalid, setInvalid] = useState(false)
+  const [monthlyToggle, setMonthlyToggle] = useState(false)
   const amountRef = useRef<HTMLInputElement>(null)
 
   const today = todayISO()
@@ -55,6 +59,8 @@ export function ExpenseForm({ categories, onAdd, onAddIncome }: Props) {
   const chosenId = active.some((c) => c.id === chosen) ? chosen : null
   const categoryId = parsed?.category_id ?? chosenId
   const parsedCategory = categories.find((c) => c.id === parsed?.category_id)
+  const monthly = Boolean(onAddRecurring) && (monthlyToggle || Boolean(parsed?.monthly))
+  const monthDay = parsed?.dayOfMonth ?? Number((parsed?.spent_on ?? date ?? today).slice(8))
 
   function submit(e: FormEvent) {
     e.preventDefault()
@@ -66,7 +72,19 @@ export function ExpenseForm({ categories, onAdd, onAddIncome }: Props) {
     }
     const when = parsed?.spent_on ?? date ?? today
     const finalNote = note.trim() || parsed?.note || null
-    if (effectiveKind === 'income' && onAddIncome) {
+    if (monthly && onAddRecurring) {
+      // « le 20 » pas encore arrivé ce mois-ci : la récurrence démarre le 20, rien à compter aujourd'hui
+      const firstOn = parsed?.dayOfMonth ? occurrenceIn(today.slice(0, 7), parsed.dayOfMonth) : when
+      onAddRecurring({
+        kind: effectiveKind,
+        amount_cents: cents,
+        category_id: effectiveKind === 'expense' ? categoryId : null,
+        note: finalNote,
+        day_of_month: monthDay,
+        first_on: firstOn <= today ? firstOn : null,
+      })
+      if (effectiveKind === 'expense') saveLastCategory(categoryId)
+    } else if (effectiveKind === 'income' && onAddIncome) {
       onAddIncome({ amount_cents: cents, received_on: when, note: finalNote })
     } else {
       onAdd({ amount_cents: cents, category_id: categoryId, spent_on: when, note: finalNote })
@@ -76,6 +94,7 @@ export function ExpenseForm({ categories, onAdd, onAddIncome }: Props) {
     setNote('')
     setDate(null)
     setInvalid(false)
+    setMonthlyToggle(false)
     amountRef.current?.focus()
   }
 
@@ -131,6 +150,16 @@ export function ExpenseForm({ categories, onAdd, onAddIncome }: Props) {
           placeholder="Note (optionnel)"
           className="field min-h-11 min-w-0 flex-1 basis-40 px-4 md:min-h-10"
         />
+        {onAddRecurring && (
+          <button
+            type="button"
+            aria-pressed={monthly}
+            onClick={() => setMonthlyToggle((v) => !v)}
+            className="pill min-h-11 border border-[var(--field-border)] px-4 md:min-h-10"
+          >
+            ↻ Chaque mois
+          </button>
+        )}
         <Button type="submit">Ajouter</Button>
       </div>
       <p id="entry-hint" aria-live="polite" className="flex min-h-7 flex-wrap items-center gap-1.5">
@@ -150,6 +179,9 @@ export function ExpenseForm({ categories, onAdd, onAddIncome }: Props) {
               {parsedCategory && <span className={chip}>{parsedCategory.name}</span>}
               {parsed.spent_on && <span className={chip}>{formatDue(parsed.spent_on, today)}</span>}
               {parsed.note && <span className={chip}>« {parsed.note} »</span>}
+              {monthly && (
+                <span className={`${chip} text-accent`}>↻ Chaque mois, le {monthDay}</span>
+              )}
             </>
           )
         )}

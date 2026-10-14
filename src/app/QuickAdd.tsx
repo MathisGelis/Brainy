@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Button, useToast } from '@/components/ui'
 import { ExpenseForm } from '@/features/budget/ExpenseForm'
 import { useBudget } from '@/features/budget/useBudget'
-import { useIncomes } from '@/features/budget/useBudgetExtras'
+import { useIncomes, useRecurring } from '@/features/budget/useBudgetExtras'
 import { useNotes } from '@/features/notes/useNotes'
 import { AddTodoForm } from '@/features/todos/AddTodoForm'
 import { useQuickTodo } from '@/features/todos/useTodos'
@@ -64,6 +64,7 @@ function ExpenseTab() {
   const onError = (m: string) => toast.show(m)
   const { categories, addExpense } = useBudget(month, { onError })
   const { addIncome } = useIncomes(month, { onError })
+  const { addRecurringEntry } = useRecurring({ onError })
   return (
     <ExpenseForm
       categories={categories}
@@ -74,6 +75,10 @@ function ExpenseTab() {
       onAddIncome={(income) => {
         addIncome(income)
         toast.show('Revenu ajouté')
+      }}
+      onAddRecurring={(entry) => {
+        const { rule } = addRecurringEntry(entry)
+        toast.show(`Ajoutée chaque mois, le ${rule.day_of_month}`)
       }}
     />
   )

@@ -85,7 +85,7 @@ describe('BudgetPage', () => {
     })
     renderPage()
     await screen.findByRole('button', { name: 'Courses' })
-    await userEvent.click(screen.getByText('Dépenses et revenus récurrents'))
+    await userEvent.click(screen.getByText('Ajouter une récurrence en détail'))
     await userEvent.type(screen.getByLabelText('Montant récurrent'), '900')
     const day = screen.getByLabelText('Jour du mois')
     await userEvent.clear(day)
@@ -101,7 +101,10 @@ describe('BudgetPage', () => {
         active: true,
       }),
     )
-    expect(await screen.findByLabelText('Montant de « Loyer »')).toHaveValue('900,00')
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Modifier la récurrence « Loyer »' }),
+    )
+    expect(screen.getByLabelText('Montant de « Loyer »')).toHaveValue('900,00')
   })
 
   it('« Répéter chaque mois » sur une dépense crée la règle sans doublon', async () => {
@@ -211,4 +214,58 @@ describe('BudgetPage', () => {
     expect(api.fetchExpenses).toHaveBeenCalledWith(previous)
     expect(await screen.findByRole('button', { name: 'Ce mois-ci' })).toBeInTheDocument()
   })
+
+  it('« ↻ Chaque mois » : crée la règle puis la dépense du jour qui y est rattachée', async () => {
+    const order: string[] = []
+    vi.mocked(api.insertRecurring).mockImplementation(async () => {
+      order.push('règle')
+    })
+    vi.mocked(api.insertExpense).mockImplementation(async () => {
+      order.push('dépense')
+    })
+    renderPage()
+    await screen.findByRole('button', { name: 'Courses' })
+    await userEvent.type(screen.getByLabelText('Montant en euros'), '900 loyer')
+    await userEvent.click(screen.getByRole('button', { name: '↻ Chaque mois' }))
+    expect(screen.getByText(/↻ Chaque mois, le/)).toBeInTheDocument()
+    await userEvent.click(screen.getAllByRole('button', { name: 'Ajouter' })[0]!)
+
+    const today = todayISO()
+    await waitFor(() => expect(order).toEqual(['règle', 'dépense']))
+    const rule = vi.mocked(api.insertRecurring).mock.calls[0]![0]
+    expect(rule).toMatchObject({
+      kind: 'expense',
+      amount_cents: 90000,
+      note: 'loyer',
+      day_of_month: Number(today.slice(8)),
+      start_on: today,
+      last_generated_on: today,
+    })
+    expect(api.insertExpense).toHaveBeenCalledWith(
+      expect.objectContaining({ recurring_id: rule.id, spent_on: today }),
+    )
+    expect(await screen.findByText(/Ajoutée chaque mois/)).toBeInTheDocument()
+  })
+
+  const tomorrowDay = Number(todayISO().slice(8)) + 1
+  it.skipIf(tomorrowDay > 28)(
+    '« le N tous les mois » avec un jour à venir : la règle seule, rien à compter aujourd’hui',
+    async () => {
+      vi.mocked(api.insertRecurring).mockResolvedValue()
+      renderPage()
+      await screen.findByRole('button', { name: 'Courses' })
+      await userEvent.type(
+        screen.getByLabelText('Montant en euros'),
+        `13,99 netflix le ${tomorrowDay} tous les mois{Enter}`,
+      )
+
+      await waitFor(() => expect(api.insertRecurring).toHaveBeenCalled())
+      expect(vi.mocked(api.insertRecurring).mock.calls[0]![0]).toMatchObject({
+        day_of_month: tomorrowDay,
+        start_on: `${monthOf(todayISO())}-${String(tomorrowDay).padStart(2, '0')}`,
+        last_generated_on: null,
+      })
+      expect(api.insertExpense).not.toHaveBeenCalled()
+    },
+  )
 })

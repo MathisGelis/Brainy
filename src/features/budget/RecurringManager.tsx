@@ -52,13 +52,41 @@ function RuleRow({
   onDelete,
 }: { rule: RecurringEntry } & Omit<Props, 'rules' | 'onAdd'>) {
   const [invalid, setInvalid] = useState(false)
+  const [editing, setEditing] = useState(false)
   const label =
     rule.note ||
     (rule.kind === 'income'
       ? 'Revenu'
       : (categories.find((c) => c.id === rule.category_id)?.name ?? 'Dépense'))
+  if (!editing) {
+    return (
+      <li className="flex min-h-12 items-center gap-3 border-b border-border last:border-b-0">
+        <span className={`min-w-0 flex-1 truncate ${rule.active ? '' : 'text-muted'}`}>
+          <span className="text-muted">↻ </span>
+          {label}
+          {!rule.active && <span className="text-xs text-muted"> · en pause</span>}
+        </span>
+        <span className="shrink-0 text-xs text-muted">le {rule.day_of_month}</span>
+        <span
+          className={`w-24 shrink-0 text-right font-semibold ${rule.kind === 'income' ? 'text-success' : ''}`}
+        >
+          {rule.kind === 'income' ? '+' : ''}
+          {formatCents(rule.amount_cents)}
+        </span>
+        <button
+          type="button"
+          onClick={() => setEditing(true)}
+          aria-label={`Modifier la récurrence « ${label} »`}
+          className="min-h-11 shrink-0 rounded-full px-3 text-xs text-muted transition-colors hover:bg-surface hover:text-text md:min-h-9"
+        >
+          Modifier
+        </button>
+      </li>
+    )
+  }
+
   return (
-    <li className="card flex flex-col gap-2 p-3">
+    <li className="card my-2 flex flex-col gap-2 p-3">
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-xs font-semibold text-muted uppercase">
           {rule.kind === 'income' ? 'Revenu' : 'Dépense'}
@@ -132,6 +160,13 @@ function RuleRow({
           >
             Supprimer
           </button>
+          <button
+            type="button"
+            onClick={() => setEditing(false)}
+            className="min-h-9 rounded-full px-3 font-semibold text-accent transition-colors hover:bg-surface"
+          >
+            OK
+          </button>
         </span>
       </div>
     </li>
@@ -170,14 +205,36 @@ export function RecurringManager({ rules, categories, onAdd, onUpdate, onDelete 
     setInvalid(false)
   }
 
+  const active = rules.filter((r) => r.active)
+  const fixedOut = active
+    .filter((r) => r.kind === 'expense')
+    .reduce((sum, r) => sum + r.amount_cents, 0)
+  const fixedIn = active
+    .filter((r) => r.kind === 'income')
+    .reduce((sum, r) => sum + r.amount_cents, 0)
+
   return (
-    <details className="mt-8">
-      <summary className="min-h-11 cursor-pointer content-center text-muted hover:text-text">
-        Dépenses et revenus récurrents{rules.length > 0 && ` (${rules.length})`}
-      </summary>
-      <div className="mt-2 flex flex-col gap-3">
+    <section aria-labelledby="recurring-title" className="mt-8">
+      <div className="mb-1 flex flex-wrap items-baseline justify-between gap-2">
+        <h3 id="recurring-title" className="text-xs font-semibold text-muted uppercase">
+          Dépenses et revenus récurrents
+        </h3>
         {rules.length > 0 && (
-          <ul className="flex flex-col gap-2">
+          <p className="text-xs text-muted">
+            Charges fixes {formatCents(fixedOut)} / mois
+            {fixedIn > 0 && ` · revenus fixes ${formatCents(fixedIn)} / mois`}
+          </p>
+        )}
+      </div>
+      {rules.length === 0 && (
+        <p className="text-muted">
+          Aucune récurrence. Tapez « 900 loyer le 5 tous les mois » ou activez « ↻ Chaque mois » en
+          haut.
+        </p>
+      )}
+      <div className="flex flex-col gap-3">
+        {rules.length > 0 && (
+          <ul className="flex flex-col">
             {rules.map((rule) => (
               <RuleRow
                 key={rule.id}
@@ -189,93 +246,98 @@ export function RecurringManager({ rules, categories, onAdd, onUpdate, onDelete 
             ))}
           </ul>
         )}
-        <form onSubmit={submit} className="card flex flex-col gap-2 p-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <div
-              role="group"
-              aria-label="Type de récurrence"
-              className="flex gap-1 rounded-full bg-surface p-1"
-            >
-              {(['expense', 'income'] as const).map((k) => (
-                <button
-                  key={k}
-                  type="button"
-                  aria-pressed={kind === k}
-                  onClick={() => setKind(k)}
-                  className="pill min-h-9 px-3"
-                >
-                  {k === 'expense' ? 'Dépense' : 'Revenu'}
-                </button>
-              ))}
-            </div>
-            <input
-              value={amount}
-              onChange={(e) => {
-                setAmount(e.target.value)
-                setInvalid(false)
-              }}
-              inputMode="decimal"
-              aria-label="Montant récurrent"
-              aria-invalid={invalid}
-              placeholder="Montant (€)"
-              className={`${field} w-32 ${invalid ? '!border-danger' : ''}`}
-            />
-            <label className="flex items-center gap-1.5 text-xs text-muted">
-              le
-              <input
-                type="number"
-                min={1}
-                max={31}
-                value={day}
-                onChange={(e) => setDay(Math.round(Number(e.target.value)))}
-                aria-label="Jour du mois"
-                className={`${field} w-16 text-text`}
-              />
-              du mois
-            </label>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            {kind === 'expense' && (
-              <select
-                aria-label="Catégorie récurrente"
-                value={categoryId}
-                onChange={(e) => setCategoryId(e.target.value)}
-                className={field}
+        <details>
+          <summary className="min-h-11 cursor-pointer content-center text-xs text-muted hover:text-text">
+            Ajouter une récurrence en détail
+          </summary>
+          <form onSubmit={submit} className="card mt-2 flex flex-col gap-2 p-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <div
+                role="group"
+                aria-label="Type de récurrence"
+                className="flex gap-1 rounded-full bg-surface p-1"
               >
-                <option value="">Sans catégorie</option>
-                {categories
-                  .filter((c) => !c.archived)
-                  .map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-              </select>
-            )}
-            <input
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              aria-label="Note récurrente"
-              placeholder={kind === 'expense' ? 'Ex. Loyer, Netflix' : 'Ex. Salaire'}
-              className={`${field} min-w-0 flex-1 basis-40`}
-            />
-            <Button type="submit" variant="ghost">
-              Ajouter
-            </Button>
-          </div>
-          {day <= Number(today.slice(8)) && (
-            <label className="flex min-h-9 items-center gap-2 text-xs text-muted">
+                {(['expense', 'income'] as const).map((k) => (
+                  <button
+                    key={k}
+                    type="button"
+                    aria-pressed={kind === k}
+                    onClick={() => setKind(k)}
+                    className="pill min-h-9 px-3"
+                  >
+                    {k === 'expense' ? 'Dépense' : 'Revenu'}
+                  </button>
+                ))}
+              </div>
               <input
-                type="checkbox"
-                className="check"
-                checked={thisMonth}
-                onChange={(e) => setThisMonth(e.target.checked)}
+                value={amount}
+                onChange={(e) => {
+                  setAmount(e.target.value)
+                  setInvalid(false)
+                }}
+                inputMode="decimal"
+                aria-label="Montant récurrent"
+                aria-invalid={invalid}
+                placeholder="Montant (€)"
+                className={`${field} w-32 ${invalid ? '!border-danger' : ''}`}
               />
-              Le {day} est passé : compter aussi ce mois-ci
-            </label>
-          )}
-        </form>
+              <label className="flex items-center gap-1.5 text-xs text-muted">
+                le
+                <input
+                  type="number"
+                  min={1}
+                  max={31}
+                  value={day}
+                  onChange={(e) => setDay(Math.round(Number(e.target.value)))}
+                  aria-label="Jour du mois"
+                  className={`${field} w-16 text-text`}
+                />
+                du mois
+              </label>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              {kind === 'expense' && (
+                <select
+                  aria-label="Catégorie récurrente"
+                  value={categoryId}
+                  onChange={(e) => setCategoryId(e.target.value)}
+                  className={field}
+                >
+                  <option value="">Sans catégorie</option>
+                  {categories
+                    .filter((c) => !c.archived)
+                    .map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                </select>
+              )}
+              <input
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                aria-label="Note récurrente"
+                placeholder={kind === 'expense' ? 'Ex. Loyer, Netflix' : 'Ex. Salaire'}
+                className={`${field} min-w-0 flex-1 basis-40`}
+              />
+              <Button type="submit" variant="ghost">
+                Ajouter
+              </Button>
+            </div>
+            {day <= Number(today.slice(8)) && (
+              <label className="flex min-h-9 items-center gap-2 text-xs text-muted">
+                <input
+                  type="checkbox"
+                  className="check"
+                  checked={thisMonth}
+                  onChange={(e) => setThisMonth(e.target.checked)}
+                />
+                Le {day} est passé : compter aussi ce mois-ci
+              </label>
+            )}
+          </form>
+        </details>
       </div>
-    </details>
+    </section>
   )
 }

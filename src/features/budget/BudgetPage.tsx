@@ -77,6 +77,14 @@ export default function BudgetPage() {
           income.addIncome(entry)
           toast.show('Revenu ajouté')
         }}
+        onAddRecurring={(entry) => {
+          const { rule, firstId } = recurring.addRecurringEntry(entry)
+          toast.show(`Ajoutée chaque mois, le ${rule.day_of_month}`, () => {
+            recurring.deleteRule(rule.id)
+            if (firstId && rule.kind === 'expense') budget.deleteExpense(firstId)
+            if (firstId && rule.kind === 'income') income.deleteIncome(firstId)
+          })
+        }}
       />
 
       <div className="mb-4 flex items-center gap-2">

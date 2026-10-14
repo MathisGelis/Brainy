@@ -7,6 +7,7 @@ import {
   fetchExpensesBetween,
   fetchIncomes,
   fetchRecurring,
+  insertExpense,
   insertGenerated,
   insertIncome,
   insertRecurring,
@@ -16,7 +17,7 @@ import {
   removeIncome,
   removeRecurring,
 } from './budgetApi'
-import { dueOccurrences } from './recurringLogic'
+import { dueOccurrences, occurrenceIn } from './recurringLogic'
 import type {
   EntryKind,
   Expense,
@@ -106,7 +107,18 @@ export type NewRecurringInput = {
   includeThisMonth?: boolean
 }
 
+export type NewRecurringEntryInput = {
+  kind: EntryKind
+  amount_cents: number
+  category_id: string | null
+  note: string | null
+  day_of_month: number
+  /** Première occurrence à enregistrer tout de suite (null : le jour n'est pas encore arrivé) */
+  first_on: string | null
+}
+
 export function useRecurring({ onError }: Options = {}) {
+  const queryClient = useQueryClient()
   const query = useQuery({ queryKey: RECURRING_KEY, queryFn: fetchRecurring })
 
   const add = useOptimisticMutation<RecurringEntry, RecurringEntry>(
@@ -142,8 +154,73 @@ export function useRecurring({ onError }: Options = {}) {
     [['expenses']],
   )
 
+  // Règle + première occurrence, dans une seule requête (la règle d'abord : clé étrangère)
+  const createWithFirst = useOptimisticMutation<
+    RecurringEntry,
+    { rule: RecurringEntry; first: Expense | Income | null }
+  >(
+    RECURRING_KEY,
+    async ({ rule, first }) => {
+      await insertRecurring(rule)
+      if (first && rule.kind === 'expense') await insertExpense(first as Expense)
+      if (first && rule.kind === 'income') await insertIncome(first as Income)
+    },
+    (list, { rule }) => [...list.filter((r) => r.id !== rule.id), rule],
+    onError,
+    [['expenses'], ['incomes']],
+  )
+
   return {
     rules: query.data ?? [],
+    /**
+     * « 900 loyer le 5 tous les mois » : crée la règle et, si le jour est passé, l'occurrence du mois
+     * (déjà comptée : elle ne sera pas régénérée). Sinon la règle part du jour à venir.
+     */
+    addRecurringEntry: (
+      input: NewRecurringEntryInput,
+    ): { rule: RecurringEntry; firstId: string | null } => {
+      const today = todayISO()
+      const { first_on, ...rest } = input
+      const startOn = first_on ?? occurrenceIn(today.slice(0, 7), input.day_of_month)
+      const rule: RecurringEntry = {
+        id: crypto.randomUUID(),
+        start_on: startOn,
+        last_generated_on: first_on,
+        active: true,
+        created_at: new Date().toISOString(),
+        ...rest,
+      }
+      let first: Expense | Income | null = null
+      const created_at = new Date().toISOString()
+      if (first_on && input.kind === 'expense') {
+        first = {
+          id: crypto.randomUUID(),
+          category_id: input.category_id,
+          amount_cents: input.amount_cents,
+          spent_on: first_on,
+          note: input.note,
+          recurring_id: rule.id,
+          created_at,
+        }
+        queryClient.setQueryData<Expense[]>(expensesKey(first_on.slice(0, 7)), (old) =>
+          old ? [first as Expense, ...old] : old,
+        )
+      } else if (first_on) {
+        first = {
+          id: crypto.randomUUID(),
+          amount_cents: input.amount_cents,
+          received_on: first_on,
+          note: input.note,
+          recurring_id: rule.id,
+          created_at,
+        }
+        queryClient.setQueryData<Income[]>(incomesKey(first_on.slice(0, 7)), (old) =>
+          old ? [first as Income, ...old] : old,
+        )
+      }
+      createWithFirst.mutate({ rule, first })
+      return { rule, firstId: first?.id ?? null }
+    },
     addRule: (input: NewRecurringInput) => {
       const today = todayISO()
       const { includeThisMonth, ...rest } = input
