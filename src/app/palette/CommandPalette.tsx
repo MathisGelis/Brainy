@@ -4,6 +4,7 @@ import { useToast } from '@/components/ui'
 import { parseEntryInput } from '@/features/budget/parseEntryInput'
 import { useBudget } from '@/features/budget/useBudget'
 import { useIncomes, useMonthExpenses } from '@/features/budget/useBudgetExtras'
+import { useCategoryGuess } from '@/features/budget/useCategoryGuess'
 import { useGoals } from '@/features/goals/useGoals'
 import { useHabits } from '@/features/habits/useHabits'
 import { snippet } from '@/features/notes/notesLogic'
@@ -54,6 +55,7 @@ export default function CommandPalette({ onClose, onQuickAdd, onHelp }: Props) {
     action()
   }
   const categoryName = (id: string | null) => categories.find((c) => c.id === id)?.name
+  const guess = useCategoryGuess(categories)
 
   const commands: PaletteItem[] = [
     ...navItems.map((n) => ({
@@ -213,12 +215,15 @@ export default function CommandPalette({ onClose, onQuickAdd, onHelp }: Props) {
     if (entry.amount_cents !== null) {
       const amount = entry.amount_cents
       const income = entry.kind === 'income'
+      const categoryId =
+        income || entry.category_source === 'name'
+          ? entry.category_id
+          : (guess(entry.note) ?? entry.category_id)
       create.push({
         id: 'create-entry',
         group: 'Créer',
         label: `${income ? 'Ajouter le revenu' : 'Ajouter la dépense'} de ${formatCents(amount)}`,
-        hint:
-          [categoryName(entry.category_id), entry.note].filter(Boolean).join(' · ') || undefined,
+        hint: [categoryName(categoryId), entry.note].filter(Boolean).join(' · ') || undefined,
         run: then(() => {
           if (income)
             addIncome({
@@ -229,7 +234,7 @@ export default function CommandPalette({ onClose, onQuickAdd, onHelp }: Props) {
           else
             addExpense({
               amount_cents: amount,
-              category_id: entry.category_id,
+              category_id: categoryId,
               spent_on: entry.spent_on ?? today,
               note: entry.note,
             })

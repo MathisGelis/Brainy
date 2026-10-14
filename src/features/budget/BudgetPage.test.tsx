@@ -45,6 +45,7 @@ describe('BudgetPage', () => {
       category('c2', 'Loisirs', null, 1),
     ])
     vi.mocked(api.fetchExpenses).mockResolvedValue([])
+    vi.mocked(api.fetchExpensesBetween).mockResolvedValue([])
     vi.mocked(api.fetchIncomes).mockResolvedValue([])
     vi.mocked(api.fetchRecurring).mockResolvedValue([])
     vi.mocked(api.insertExpense).mockReturnValue(new Promise<void>(() => {}))
@@ -208,6 +209,54 @@ describe('BudgetPage', () => {
     expect(
       await screen.findByRole('button', { name: 'Loisirs', pressed: true }),
     ).toBeInTheDocument()
+  })
+
+  it('devine la catégorie d’après l’historique, sans écraser un choix manuel', async () => {
+    localStorage.setItem('cockpit.lastCategory', 'c2')
+    vi.mocked(api.insertExpense).mockResolvedValue()
+    const past = (note: string, category_id: string, id: string) => ({
+      id,
+      category_id,
+      amount_cents: 4000,
+      spent_on: addDays(todayISO(), -20),
+      note,
+      recurring_id: null,
+      created_at: '',
+    })
+    vi.mocked(api.fetchExpensesBetween).mockResolvedValue([
+      past('Biocoop', 'c1', 'p1'),
+      past('Biocoop Bastille', 'c1', 'p2'),
+      // « carrefour » est un mot-clé générique de Courses, mais ici c'est toujours Loisirs
+      past('Carrefour', 'c2', 'p3'),
+    ])
+    renderPage()
+    const input = screen.getByLabelText('Montant en euros')
+    await screen.findByRole('button', { name: 'Loisirs', pressed: true })
+
+    await userEvent.type(input, '45 biocoop')
+    expect(
+      await screen.findByRole('button', { name: 'Courses', pressed: true }),
+    ).toBeInTheDocument()
+    expect(screen.getByText(/d'après l'historique/)).toBeInTheDocument()
+    await userEvent.keyboard('{Enter}')
+    expect(api.insertExpense).toHaveBeenLastCalledWith(
+      expect.objectContaining({ amount_cents: 4500, category_id: 'c1', note: 'biocoop' }),
+    )
+
+    await userEvent.type(input, '30 carrefour')
+    expect(screen.getByRole('button', { name: 'Loisirs', pressed: true })).toBeInTheDocument()
+    await userEvent.clear(input)
+
+    // un clic sur une puce l'emporte sur l'historique
+    await userEvent.type(input, '12 biocoop')
+    await userEvent.click(screen.getByRole('button', { name: 'Loisirs' }))
+    expect(screen.queryByText(/d'après l'historique/)).toBeNull()
+    await userEvent.click(screen.getAllByRole('button', { name: 'Ajouter' })[0]!)
+    await waitFor(() =>
+      expect(api.insertExpense).toHaveBeenLastCalledWith(
+        expect.objectContaining({ amount_cents: 1200, category_id: 'c2' }),
+      ),
+    )
   })
 
   it('navigue entre les mois', async () => {

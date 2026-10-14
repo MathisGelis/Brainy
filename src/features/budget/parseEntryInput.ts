@@ -6,6 +6,8 @@ export type ParsedEntry = {
   kind: EntryKind
   amount_cents: number | null
   category_id: string | null
+  /** 'name' : nom de la catégorie tapé ; 'keyword' : mot-clé générique (« carrefour ») */
+  category_source: 'name' | 'keyword' | null
   spent_on: string | null
   note: string | null
   /** « tous les mois » : à répéter chaque mois */
@@ -119,19 +121,22 @@ const words = (text: string) =>
     .split(/[^\p{L}\d]+/u)
     .filter((w) => w.length >= 3)
 
-function matchCategory(text: string, categories: Category[]): Category | null {
+function matchCategory(
+  text: string,
+  categories: Category[],
+): { category: Category; source: 'name' | 'keyword' } | null {
   const tokens = words(text)
   const active = categories.filter((c) => !c.archived)
   // 1. nom de catégorie (ou son début) présent tel quel
   for (const c of active) {
     const name = fold(c.name)
     if (tokens.some((t) => name === t || name === `${t}s` || (t.length >= 4 && name.startsWith(t))))
-      return c
+      return { category: c, source: 'name' }
   }
   // 2. mot-clé associé à une catégorie suggérée
   for (const c of active) {
     const keywords = SYNONYMS[fold(c.name)] ?? []
-    if (tokens.some((t) => keywords.includes(t))) return c
+    if (tokens.some((t) => keywords.includes(t))) return { category: c, source: 'keyword' }
   }
   return null
 }
@@ -179,13 +184,15 @@ export function parseEntryInput(input: string, categories: Category[], today: st
     text = date.rest
   }
 
-  const category = kind === 'expense' ? matchCategory(text, categories) : null
+  const match = kind === 'expense' ? matchCategory(text, categories) : null
+  const category = match?.category ?? null
   const rest = text.trim()
   const bare = !monthly && category && (fold(rest) === fold(category.name) || BARE.has(fold(rest)))
   return {
     kind,
     amount_cents: amount,
     category_id: category?.id ?? null,
+    category_source: match?.source ?? null,
     spent_on: spentOn,
     note: rest && !bare ? rest : null,
     monthly,
