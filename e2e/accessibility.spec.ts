@@ -48,7 +48,7 @@ const seed = {
       updated_at: '2026-01-01T00:00:00Z',
     },
   ],
-  day_checkins: [{ id: 'c1', day: parisToday(), mood: 4, energy: 3 }],
+  day_checkins: [{ id: 'c1', day: parisToday(), mood: 4, energy: 3, win: 'Dossier rendu' }],
   savings_goals: [
     {
       id: '66666666-6666-4666-8666-666666666666',
@@ -101,6 +101,7 @@ const pages = [
   { path: '#/revue', ready: { role: 'heading', name: 'Revue de la semaine' } },
   { path: '#/rituel', ready: { role: 'heading', name: 'Rituel du soir' } },
   { path: '#/calendrier', ready: { role: 'heading', name: 'Calendrier' } },
+  { path: '#/semaine', ready: { role: 'heading', name: 'Planifier la semaine' } },
 ] as const
 
 const WCAG = ['wcag2a', 'wcag2aa', 'wcag21aa']
