@@ -3,6 +3,7 @@ import { Button, useToast } from '@/components/ui'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { successRate30 } from '@/features/habits/habitLogic'
 import { useDaysOff, useHabits } from '@/features/habits/useHabits'
+import { useSavings } from '@/features/savings/useSavings'
 import { useTodos } from '@/features/todos/useTodos'
 import { todayISO } from '@/lib/dates'
 import { GoalCard, type GoalLinks } from './GoalCard'
@@ -17,6 +18,7 @@ export default function GoalsPage() {
   const { todos, updateTodo, completeTodo, setDone } = useTodos({ onError })
   const { habits, entries, updateHabit } = useHabits({ onError })
   const { offDays } = useDaysOff({ onError })
+  const savings = useSavings({ onError })
   const today = todayISO()
 
   const linksOf = (goalId: string): GoalLinks => ({
@@ -30,12 +32,23 @@ export default function GoalsPage() {
         name: h.name,
         rate: successRate30(h, entries.get(h.id) ?? new Map(), today, offDays),
       })),
+    savings: savings.goals
+      .filter((sv) => sv.goal_id === goalId)
+      .map((sv) => ({
+        id: sv.id,
+        name: sv.name,
+        balance: savings.balance(sv.id),
+        target: sv.target_cents,
+      })),
     availableTodos: todos
       .filter((t) => !t.done && !t.goal_id)
       .map((t) => ({ id: t.id, title: t.title })),
     availableHabits: habits
       .filter((h) => !h.archived && !h.goal_id)
       .map((h) => ({ id: h.id, name: h.name })),
+    availableSavings: savings.goals
+      .filter((sv) => !sv.archived && !sv.goal_id)
+      .map((sv) => ({ id: sv.id, name: sv.name })),
   })
 
   function onToggleTodo(todoId: string, done: boolean) {
@@ -75,6 +88,7 @@ export default function GoalsPage() {
       onToggleTodo={onToggleTodo}
       onLinkTodo={(todoId, goalId) => updateTodo(todoId, { goal_id: goalId })}
       onLinkHabit={(habitId, goalId) => updateHabit(habitId, { goal_id: goalId })}
+      onLinkSavings={(savingsId, goalId) => savings.updateGoal(savingsId, { goal_id: goalId })}
       onUpdate={g.updateGoal}
       onDelete={onDelete}
       onAddMilestone={g.addMilestone}

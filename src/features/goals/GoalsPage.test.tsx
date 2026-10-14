@@ -2,12 +2,14 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ToastProvider } from '@/components/ui'
+import * as savingsApi from '@/features/savings/savingsApi'
 import * as habitsApi from '@/features/habits/habitsApi'
 import * as todosApi from '@/features/todos/todosApi'
 import * as api from './goalsApi'
 import GoalsPage from './GoalsPage'
 import type { Goal, Milestone } from './types'
 
+vi.mock('@/features/savings/savingsApi')
 vi.mock('./goalsApi')
 vi.mock('@/features/todos/todosApi')
 vi.mock('@/features/habits/habitsApi')
@@ -45,6 +47,8 @@ function renderPage() {
 
 describe('GoalsPage', () => {
   beforeEach(() => {
+    vi.mocked(savingsApi.fetchSavings).mockResolvedValue([])
+    vi.mocked(savingsApi.fetchMoves).mockResolvedValue([])
     vi.mocked(api.fetchGoals).mockResolvedValue([goal])
     vi.mocked(todosApi.fetchTodos).mockResolvedValue([
       {

@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import { useToast } from '@/components/ui'
 import { PageHeader } from '@/components/ui/PageHeader'
+import { savedInMonth } from '@/features/savings/savingsLogic'
+import { SavingsSection } from '@/features/savings/SavingsSection'
+import { useSavings } from '@/features/savings/useSavings'
 import { addMonths, formatMonthLabel, monthOf, todayISO } from '@/lib/dates'
 import { CategoriesManager } from './CategoriesManager'
 import { ExpenseForm } from './ExpenseForm'
@@ -24,6 +27,7 @@ export default function BudgetPage() {
   const budget = useBudget(month, { onError })
   const income = useIncomes(month, { onError })
   const recurring = useRecurring({ onError })
+  const { moves } = useSavings({ onError })
   const previousMonth = addMonths(month, -1)
   const previousExpenses = useMonthExpenses(previousMonth)
 
@@ -136,6 +140,7 @@ export default function BudgetPage() {
           <MonthSummary
             summary={budget.summary}
             totalIncome={income.totalIncome}
+            saved={savedInMonth(moves, month)}
             projection={projection}
             trends={trends}
             previousLabel={previousLabel}
@@ -152,6 +157,7 @@ export default function BudgetPage() {
             onUpdate={income.updateIncome}
             onDelete={onDeleteIncome}
           />
+          <SavingsSection month={month} />
           <RecurringManager
             rules={recurring.rules}
             categories={budget.categories}

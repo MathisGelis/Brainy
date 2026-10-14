@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Checkbox, ProgressBar } from '@/components/ui'
 import { celebrate } from '@/lib/celebrate'
 import { formatDayMonth } from '@/lib/dates'
+import { formatCents } from '@/lib/money'
 import { HORIZONS, STATUSES, goalProgress } from './goalLogic'
 import type {
   Goal,
@@ -13,12 +14,14 @@ import type {
   MilestonePatch,
 } from './types'
 
-/** Todos et habitudes liées à l'objectif, et celles qu'on peut lier */
+/** Todos, habitudes et cagnottes liées à l'objectif, et celles qu'on peut lier */
 export type GoalLinks = {
   todos: LinkedTodo[]
   habits: { id: string; name: string; rate: number }[]
+  savings: { id: string; name: string; balance: number; target: number }[]
   availableTodos: { id: string; title: string }[]
   availableHabits: { id: string; name: string }[]
+  availableSavings: { id: string; name: string }[]
 }
 
 type Props = {
@@ -33,6 +36,7 @@ type Props = {
   onToggleTodo: (todoId: string, done: boolean) => void
   onLinkTodo: (todoId: string, goalId: string | null) => void
   onLinkHabit: (habitId: string, goalId: string | null) => void
+  onLinkSavings: (savingsId: string, goalId: string | null) => void
 }
 
 const unlink =
@@ -101,6 +105,7 @@ export function GoalCard({
   onToggleTodo,
   onLinkTodo,
   onLinkHabit,
+  onLinkSavings,
 }: Props) {
   const [open, setOpen] = useState(false)
   const [newMilestone, setNewMilestone] = useState('')
@@ -318,6 +323,52 @@ export function GoalCard({
                   </option>
                 ))}
               </select>
+            )}
+          </section>
+
+          <section
+            aria-label={`Cagnottes liées à « ${goal.title} »`}
+            className="flex flex-col gap-1"
+          >
+            <h3 className="text-xs font-semibold text-muted uppercase">Cagnottes liées</h3>
+            {links.savings.length > 0 && (
+              <ul className="flex flex-col">
+                {links.savings.map((sv) => (
+                  <li key={sv.id} className="flex min-h-11 items-center gap-2">
+                    <span className="min-w-0 flex-1">{sv.name}</span>
+                    <span className="text-xs text-muted">
+                      {formatCents(sv.balance)} / {formatCents(sv.target)}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => onLinkSavings(sv.id, null)}
+                      aria-label={`Délier la cagnotte « ${sv.name} »`}
+                      className={unlink}
+                    >
+                      Délier
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {links.availableSavings.length > 0 ? (
+              <select
+                aria-label={`Lier une cagnotte à « ${goal.title} »`}
+                value=""
+                onChange={(e) => e.target.value && onLinkSavings(e.target.value, goal.id)}
+                className={`${field} max-w-full text-muted`}
+              >
+                <option value="">Lier une cagnotte…</option>
+                {links.availableSavings.map((sv) => (
+                  <option key={sv.id} value={sv.id}>
+                    {sv.name}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              links.savings.length === 0 && (
+                <p className="text-xs text-muted">Créez une cagnotte depuis l'onglet Budget.</p>
+              )
             )}
           </section>
 

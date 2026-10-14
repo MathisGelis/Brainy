@@ -3,10 +3,14 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ToastProvider } from '@/components/ui'
 import { addDays, monthOf, todayISO } from '@/lib/dates'
+import * as goalsApi from '@/features/goals/goalsApi'
+import * as savingsApi from '@/features/savings/savingsApi'
 import * as api from './budgetApi'
 import BudgetPage from './BudgetPage'
 import type { Category, RecurringEntry } from './types'
 
+vi.mock('@/features/savings/savingsApi')
+vi.mock('@/features/goals/goalsApi')
 vi.mock('./budgetApi')
 
 const category = (id: string, name: string, budget: number | null, position: number): Category => ({
@@ -31,6 +35,10 @@ function renderPage() {
 
 describe('BudgetPage', () => {
   beforeEach(() => {
+    vi.mocked(savingsApi.fetchSavings).mockResolvedValue([])
+    vi.mocked(savingsApi.fetchMoves).mockResolvedValue([])
+    vi.mocked(goalsApi.fetchGoals).mockResolvedValue([])
+    vi.mocked(goalsApi.fetchMilestones).mockResolvedValue([])
     localStorage.clear()
     vi.mocked(api.fetchCategories).mockResolvedValue([
       category('c1', 'Courses', 30000, 0),
@@ -268,4 +276,43 @@ describe('BudgetPage', () => {
       expect(api.insertExpense).not.toHaveBeenCalled()
     },
   )
+
+  it('déduit l’épargne du mois du solde', async () => {
+    const today = todayISO()
+    vi.mocked(api.fetchIncomes).mockResolvedValue([
+      {
+        id: 'i1',
+        amount_cents: 200000,
+        received_on: today,
+        note: 'Salaire',
+        recurring_id: null,
+        created_at: '',
+      },
+    ])
+    vi.mocked(savingsApi.fetchSavings).mockResolvedValue([
+      {
+        id: 's1',
+        name: 'Vacances',
+        target_cents: 100000,
+        goal_id: null,
+        archived: false,
+        position: 0,
+        created_at: '',
+      },
+    ])
+    vi.mocked(savingsApi.fetchMoves).mockResolvedValue([
+      {
+        id: 'm1',
+        savings_id: 's1',
+        amount_cents: 60000,
+        moved_on: today,
+        note: null,
+        created_at: '',
+      },
+    ])
+    renderPage()
+    const summary = await screen.findByRole('region', { name: 'Synthèse du mois' })
+    await waitFor(() => expect(summary).toHaveTextContent(/Épargne 600,00\s€/))
+    expect(summary).toHaveTextContent(/Solde \+1\s400,00\s€/)
+  })
 })

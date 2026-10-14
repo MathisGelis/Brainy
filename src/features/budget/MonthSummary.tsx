@@ -5,6 +5,8 @@ import type { MonthSummary as Summary } from './types'
 type Props = {
   summary: Summary
   totalIncome: number
+  /** Épargne nette du mois (versements − retraits des cagnottes), déduite du solde */
+  saved?: number
   /** Projection de fin de mois (mois en cours uniquement) */
   projection: number | null
   /** Variation en % par catégorie vs mois précédent (à date égale pour le mois en cours) */
@@ -15,9 +17,16 @@ type Props = {
 const signed = (cents: number) =>
   `${cents > 0 ? '+' : cents < 0 ? '−' : ''}${formatCents(Math.abs(cents))}`
 
-export function MonthSummary({ summary, totalIncome, projection, trends, previousLabel }: Props) {
+export function MonthSummary({
+  summary,
+  totalIncome,
+  saved = 0,
+  projection,
+  trends,
+  previousLabel,
+}: Props) {
   const { totalSpent, totalBudget, remaining, over, byCategory } = summary
-  const balance = totalIncome - totalSpent
+  const balance = totalIncome - totalSpent - saved
   const projectionOver = projection !== null && totalBudget > 0 && projection > totalBudget
 
   return (
@@ -41,9 +50,11 @@ export function MonthSummary({ summary, totalIncome, projection, trends, previou
             À ce rythme : {formatCents(projection)} en fin de mois
           </p>
         )}
-        {totalIncome > 0 && (
+        {(totalIncome > 0 || saved !== 0) && (
           <p className="text-muted">
-            Revenus {formatCents(totalIncome)} · Solde{' '}
+            {totalIncome > 0 && <>Revenus {formatCents(totalIncome)} · </>}
+            {saved !== 0 && <>Épargne {formatCents(saved)} · </>}
+            Solde{' '}
             <span className={`font-semibold ${balance < 0 ? 'text-danger' : 'text-success'}`}>
               {signed(balance)}
             </span>
