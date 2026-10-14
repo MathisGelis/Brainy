@@ -1,0 +1,115 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { render, screen, waitFor, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { MemoryRouter } from 'react-router-dom'
+import { ToastProvider } from '@/components/ui'
+import * as budgetApi from '@/features/budget/budgetApi'
+import * as habitsApi from '@/features/habits/habitsApi'
+import * as todosApi from '@/features/todos/todosApi'
+import { addDays, todayISO } from '@/lib/dates'
+import TodayPage from './TodayPage'
+
+vi.mock('@/features/todos/todosApi')
+vi.mock('@/features/habits/habitsApi')
+vi.mock('@/features/budget/budgetApi')
+vi.mock('@/features/auth/useAuth', () => ({ signOut: vi.fn() }))
+
+const today = todayISO()
+const baseTodo = {
+  list_id: null,
+  done: false,
+  done_at: null,
+  priority: 'normal' as const,
+  position: 0,
+  created_at: '2026-01-01T00:00:00Z',
+}
+
+function renderPage() {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  render(
+    <QueryClientProvider client={client}>
+      <ToastProvider>
+        <MemoryRouter>
+          <TodayPage />
+        </MemoryRouter>
+      </ToastProvider>
+    </QueryClientProvider>,
+  )
+}
+
+describe('TodayPage', () => {
+  beforeEach(() => {
+    vi.mocked(todosApi.fetchTodos).mockResolvedValue([
+      { ...baseTodo, id: 't1', title: 'Payer le loyer', due_date: today },
+      { ...baseTodo, id: 't2', title: 'Plus tard', due_date: addDays(today, 3) },
+      { ...baseTodo, id: 't3', title: 'En retard', due_date: addDays(today, -2) },
+    ])
+    vi.mocked(todosApi.patchTodo).mockReturnValue(new Promise<void>(() => {}))
+    vi.mocked(habitsApi.fetchHabits).mockResolvedValue([
+      {
+        id: 'h1',
+        name: 'Lecture',
+        target_per_week: 7,
+        archived: false,
+        position: 0,
+        created_at: '',
+      },
+      {
+        id: 'h2',
+        name: 'Ancienne',
+        target_per_week: 7,
+        archived: true,
+        position: 1,
+        created_at: '',
+      },
+    ])
+    vi.mocked(habitsApi.fetchLogs).mockResolvedValue([])
+    vi.mocked(habitsApi.insertLog).mockReturnValue(new Promise<void>(() => {}))
+    vi.mocked(budgetApi.fetchCategories).mockResolvedValue([
+      {
+        id: 'c1',
+        name: 'Courses',
+        color: null,
+        monthly_budget_cents: 40000,
+        position: 0,
+        archived: false,
+      },
+    ])
+    vi.mocked(budgetApi.fetchExpenses).mockResolvedValue([
+      {
+        id: 'e1',
+        category_id: 'c1',
+        amount_cents: 10000,
+        spent_on: today,
+        note: null,
+        created_at: '',
+      },
+    ])
+  })
+
+  it('montre les todos du jour (et en retard), pas celles à venir', async () => {
+    renderPage()
+    const section = await screen.findByRole('region', { name: 'Todos du jour' })
+    expect(await within(section).findByText('Payer le loyer')).toBeInTheDocument()
+    expect(within(section).getByText('En retard')).toBeInTheDocument()
+    expect(within(section).queryByText('Plus tard')).not.toBeInTheDocument()
+  })
+
+  it('coche une habitude du jour en un clic', async () => {
+    renderPage()
+    const box = await screen.findByRole('checkbox', { name: "Lecture fait aujourd'hui" })
+    expect(screen.queryByText('Ancienne')).not.toBeInTheDocument()
+    await userEvent.click(box)
+    await waitFor(() => expect(box).toBeChecked())
+    expect(habitsApi.insertLog).toHaveBeenCalledWith(
+      expect.objectContaining({ habit_id: 'h1', day: today }),
+    )
+  })
+
+  it('résume le budget du mois', async () => {
+    renderPage()
+    const section = await screen.findByRole('region', { name: 'Budget du mois' })
+    expect(await within(section).findByText(/Reste/)).toHaveTextContent(/300,00/)
+    expect(within(section).getByRole('progressbar')).toHaveAttribute('aria-valuenow', '25')
+  })
+})
