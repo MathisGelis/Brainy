@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom'
+import { signOut } from '@/features/auth/useAuth'
 import { navItems } from './navItems'
 
 const linkBase = 'flex items-center rounded px-3 text-sm'
@@ -25,6 +26,13 @@ export function Layout() {
             {item.label}
           </NavLink>
         ))}
+        <button
+          type="button"
+          onClick={() => void signOut()}
+          className="hidden min-h-9 items-center rounded px-3 text-left text-sm text-muted hover:text-text md:mt-auto md:flex"
+        >
+          Déconnexion
+        </button>
       </nav>
       <main className="mx-auto w-full max-w-3xl px-4 pt-6 pb-24 md:px-8 md:pb-8">
         <Outlet />
