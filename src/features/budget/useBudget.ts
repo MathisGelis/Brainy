@@ -85,13 +85,16 @@ export function useBudget(
     onError,
     [['expenses'], ['recurring_entries']],
   )
-  const relink = useOptimisticMutation<Expense, { ids: string[]; categoryId: string }>(
-    key,
-    ({ ids, categoryId }) => setExpensesCategory(ids, categoryId),
-    (list, { ids, categoryId }) =>
-      list.map((e) => (ids.includes(e.id) ? { ...e, category_id: categoryId } : e)),
+  // Annulation : recréer la catégorie puis y rattacher ses dépenses, dans une seule requête
+  const restoreCategory = useOptimisticMutation<Category, { category: Category; ids: string[] }>(
+    CATEGORIES_KEY,
+    async ({ category, ids }) => {
+      await insertCategories([category])
+      await setExpensesCategory(ids, category.id)
+    },
+    (list, { category }) => [...list.filter((c) => c.id !== category.id), category],
     onError,
-    [['expenses']],
+    [['expenses'], ['recurring_entries']],
   )
 
   const categories = categoriesQuery.data ?? []
@@ -143,10 +146,12 @@ export function useBudget(
         old?.map((e) => (e.category_id === category.id ? { ...e, category_id: null } : e)),
       )
       removeCategoryM.mutate(category.id)
-      return () =>
-        addCategoriesM.mutate([category], {
-          onSuccess: () => relink.mutate({ ids, categoryId: category.id }),
-        })
+      return () => {
+        queryClient.setQueriesData<Expense[]>({ queryKey: ['expenses'] }, (old) =>
+          old?.map((e) => (ids.includes(e.id) ? { ...e, category_id: category.id } : e)),
+        )
+        restoreCategory.mutate({ category, ids })
+      }
     },
   }
 }

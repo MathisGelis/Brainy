@@ -174,12 +174,16 @@ export function useTodoLists({ onError }: Options = {}) {
     onError,
     [TODOS_KEY],
   )
-  const relink = useOptimisticMutation<Todo, { ids: string[]; listId: string }>(
-    TODOS_KEY,
-    ({ ids, listId }) => Promise.all(ids.map((id) => patchTodo(id, { list_id: listId }))),
-    (todos, { ids, listId }) =>
-      todos.map((t) => (ids.includes(t.id) ? { ...t, list_id: listId } : t)),
+  // Annulation : recréer la liste puis y rattacher ses todos, dans une seule requête
+  const restore = useOptimisticMutation<TodoList, { list: TodoList; ids: string[] }>(
+    LISTS_KEY,
+    async ({ list, ids }) => {
+      await insertList(list)
+      await Promise.all(ids.map((id) => patchTodo(id, { list_id: list.id })))
+    },
+    (all, { list }) => [...all.filter((l) => l.id !== list.id), list],
     onError,
+    [TODOS_KEY],
   )
 
   const makeList = (name: string): TodoList => ({
@@ -203,12 +207,12 @@ export function useTodoLists({ onError }: Options = {}) {
         (old ?? []).map((t) => (t.list_id === list.id ? { ...t, list_id: null } : t)),
       )
       remove.mutate(list.id)
-      return () =>
-        add.mutate(list, {
-          onSuccess: () => {
-            if (affected.length > 0) relink.mutate({ ids: affected, listId: list.id })
-          },
-        })
+      return () => {
+        queryClient.setQueryData<Todo[]>(TODOS_KEY, (old) =>
+          (old ?? []).map((t) => (affected.includes(t.id) ? { ...t, list_id: list.id } : t)),
+        )
+        restore.mutate({ list, ids: affected })
+      }
     },
   }
 }

@@ -97,7 +97,6 @@ export type NewRecurringInput = {
 }
 
 export function useRecurring({ onError }: Options = {}) {
-  const queryClient = useQueryClient()
   const query = useQuery({ queryKey: RECURRING_KEY, queryFn: fetchRecurring })
 
   const add = useOptimisticMutation<RecurringEntry, RecurringEntry>(
@@ -117,6 +116,20 @@ export function useRecurring({ onError }: Options = {}) {
     removeRecurring,
     (list, id) => list.filter((r) => r.id !== id),
     onError,
+  )
+  // Créer la règle puis lier la dépense d'origine, dans une seule requête
+  const fromExpense = useOptimisticMutation<
+    RecurringEntry,
+    { rule: RecurringEntry; expenseId: string }
+  >(
+    RECURRING_KEY,
+    async ({ rule, expenseId }) => {
+      await insertRecurring(rule)
+      await patchExpense(expenseId, { recurring_id: rule.id })
+    },
+    (list, { rule }) => [...list.filter((r) => r.id !== rule.id), rule],
+    onError,
+    [['expenses']],
   )
 
   return {
@@ -153,13 +166,7 @@ export function useRecurring({ onError }: Options = {}) {
         active: true,
         created_at: new Date().toISOString(),
       }
-      add.mutate(rule, {
-        onSuccess: () => {
-          void patchExpense(expense.id, { recurring_id: rule.id }).then(() =>
-            queryClient.invalidateQueries({ queryKey: expensesKey(expense.spent_on.slice(0, 7)) }),
-          )
-        },
-      })
+      fromExpense.mutate({ rule, expenseId: expense.id })
       return rule
     },
   }

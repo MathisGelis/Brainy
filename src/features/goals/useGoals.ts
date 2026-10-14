@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useOptimisticMutation } from '@/lib/useOptimisticMutation'
 import {
   fetchGoals,
@@ -18,6 +18,7 @@ export const MILESTONES_KEY = ['goal_milestones'] as const
 export type NewGoalInput = { title: string; horizon: Horizon; target_date: string | null }
 
 export function useGoals({ onError }: { onError?: (message: string) => void } = {}) {
+  const queryClient = useQueryClient()
   const goalsQuery = useQuery({ queryKey: GOALS_KEY, queryFn: fetchGoals })
   const milestonesQuery = useQuery({ queryKey: MILESTONES_KEY, queryFn: fetchMilestones })
 
@@ -41,6 +42,17 @@ export function useGoals({ onError }: { onError?: (message: string) => void } = 
     removeGoal,
     (goals, id) => goals.filter((g) => g.id !== id),
     onError,
+  )
+  // Annulation : recréer l'objectif puis ses jalons (clé étrangère), dans une seule requête
+  const restoreGoalM = useOptimisticMutation<Goal, { goal: Goal; milestones: Milestone[] }>(
+    GOALS_KEY,
+    async ({ goal, milestones }) => {
+      await insertGoal(goal)
+      await insertMilestones(milestones)
+    },
+    (goals, { goal }) => [...goals.filter((g) => g.id !== goal.id), goal],
+    onError,
+    [MILESTONES_KEY],
   )
   const addMilestonesM = useOptimisticMutation<Milestone, Milestone[]>(
     MILESTONES_KEY,
@@ -90,8 +102,13 @@ export function useGoals({ onError }: { onError?: (message: string) => void } = 
     updateGoal: (id: string, patch: GoalPatch) => updateGoalM.mutate({ id, patch }),
     deleteGoal: (id: string) => deleteGoalM.mutate(id),
     /** Annulation d'une suppression : l'objectif d'abord, puis ses jalons (clé étrangère). */
-    restoreGoal: (goal: Goal, goalMilestones: Milestone[]) =>
-      addGoalM.mutate(goal, { onSuccess: () => addMilestonesM.mutate(goalMilestones) }),
+    restoreGoal: (goal: Goal, goalMilestones: Milestone[]) => {
+      queryClient.setQueryData<Milestone[]>(MILESTONES_KEY, (old) => {
+        const ids = new Set(goalMilestones.map((m) => m.id))
+        return [...(old ?? []).filter((m) => !ids.has(m.id)), ...goalMilestones]
+      })
+      restoreGoalM.mutate({ goal, milestones: goalMilestones })
+    },
 
     addMilestone: (goalId: string, title: string) => {
       const siblings = milestones.filter((m) => m.goal_id === goalId)
