@@ -224,6 +224,14 @@ export function inputToDg(text: string): number | null {
   return Math.round(Number(t) * 10)
 }
 
+/** « 2 œufs », « 3 cuillères à soupe » : accorde le premier mot de la portion. */
+export function portionText(count: number, label: string): string {
+  if (count <= 1) return `${count} ${label}`.replace('.', ',')
+  const [first = '', ...rest] = label.split(' ')
+  const plural = /[sxz]$/.test(first) ? first : `${first}s`
+  return [String(count).replace('.', ','), plural, ...rest].join(' ')
+}
+
 /** Grammes affichés pour un total : arrondis à l'entier. */
 export const grams = (dg: number) => `${Math.round(dg / 10)} g`
 

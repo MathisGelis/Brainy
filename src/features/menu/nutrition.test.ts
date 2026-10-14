@@ -8,6 +8,7 @@ import {
   missingFromShopping,
   normalizeName,
   parseFoodInput,
+  portionText,
   rescaleItem,
   scaleMacros,
   searchFoods,
@@ -129,6 +130,16 @@ describe('calculs', () => {
 
   it('choisit le repas selon l’heure', () => {
     expect([7, 12, 16, 20].map(defaultMeal)).toEqual(['breakfast', 'lunch', 'snack', 'dinner'])
+  })
+})
+
+describe('portionText', () => {
+  it('accorde la portion', () => {
+    expect(portionText(1, 'œuf')).toBe('1 œuf')
+    expect(portionText(2, 'œuf')).toBe('2 œufs')
+    expect(portionText(3, 'cuillère à soupe')).toBe('3 cuillères à soupe')
+    expect(portionText(2, 'pain au chocolat')).toBe('2 pains au chocolat')
+    expect(portionText(1.5, 'bol')).toBe('1,5 bols')
   })
 })
 

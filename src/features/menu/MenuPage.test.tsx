@@ -115,7 +115,7 @@ describe('MenuPage', () => {
     await userEvent.type(input, '2 oeufs midi')
     const hint = screen.getByText('Compris :').parentElement!
     expect(hint).toHaveTextContent('Œuf')
-    expect(hint).toHaveTextContent('110 g (2 œuf)')
+    expect(hint).toHaveTextContent('110 g (2 œufs)')
     expect(hint).toHaveTextContent('157 kcal')
     await userEvent.keyboard('{Enter}')
 

@@ -12,6 +12,7 @@ import {
   mealLabel,
   MEALS,
   parseFoodInput,
+  portionText,
   scaleMacros,
   searchFoods,
   type FoodChoice,
@@ -237,8 +238,8 @@ export function AddFoodForm({ day, from, to, onError }: Props) {
             <span className={`${chip} font-semibold`}>{chosen.food.name}</span>
             <span className={chip}>
               {grams} g
-              {parsed?.count !== null && parsed?.count !== undefined && chosen.food.portion_label
-                ? ` (${parsed.count} ${chosen.food.portion_label})`
+              {parsed?.count != null && chosen.food.portion_label
+                ? ` (${portionText(parsed.count, chosen.food.portion_label)})`
                 : ''}
             </span>
             <span className={chip}>{macros.kcal} kcal</span>
