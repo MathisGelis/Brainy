@@ -11,6 +11,7 @@ const seed = {
       done: false,
       done_at: null,
       due_date: parisToday(),
+      focus_on: parisToday(),
       priority: 'high',
       position: 0,
       created_at: '2026-01-01T00:00:00Z',
@@ -47,6 +48,28 @@ const seed = {
       updated_at: '2026-01-01T00:00:00Z',
     },
   ],
+  day_checkins: [{ id: 'c1', day: parisToday(), mood: 4, energy: 3 }],
+  savings_goals: [
+    {
+      id: '66666666-6666-4666-8666-666666666666',
+      name: 'Vacances',
+      target_cents: 150000,
+      goal_id: '55555555-5555-4555-8555-555555555555',
+      archived: false,
+      position: 0,
+      created_at: '2026-01-01T00:00:00Z',
+    },
+  ],
+  savings_moves: [
+    {
+      id: '77777777-7777-4777-8777-777777777777',
+      savings_id: '66666666-6666-4666-8666-666666666666',
+      amount_cents: 60000,
+      moved_on: parisToday(),
+      note: null,
+      created_at: '2026-01-01T00:00:00Z',
+    },
+  ],
   goals: [
     {
       id: '55555555-5555-4555-8555-555555555555',
@@ -76,6 +99,8 @@ const pages = [
   },
   { path: '#/objectifs', ready: { role: 'heading', name: 'Objectifs' } },
   { path: '#/revue', ready: { role: 'heading', name: 'Revue de la semaine' } },
+  { path: '#/rituel', ready: { role: 'heading', name: 'Rituel du soir' } },
+  { path: '#/calendrier', ready: { role: 'heading', name: 'Calendrier' } },
 ] as const
 
 const WCAG = ['wcag2a', 'wcag2aa', 'wcag21aa']
