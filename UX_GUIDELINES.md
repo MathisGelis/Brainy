@@ -26,7 +26,7 @@ Minimaliste, calme, rapide. Direction visuelle **« Liquid glass »** (à la App
 3. **Pas de bouton « Enregistrer »** : sauvegarde automatique avec mise à jour optimiste.
 4. **Annuler plutôt que confirmer** : suppression/cochage = toast avec « Annuler » (5 s). Tout élément créé est modifiable et supprimable ; une annulation qui enchaîne plusieurs écritures (ex. recréer une liste puis y rattacher ses todos) les fait dans une seule requête, pour aboutir même si l'écran change.
 5. **Valeurs par défaut intelligentes** : date = aujourd'hui, dernière catégorie utilisée pré-sélectionnée.
-6. **Raccourcis clavier** (desktop) : `n` nouveau, `/` recherche, `g` puis `a/o/n/h/t/b` pour naviguer (`c` calendrier, `r` revue, `p` planifier la semaine), `Esc` fermer. Liste affichée avec `?`.
+6. **Raccourcis clavier** (desktop) : `n` nouveau, `/` recherche, `g` puis `a/o/n/h/t/b/m` pour naviguer (`c` calendrier, `r` revue, `p` planifier la semaine), `Esc` fermer. Liste affichée avec `?`.
 7. **Palette de commandes** (`Cmd/Ctrl+K`) : aller à un onglet, rechercher dans tout, créer depuis la saisie.
 8. **États vides utiles** : une phrase + le champ d'ajout, jamais d'écran vide muet.
 9. **Feedback immédiat** : pas de spinner bloquant ; skeletons discrets ; erreurs réseau avec « Réessayer ».

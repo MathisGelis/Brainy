@@ -32,6 +32,7 @@ pas encore appliquées, dans l'ordre :
 | `supabase/migrations/0002_enrichissements.sql` | 7 | récurrences, revenus, jours off, habitudes chiffrées, liens avec les objectifs |
 | `supabase/migrations/0003_rituels_epargne.sql` | 8 | Top 3 du jour, humeur et énergie, cagnottes d'épargne |
 | `supabase/migrations/0004_victoires_semaine.sql` | 9 | victoire du jour, priorités de la semaine |
+| `supabase/migrations/0005_menu.sql` | 10 | menu : aliments, repas, objectifs de macros |
 
 Les migrations ne font qu'ajouter : aucune donnée existante n'est modifiée ni supprimée.
 
@@ -53,6 +54,9 @@ Les migrations ne font qu'ajouter : aucune donnée existante n'est modifiée ni 
   choisir 3 priorités, répartir les todos sans date sur les jours.
 - **Budget** : catégorie devinée d'après tes dépenses passées (« 45 biocoop » → Courses), dépenses récurrentes depuis la saisie (« ↻ Chaque mois » ou « 900 loyer le 5 tous les mois »),
   **cagnottes d'épargne** (versements, retraits, objectif lié ; l'épargne du mois est déduite du solde).
+- **Menu** (`#/menu`) : repas du jour ou prévus (« 200 g poulet midi », « 2 œufs demain matin »),
+  macros face à tes objectifs, base d'aliments courants (valeurs indicatives, modifiables) ;
+  chaque aliment ajouté propose d'aller dans la liste de courses (liste de todos « Courses »).
 - **Revue de la semaine** (`#/revue`, ou la carte de l'accueil le dimanche et le lundi), avec humeur,
   énergie et liens simples (« les jours de sport, énergie +0,8 »).
 - **Calendrier** (`#/calendrier`) : vue du mois ; le détail d'un jour permet de cocher, d'ajouter
@@ -70,7 +74,7 @@ Panneaux de verre dépoli sur un fond animé three.js (orbe irisé + aurore), th
 
 ## Raccourcis clavier (desktop)
 
-`⌘K` / `Ctrl+K` palette · `n` ajout rapide (todo, note, dépense) · `/` rechercher dans les notes · `g` puis `a` `o` `n` `h` `t` `b`
+`⌘K` / `Ctrl+K` palette · `n` ajout rapide (todo, note, dépense) · `/` rechercher dans les notes · `g` puis `a` `o` `n` `h` `t` `b` `m`
 pour changer d'onglet, `c` calendrier, `r` revue, `p` planifier la semaine · `?` liste des raccourcis · `Échap` fermer.
 
 ## Données

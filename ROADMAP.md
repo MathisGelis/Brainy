@@ -86,11 +86,11 @@ _Lighthouse (mobile, build de prod) sur la page de connexion : performance 97, a
 - [x] Tests (unitaires, e2e, axe dans les deux thèmes), Lighthouse
 
 ## Phase 10 — Menu et macros (migration `0005_menu.sql`)
-- [ ] Migration 0005 (aliments, repas, objectifs de macros)
-- [ ] Base d'aliments courants + saisie en langage naturel
-- [ ] Écran Menu : repas du jour, semaine, tracker de macros, objectifs, mes aliments
-- [ ] Liste de courses alimentée depuis le menu
-- [ ] Tests (unitaires, e2e, axe dans les deux thèmes), Lighthouse
+- [x] Migration 0005 (aliments, repas, objectifs de macros)
+- [x] Base d'aliments courants + saisie en langage naturel
+- [x] Écran Menu : repas du jour, semaine, tracker de macros, objectifs, mes aliments
+- [x] Liste de courses alimentée depuis le menu
+- [x] Tests (unitaires, e2e, axe dans les deux thèmes), Lighthouse
 
 ## Backlog (idées, ne pas implémenter sans validation)
 - PWA installable (hors-ligne léger)
