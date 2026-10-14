@@ -1,53 +1,36 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
+import { useOptimisticMutation } from '@/lib/useOptimisticMutation'
 import { fetchTodos, insertTodo, patchPositions, patchTodo, removeTodo } from './todosApi'
 import { applyPatch, nextPosition } from './todoLogic'
 import type { PositionUpdate, Priority, Todo, TodoPatch } from './types'
 
 export const TODOS_KEY = ['todos'] as const
 
-/**
- * Mutation à mise à jour optimiste : le cache est modifié tout de suite,
- * restauré en cas d'erreur, puis resynchronisé avec le serveur.
- */
-function useOptimisticMutation<V>(
-  request: (variables: V) => Promise<unknown>,
-  apply: (todos: Todo[], variables: V) => Todo[],
-  onError?: (message: string) => void,
-) {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: request,
-    onMutate: async (variables: V) => {
-      await queryClient.cancelQueries({ queryKey: TODOS_KEY })
-      const previous = queryClient.getQueryData<Todo[]>(TODOS_KEY)
-      queryClient.setQueryData<Todo[]>(TODOS_KEY, (old) => apply(old ?? [], variables))
-      return { previous }
-    },
-    onError: (_error, _variables, context) => {
-      if (context?.previous) queryClient.setQueryData(TODOS_KEY, context.previous)
-      onError?.("L'enregistrement a échoué. Vos modifications ont été annulées.")
-    },
-    onSettled: () => queryClient.invalidateQueries({ queryKey: TODOS_KEY }),
-  })
-}
-
 export type NewTodoInput = { title: string; due_date?: string | null; priority?: Priority }
 
 export function useTodos({ onError }: { onError?: (message: string) => void } = {}) {
   const query = useQuery({ queryKey: TODOS_KEY, queryFn: fetchTodos })
 
-  const add = useOptimisticMutation<Todo>(insertTodo, (todos, todo) => [...todos, todo], onError)
-  const update = useOptimisticMutation<{ id: string; patch: TodoPatch }>(
+  const add = useOptimisticMutation<Todo, Todo>(
+    TODOS_KEY,
+    insertTodo,
+    (todos, todo) => [...todos, todo],
+    onError,
+  )
+  const update = useOptimisticMutation<Todo, { id: string; patch: TodoPatch }>(
+    TODOS_KEY,
     ({ id, patch }) => patchTodo(id, patch),
     (todos, { id, patch }) => todos.map((t) => (t.id === id ? applyPatch(t, patch) : t)),
     onError,
   )
-  const remove = useOptimisticMutation<string>(
+  const remove = useOptimisticMutation<Todo, string>(
+    TODOS_KEY,
     removeTodo,
     (todos, id) => todos.filter((t) => t.id !== id),
     onError,
   )
-  const reorder = useOptimisticMutation<PositionUpdate[]>(
+  const reorder = useOptimisticMutation<Todo, PositionUpdate[]>(
+    TODOS_KEY,
     patchPositions,
     (todos, updates) =>
       todos.map((t) => {
