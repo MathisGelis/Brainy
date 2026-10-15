@@ -1,3 +1,4 @@
+import { Select, type SelectOption } from '@/components/ui'
 import { WEEKDAYS } from '@/lib/naturalDate'
 import { parseRecurrence, serializeRecurrence, type Recurrence } from './recurrence'
 
@@ -11,6 +12,12 @@ type Props = {
 }
 
 const INITIALS = ['L', 'M', 'M', 'J', 'V', 'S', 'D']
+const KINDS: SelectOption<Kind>[] = [
+  { value: 'none', label: 'Ne se répète pas' },
+  { value: 'daily', label: 'Tous les jours' },
+  { value: 'weekly', label: 'Certains jours' },
+  { value: 'monthly', label: 'Tous les mois' },
+]
 
 /** Choix de la récurrence : aucune, quotidienne, jours de la semaine, mensuelle. */
 export function RecurrencePicker({ value, onChange, defaultWeekday }: Props) {
@@ -33,17 +40,13 @@ export function RecurrencePicker({ value, onChange, defaultWeekday }: Props) {
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <select
-        aria-label="Récurrence"
+      <Select
+        label="Récurrence"
         value={kind}
-        onChange={(e) => setKind(e.target.value as Kind)}
-        className="field min-h-11 px-3 md:min-h-9"
-      >
-        <option value="none">Ne se répète pas</option>
-        <option value="daily">Tous les jours</option>
-        <option value="weekly">Certains jours</option>
-        <option value="monthly">Tous les mois</option>
-      </select>
+        onChange={setKind}
+        options={KINDS}
+        className="min-h-11 px-3 md:min-h-9"
+      />
       {kind === 'weekly' && (
         <div role="group" aria-label="Jours de la semaine" className="flex gap-1">
           {INITIALS.map((initial, i) => (

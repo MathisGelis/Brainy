@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { ProgressBar, useToast } from '@/components/ui'
+import { ProgressBar, Select, useToast } from '@/components/ui'
 import type { Goal } from '@/features/goals/types'
 import { useGoals } from '@/features/goals/useGoals'
 import { celebrate } from '@/lib/celebrate'
@@ -50,19 +50,20 @@ function MoveRow({
   const sign = Math.sign(move.amount_cents)
   return (
     <li className="my-1 flex flex-wrap items-center gap-2 rounded-2xl bg-surface p-2">
-      <select
-        aria-label="Type de mouvement"
+      <Select
+        label="Type de mouvement"
         value={sign > 0 ? 'in' : 'out'}
-        onChange={(e) =>
+        onChange={(v) =>
           onUpdate(move.id, {
-            amount_cents: Math.abs(move.amount_cents) * (e.target.value === 'in' ? 1 : -1),
+            amount_cents: Math.abs(move.amount_cents) * (v === 'in' ? 1 : -1),
           })
         }
+        options={[
+          { value: 'in', label: 'Versement' },
+          { value: 'out', label: 'Retrait' },
+        ]}
         className={field}
-      >
-        <option value="in">Versement</option>
-        <option value="out">Retrait</option>
-      </select>
+      />
       <input
         defaultValue={centsToInput(Math.abs(move.amount_cents))}
         inputMode="decimal"
@@ -243,21 +244,18 @@ function SavingsCard({
               }}
               className={`${field} w-32 ${targetInvalid ? '!border-danger' : ''}`}
             />
-            <select
-              aria-label="Objectif lié"
+            <Select
+              label="Objectif lié"
               value={savings.goal_id ?? ''}
-              onChange={(e) => onUpdate(savings.id, { goal_id: e.target.value || null })}
+              onChange={(v) => onUpdate(savings.id, { goal_id: v || null })}
+              options={[
+                { value: '', label: 'Aucun objectif lié' },
+                ...goals
+                  .filter((g) => g.status === 'active' || g.id === savings.goal_id)
+                  .map((g) => ({ value: g.id, label: `◎ ${g.title}` })),
+              ]}
               className={`${field} max-w-full`}
-            >
-              <option value="">Aucun objectif lié</option>
-              {goals
-                .filter((g) => g.status === 'active' || g.id === savings.goal_id)
-                .map((g) => (
-                  <option key={g.id} value={g.id}>
-                    ◎ {g.title}
-                  </option>
-                ))}
-            </select>
+            />
           </div>
 
           <section aria-label={`Historique de « ${savings.name} »`}>

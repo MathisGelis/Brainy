@@ -1,18 +1,10 @@
 import { useState, type FormEvent } from 'react'
-import { Checkbox, ProgressBar } from '@/components/ui'
+import { Checkbox, ProgressBar, Select } from '@/components/ui'
 import { celebrate } from '@/lib/celebrate'
 import { formatDayMonth } from '@/lib/dates'
 import { formatCents } from '@/lib/money'
 import { HORIZONS, STATUSES, goalProgress } from './goalLogic'
-import type {
-  Goal,
-  GoalPatch,
-  GoalStatus,
-  Horizon,
-  LinkedTodo,
-  Milestone,
-  MilestonePatch,
-} from './types'
+import type { Goal, GoalPatch, LinkedTodo, Milestone, MilestonePatch } from './types'
 
 /** Todos, habitudes et cagnottes liées à l'objectif, et celles qu'on peut lier */
 export type GoalLinks = {
@@ -175,18 +167,13 @@ export function GoalCard({
             className={`${field} py-2`}
           />
           <div className="flex flex-wrap gap-2">
-            <select
-              aria-label="Horizon"
+            <Select
+              label="Horizon"
               value={goal.horizon}
-              onChange={(e) => onUpdate(goal.id, { horizon: e.target.value as Horizon })}
+              onChange={(horizon) => onUpdate(goal.id, { horizon })}
+              options={HORIZONS}
               className={field}
-            >
-              {HORIZONS.map((h) => (
-                <option key={h.value} value={h.value}>
-                  {h.label}
-                </option>
-              ))}
-            </select>
+            />
             <input
               type="date"
               aria-label="Échéance"
@@ -194,22 +181,16 @@ export function GoalCard({
               onChange={(e) => onUpdate(goal.id, { target_date: e.target.value || null })}
               className={field}
             />
-            <select
-              aria-label="Statut"
+            <Select
+              label="Statut"
               value={goal.status}
-              onChange={(e) => {
-                const status = e.target.value as GoalStatus
+              onChange={(status) => {
                 if (status === 'achieved') celebrate(1.5)
                 onUpdate(goal.id, { status })
               }}
+              options={STATUSES}
               className={field}
-            >
-              {STATUSES.map((s) => (
-                <option key={s.value} value={s.value}>
-                  {s.label}
-                </option>
-              ))}
-            </select>
+            />
           </div>
 
           <ul className="flex flex-col">
@@ -270,19 +251,14 @@ export function GoalCard({
               </ul>
             )}
             {links.availableTodos.length > 0 && (
-              <select
-                aria-label={`Lier une todo à « ${goal.title} »`}
+              <Select
+                label={`Lier une todo à « ${goal.title} »`}
                 value=""
-                onChange={(e) => e.target.value && onLinkTodo(e.target.value, goal.id)}
-                className={`${field} max-w-full text-muted`}
-              >
-                <option value="">Lier une todo…</option>
-                {links.availableTodos.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.title}
-                  </option>
-                ))}
-              </select>
+                placeholder="Lier une todo…"
+                onChange={(id) => onLinkTodo(id, goal.id)}
+                options={links.availableTodos.map((t) => ({ value: t.id, label: t.title }))}
+                className={`${field} max-w-full self-start`}
+              />
             )}
           </section>
 
@@ -310,19 +286,14 @@ export function GoalCard({
               </ul>
             )}
             {links.availableHabits.length > 0 && (
-              <select
-                aria-label={`Lier une habitude à « ${goal.title} »`}
+              <Select
+                label={`Lier une habitude à « ${goal.title} »`}
                 value=""
-                onChange={(e) => e.target.value && onLinkHabit(e.target.value, goal.id)}
-                className={`${field} max-w-full text-muted`}
-              >
-                <option value="">Lier une habitude…</option>
-                {links.availableHabits.map((h) => (
-                  <option key={h.id} value={h.id}>
-                    {h.name}
-                  </option>
-                ))}
-              </select>
+                placeholder="Lier une habitude…"
+                onChange={(id) => onLinkHabit(id, goal.id)}
+                options={links.availableHabits.map((h) => ({ value: h.id, label: h.name }))}
+                className={`${field} max-w-full self-start`}
+              />
             )}
           </section>
 
@@ -352,19 +323,14 @@ export function GoalCard({
               </ul>
             )}
             {links.availableSavings.length > 0 ? (
-              <select
-                aria-label={`Lier une cagnotte à « ${goal.title} »`}
+              <Select
+                label={`Lier une cagnotte à « ${goal.title} »`}
                 value=""
-                onChange={(e) => e.target.value && onLinkSavings(e.target.value, goal.id)}
-                className={`${field} max-w-full text-muted`}
-              >
-                <option value="">Lier une cagnotte…</option>
-                {links.availableSavings.map((sv) => (
-                  <option key={sv.id} value={sv.id}>
-                    {sv.name}
-                  </option>
-                ))}
-              </select>
+                placeholder="Lier une cagnotte…"
+                onChange={(id) => onLinkSavings(id, goal.id)}
+                options={links.availableSavings.map((sv) => ({ value: sv.id, label: sv.name }))}
+                className={`${field} max-w-full self-start`}
+              />
             ) : (
               links.savings.length === 0 && (
                 <p className="text-xs text-muted">Créez une cagnotte depuis l'onglet Budget.</p>

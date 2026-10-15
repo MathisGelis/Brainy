@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Button, useToast } from '@/components/ui'
+import { Button, Select, useToast } from '@/components/ui'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { successRate30 } from '@/features/habits/habitLogic'
 import { useDaysOff, useHabits } from '@/features/habits/useHabits'
@@ -110,18 +110,13 @@ export default function GoalsPage() {
           placeholder="Ajouter un objectif…"
           className={`${field} min-w-0 flex-1 basis-48 px-4`}
         />
-        <select
-          aria-label="Horizon"
+        <Select
+          label="Horizon"
           value={horizon}
-          onChange={(e) => setHorizon(e.target.value as Horizon)}
+          onChange={setHorizon}
+          options={HORIZONS}
           className={field}
-        >
-          {HORIZONS.map((h) => (
-            <option key={h.value} value={h.value}>
-              {h.label}
-            </option>
-          ))}
-        </select>
+        />
         <input
           type="date"
           aria-label="Échéance (optionnel)"

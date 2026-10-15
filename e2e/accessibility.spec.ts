@@ -191,3 +191,22 @@ test('aucune violation axe (WCAG A/AA) : palette de commandes ouverte', async ({
     results.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target).join(' | ')}`),
   ).toEqual([])
 })
+
+for (const theme of ['light', 'dark'] as const)
+  test(`aucune violation axe (WCAG A/AA, ${theme}) : menu déroulant ouvert`, async ({ page }) => {
+    await page.addInitScript((t) => localStorage.setItem('cockpit.theme', t), theme)
+    await installFakeSupabase(page, seed)
+    await page.goto('#/objectifs')
+    await expect(page.locator('.animate-pulse')).toHaveCount(0)
+    const box = page.getByRole('combobox', { name: 'Horizon' }).first()
+    await box.click()
+    await expect(page.getByRole('listbox', { name: 'Horizon' })).toBeVisible()
+    await page.keyboard.press('ArrowDown')
+    await page.keyboard.press('Enter')
+    await expect(box).toHaveText('Moyen terme')
+    await box.click()
+    const results = await new AxeBuilder({ page }).withTags(WCAG).analyze()
+    expect(
+      results.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target).join(' | ')}`),
+    ).toEqual([])
+  })

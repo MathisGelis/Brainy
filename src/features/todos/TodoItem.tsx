@@ -1,7 +1,7 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useState } from 'react'
-import { Checkbox } from '@/components/ui'
+import { Checkbox, Select } from '@/components/ui'
 import { addDays, formatDue } from '@/lib/dates'
 import { isoWeekday } from '@/lib/naturalDate'
 import { RecurrencePicker } from './RecurrencePicker'
@@ -177,32 +177,26 @@ export function TodoItem({
       {open && (
         <div className="mb-2 flex flex-col gap-2 border-t border-border px-1 pt-3">
           <div className="flex flex-wrap gap-2">
-            <select
-              aria-label="Liste"
+            <Select
+              label="Liste"
               value={todo.list_id ?? ''}
-              onChange={(e) => onUpdate(todo.id, { list_id: e.target.value || null })}
+              onChange={(v) => onUpdate(todo.id, { list_id: v || null })}
+              options={[
+                { value: '', label: 'Sans liste' },
+                ...lists.map((l) => ({ value: l.id, label: l.name })),
+              ]}
               className={field}
-            >
-              <option value="">Sans liste</option>
-              {lists.map((l) => (
-                <option key={l.id} value={l.id}>
-                  {l.name}
-                </option>
-              ))}
-            </select>
-            <select
-              aria-label="Objectif lié"
+            />
+            <Select
+              label="Objectif lié"
               value={todo.goal_id ?? ''}
-              onChange={(e) => onUpdate(todo.id, { goal_id: e.target.value || null })}
+              onChange={(v) => onUpdate(todo.id, { goal_id: v || null })}
+              options={[
+                { value: '', label: 'Aucun objectif' },
+                ...goals.map((g) => ({ value: g.id, label: g.name })),
+              ]}
               className={`${field} max-w-full`}
-            >
-              <option value="">Aucun objectif</option>
-              {goals.map((g) => (
-                <option key={g.id} value={g.id}>
-                  {g.name}
-                </option>
-              ))}
-            </select>
+            />
           </div>
           <RecurrencePicker
             value={todo.recurrence}

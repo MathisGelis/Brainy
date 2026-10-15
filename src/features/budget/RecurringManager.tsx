@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Button } from '@/components/ui'
+import { Button, Select } from '@/components/ui'
 import { formatDayMonth, todayISO } from '@/lib/dates'
 import { centsToInput, formatCents, parseAmountToCents } from '@/lib/money'
 import { nextOccurrenceOf } from './recurringLogic'
@@ -110,21 +110,18 @@ function RuleRow({
           onChange={(day_of_month) => onUpdate(rule.id, { day_of_month })}
         />
         {rule.kind === 'expense' && (
-          <select
-            aria-label={`Catégorie de « ${label} »`}
+          <Select
+            label={`Catégorie de « ${label} »`}
             value={rule.category_id ?? ''}
-            onChange={(e) => onUpdate(rule.id, { category_id: e.target.value || null })}
+            onChange={(v) => onUpdate(rule.id, { category_id: v || null })}
+            options={[
+              { value: '', label: 'Sans catégorie' },
+              ...categories
+                .filter((c) => !c.archived || c.id === rule.category_id)
+                .map((c) => ({ value: c.id, label: c.name })),
+            ]}
             className={field}
-          >
-            <option value="">Sans catégorie</option>
-            {categories
-              .filter((c) => !c.archived || c.id === rule.category_id)
-              .map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-          </select>
+          />
         )}
         <input
           defaultValue={rule.note ?? ''}
@@ -297,21 +294,18 @@ export function RecurringManager({ rules, categories, onAdd, onUpdate, onDelete 
             </div>
             <div className="flex flex-wrap items-center gap-2">
               {kind === 'expense' && (
-                <select
-                  aria-label="Catégorie récurrente"
+                <Select
+                  label="Catégorie récurrente"
                   value={categoryId}
-                  onChange={(e) => setCategoryId(e.target.value)}
+                  onChange={setCategoryId}
+                  options={[
+                    { value: '', label: 'Sans catégorie' },
+                    ...categories
+                      .filter((c) => !c.archived)
+                      .map((c) => ({ value: c.id, label: c.name })),
+                  ]}
                   className={field}
-                >
-                  <option value="">Sans catégorie</option>
-                  {categories
-                    .filter((c) => !c.archived)
-                    .map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}
-                      </option>
-                    ))}
-                </select>
+                />
               )}
               <input
                 value={note}

@@ -134,6 +134,17 @@
   backdrop-filter: blur(36px) saturate(190%);
 }
 
+/* Liste d'un menu déroulant : verre opaque, le texte dessous ne doit pas transparaître. */
+.dropdown {
+  background:
+    linear-gradient(135deg, var(--glass-sheen), transparent 38%),
+    linear-gradient(var(--glass-strong), var(--glass-strong)), var(--canvas);
+  border: 1px solid var(--glass-rim);
+  box-shadow:
+    inset 0 1px 0 var(--highlight),
+    var(--glass-shadow);
+}
+
 /* Feuille qui porte le contenu d'une page */
 @utility sheet {
   background: linear-gradient(160deg, var(--glass-sheen), transparent 30%), var(--sheet);
@@ -143,15 +154,6 @@
     var(--glass-shadow);
   -webkit-backdrop-filter: blur(30px) saturate(170%);
   backdrop-filter: blur(30px) saturate(170%);
-}
-
-/* Menus déroulants : chevron discret à la place de la flèche système */
-select.field {
-  appearance: none;
-  padding-right: 2.25rem;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238a8a9e' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 0.85rem center;
 }
 
 /* Carte posée sur le verre */
@@ -177,8 +179,17 @@ select.field {
   &:focus-visible {
     outline: none;
     border-color: var(--accent);
+    box-shadow: 0 0 0 4px var(--accent-glow);
     box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 22%, transparent);
   }
+}
+
+/*
+ * Capsule : repli à 9999px avant le calc(infinity * 1px) de Tailwind, que les navigateurs
+ * d'avant 2023 (Firefox < 118) rejettent, ce qui laissait les boutons carrés.
+ */
+@utility rounded-full {
+  border-radius: 9999px;
 }
 
 /* Capsule sélectionnable (filtres, onglets, puces) : l'état vient de aria-pressed. */
@@ -257,6 +268,7 @@ body::before {
 }
 
 ::selection {
+  background: var(--accent-glow);
   background: color-mix(in srgb, var(--accent) 28%, transparent);
 }
 
@@ -409,6 +421,7 @@ button:active > .habit-dot {
 /* Bouton flottant « + » : verre teinté de l'accent */
 .fab {
   color: var(--accent-fg);
+  background: linear-gradient(160deg, var(--accent-hi), var(--accent));
   background: linear-gradient(
     160deg,
     color-mix(in srgb, var(--accent-hi) 90%, transparent),
@@ -477,5 +490,6 @@ button:active > .habit-dot {
   border-style: dashed;
 }
 .heat-partial {
+  background: var(--accent-glow);
   background: color-mix(in srgb, var(--accent) calc(var(--ratio) * 100%), var(--surface));
 }

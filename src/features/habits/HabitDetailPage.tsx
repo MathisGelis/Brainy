@@ -1,5 +1,5 @@
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { Button, useToast } from '@/components/ui'
+import { Button, Select, useToast } from '@/components/ui'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { useGoals } from '@/features/goals/useGoals'
 import { formatDayMonth, formatWeekdayShort, lastNDays, todayISO } from '@/lib/dates'
@@ -104,19 +104,16 @@ export default function HabitDetailPage() {
             }}
             className={`${field} w-40`}
           />
-          <select
-            aria-label="Objectif lié"
+          <Select
+            label="Objectif lié"
             value={habit.goal_id ?? ''}
-            onChange={(e) => updateHabit(habit.id, { goal_id: e.target.value || null })}
+            onChange={(v) => updateHabit(habit.id, { goal_id: v || null })}
+            options={[
+              { value: '', label: 'Aucun objectif lié' },
+              ...goalOptions.map((g) => ({ value: g.id, label: g.title })),
+            ]}
             className={`${field} max-w-full`}
-          >
-            <option value="">Aucun objectif lié</option>
-            {goalOptions.map((g) => (
-              <option key={g.id} value={g.id}>
-                {g.title}
-              </option>
-            ))}
-          </select>
+          />
         </div>
         <HabitStats habit={habit} entries={habitEntries} offDays={offDays} today={today} />
       </div>

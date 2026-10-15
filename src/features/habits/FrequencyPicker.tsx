@@ -1,3 +1,4 @@
+import { Select, type SelectOption } from '@/components/ui'
 import { WEEKDAYS } from '@/lib/naturalDate'
 import type { Habit } from './types'
 
@@ -5,6 +6,11 @@ type Frequency = Pick<Habit, 'target_per_week' | 'days'>
 type Props = { value: Frequency; onChange: (value: Frequency) => void; label?: string }
 
 const INITIALS = ['L', 'M', 'M', 'J', 'V', 'S', 'D']
+const MODES: SelectOption<string>[] = [
+  { value: '7', label: 'Tous les jours' },
+  ...[6, 5, 4, 3, 2, 1].map((n) => ({ value: String(n), label: `${n} fois par semaine` })),
+  { value: 'days', label: 'Certains jours' },
+]
 
 /** Fréquence : tous les jours, X fois par semaine, ou certains jours précis. */
 export function FrequencyPicker({ value, onChange, label = 'Fréquence' }: Props) {
@@ -23,20 +29,13 @@ export function FrequencyPicker({ value, onChange, label = 'Fréquence' }: Props
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <select
-        aria-label={label}
+      <Select
+        label={label}
         value={mode}
-        onChange={(e) => setMode(e.target.value)}
-        className="field min-h-11 px-3 md:min-h-10"
-      >
-        <option value="7">Tous les jours</option>
-        {[6, 5, 4, 3, 2, 1].map((n) => (
-          <option key={n} value={n}>
-            {n} fois par semaine
-          </option>
-        ))}
-        <option value="days">Certains jours</option>
-      </select>
+        onChange={setMode}
+        options={MODES}
+        className="min-h-11 px-3 md:min-h-10"
+      />
       {value.days && (
         <div role="group" aria-label="Jours prévus" className="flex gap-1">
           {INITIALS.map((initial, i) => (

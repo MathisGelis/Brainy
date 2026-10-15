@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { pickOption } from '@/test/pickOption'
 import { ToastProvider } from '@/components/ui'
 import * as goalsApi from '@/features/goals/goalsApi'
 import { addDays, todayISO } from '@/lib/dates'
@@ -152,10 +153,10 @@ describe('TodosPage', () => {
       await screen.findByRole('button', { name: 'Détails de « Acheter du pain »' }),
     )
 
-    await userEvent.selectOptions(screen.getByLabelText('Liste'), 'l1')
+    await pickOption('Liste', 'maison')
     expect(api.patchTodo).toHaveBeenCalledWith('t1', { list_id: 'l1' })
 
-    await userEvent.selectOptions(screen.getByLabelText('Récurrence'), 'weekly')
+    await pickOption('Récurrence', 'Certains jours')
     await waitFor(() => expect(api.patchTodo).toHaveBeenCalledTimes(2))
     expect(api.patchTodo).toHaveBeenLastCalledWith('t1', {
       recurrence: expect.stringMatching(/^weekly:[1-7]$/),

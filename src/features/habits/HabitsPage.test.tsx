@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { pickOption } from '@/test/pickOption'
 import { MemoryRouter } from 'react-router-dom'
 import { ToastProvider } from '@/components/ui'
 import { todayISO } from '@/lib/dates'
@@ -78,7 +79,7 @@ describe('HabitsPage', () => {
   it('lit un objectif chiffré dans le nom et des jours précis', async () => {
     renderPage()
     await screen.findByText('Lecture')
-    await userEvent.selectOptions(screen.getByLabelText('Fréquence'), 'days')
+    await pickOption('Fréquence', 'Certains jours')
     await userEvent.click(screen.getByRole('button', { name: 'vendredi' })) // lun, mer, ven → lun, mer
     await userEvent.type(screen.getByLabelText('Nouvelle habitude'), "Boire 8 verres d'eau")
     expect(screen.getByText(/Objectif chiffré : 8 verres/)).toBeInTheDocument()

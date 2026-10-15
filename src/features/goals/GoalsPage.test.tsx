@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { pickOption } from '@/test/pickOption'
 import { ToastProvider } from '@/components/ui'
 import * as savingsApi from '@/features/savings/savingsApi'
 import * as habitsApi from '@/features/habits/habitsApi'
@@ -96,7 +97,7 @@ describe('GoalsPage', () => {
   it('ajoute un objectif dans le bon horizon', async () => {
     renderPage()
     await screen.findByText('Courir un semi')
-    await userEvent.selectOptions(screen.getByLabelText('Horizon'), 'long')
+    await pickOption('Horizon', 'Long terme')
     await userEvent.type(screen.getByLabelText('Nouvel objectif'), 'Apprendre le piano{Enter}')
 
     expect(api.insertGoal).toHaveBeenCalledWith(
@@ -109,7 +110,7 @@ describe('GoalsPage', () => {
     vi.mocked(api.patchGoal).mockReturnValue(new Promise<void>(() => {}))
     renderPage()
     await userEvent.click(await screen.findByRole('button', { name: /Courir un semi/ }))
-    await userEvent.selectOptions(screen.getByLabelText('Statut'), 'achieved')
+    await pickOption('Statut', 'Atteint')
 
     await waitFor(() =>
       expect(
@@ -123,7 +124,7 @@ describe('GoalsPage', () => {
     vi.mocked(todosApi.patchTodo).mockReturnValue(new Promise<void>(() => {}))
     renderPage()
     await userEvent.click(await screen.findByRole('button', { name: /Courir un semi/ }))
-    await userEvent.selectOptions(screen.getByLabelText('Lier une todo à « Courir un semi »'), 't1')
+    await pickOption('Lier une todo à « Courir un semi »', 'Acheter des chaussures')
 
     expect(todosApi.patchTodo).toHaveBeenCalledWith('t1', { goal_id: 'g1' })
     expect(await screen.findByText('1/3 étapes · 33 %')).toBeInTheDocument()

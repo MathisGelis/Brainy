@@ -1,3 +1,4 @@
+import { Select } from '@/components/ui'
 import { useState, type FormEvent } from 'react'
 import { grams as g, MEALS, rescaleItem } from './nutrition'
 import type { Meal, MealItem, MealItemPatch } from './types'
@@ -79,18 +80,13 @@ function MealItemRow({ item, missing, onUpdate, onDelete, onShop }: RowProps) {
         />
         g
       </label>
-      <select
-        aria-label={`Repas de « ${item.name} »`}
+      <Select
+        label={`Repas de « ${item.name} »`}
         value={item.meal}
-        onChange={(e) => onUpdate(item.id, { meal: e.target.value as Meal })}
+        onChange={(meal) => onUpdate(item.id, { meal })}
+        options={MEALS.map((m) => ({ value: m.id, label: m.label }))}
         className={field}
-      >
-        {MEALS.map((m) => (
-          <option key={m.id} value={m.id}>
-            {m.label}
-          </option>
-        ))}
-      </select>
+      />
       <button type="button" onClick={() => onDelete(item)} className={`${small} hover:text-danger`}>
         Supprimer
       </button>

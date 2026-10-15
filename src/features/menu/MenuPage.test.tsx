@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { pickOption } from '@/test/pickOption'
 import { MemoryRouter } from 'react-router-dom'
 import { ToastProvider } from '@/components/ui'
 import * as budgetApi from '@/features/budget/budgetApi'
@@ -240,7 +241,7 @@ describe('MenuPage', () => {
       }),
     )
 
-    await userEvent.selectOptions(screen.getByLabelText('Repas de « Riz blanc (cuit) »'), 'dinner')
+    await pickOption('Repas de « Riz blanc (cuit) »', 'Dîner')
     await waitFor(() => expect(api.patchMealItem).toHaveBeenCalledWith('m1', { meal: 'dinner' }))
 
     // la ligne passe au dîner : on la rouvre pour la supprimer

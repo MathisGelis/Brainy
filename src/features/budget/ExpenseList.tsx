@@ -1,3 +1,4 @@
+import { Select } from '@/components/ui'
 import { useState } from 'react'
 import { formatDayMonth } from '@/lib/dates'
 import { centsToInput, formatCents, parseAmountToCents } from '@/lib/money'
@@ -70,21 +71,18 @@ function ExpenseRow({ expense, categories, onUpdate, onDelete, onRepeat }: RowPr
         onChange={(e) => e.target.value && onUpdate(expense.id, { spent_on: e.target.value })}
         className={field}
       />
-      <select
-        aria-label="Catégorie"
+      <Select
+        label="Catégorie"
         value={expense.category_id ?? ''}
-        onChange={(e) => onUpdate(expense.id, { category_id: e.target.value || null })}
+        onChange={(v) => onUpdate(expense.id, { category_id: v || null })}
+        options={[
+          { value: '', label: 'Sans catégorie' },
+          ...categories
+            .filter((c) => !c.archived || c.id === expense.category_id)
+            .map((c) => ({ value: c.id, label: c.name })),
+        ]}
         className={field}
-      >
-        <option value="">Sans catégorie</option>
-        {categories
-          .filter((c) => !c.archived || c.id === expense.category_id)
-          .map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-      </select>
+      />
       <input
         defaultValue={expense.note ?? ''}
         aria-label="Note"
