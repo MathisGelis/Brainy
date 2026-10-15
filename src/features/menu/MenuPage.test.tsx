@@ -3,6 +3,7 @@ import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { ToastProvider } from '@/components/ui'
+import * as budgetApi from '@/features/budget/budgetApi'
 import * as todosApi from '@/features/todos/todosApi'
 import type { Todo, TodoList } from '@/features/todos/types'
 import { addDays, todayISO } from '@/lib/dates'
@@ -12,6 +13,7 @@ import type { Food, MacroTargets, MealItem, Recipe, RecipeItem } from './types'
 
 vi.mock('./menuApi')
 vi.mock('@/features/todos/todosApi')
+vi.mock('@/features/budget/budgetApi')
 
 const today = todayISO()
 const rice: Food = {
@@ -473,5 +475,96 @@ describe('MenuPage', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Annuler' }))
     const copies = vi.mocked(api.insertMealItems).mock.calls[0]![0].map((i) => i.id)
     await waitFor(() => expect(api.removeMealItems).toHaveBeenCalledWith(copies))
+  })
+
+  it('courses terminées : « Combien avez-vous payé ? » crée la dépense dans Courses, annulable', async () => {
+    vi.mocked(budgetApi.fetchCategories).mockResolvedValue([
+      {
+        id: 'c-courses',
+        name: 'Courses',
+        color: null,
+        monthly_budget_cents: null,
+        position: 0,
+        archived: false,
+      },
+    ])
+    vi.mocked(budgetApi.fetchExpenses).mockResolvedValue([])
+    vi.mocked(budgetApi.insertExpense).mockResolvedValue()
+    vi.mocked(budgetApi.removeExpense).mockResolvedValue()
+    const shoppingTodo = (id: string, title: string, position: number): Todo => ({
+      id,
+      list_id: 'l1',
+      goal_id: null,
+      recurrence: null,
+      focus_on: null,
+      focus_week: null,
+      title,
+      done: false,
+      done_at: null,
+      due_date: null,
+      priority: 'normal',
+      position,
+      created_at: '',
+    })
+    lists = [{ id: 'l1', name: 'Courses', position: 0 }]
+    todos = [shoppingTodo('t1', 'Lait', 0), shoppingTodo('t2', 'Pain', 1)]
+    renderPage()
+    const shopping = await screen.findByRole('region', { name: 'Liste de courses' })
+    await userEvent.click(await within(shopping).findByRole('checkbox', { name: 'Acheté : Lait' }))
+    expect(within(shopping).queryByRole('form', { name: 'Dépense des courses' })).toBeNull()
+
+    // le dernier article coché déclenche la question
+    await userEvent.click(within(shopping).getByRole('checkbox', { name: 'Acheté : Pain' }))
+    const prompt = await within(shopping).findByRole('form', { name: 'Dépense des courses' })
+    await userEvent.type(
+      within(prompt).getByLabelText('Montant des courses en euros'),
+      '54,30{Enter}',
+    )
+    await waitFor(() =>
+      expect(budgetApi.insertExpense).toHaveBeenCalledWith(
+        expect.objectContaining({
+          amount_cents: 5430,
+          category_id: 'c-courses',
+          note: 'Courses',
+          spent_on: today,
+        }),
+      ),
+    )
+    expect(await screen.findByText('Dépense de 54,30 € ajoutée dans Courses')).toBeInTheDocument()
+    expect(within(shopping).queryByRole('form', { name: 'Dépense des courses' })).toBeNull()
+
+    const id = vi.mocked(budgetApi.insertExpense).mock.calls[0]![0].id
+    const toastUndo = screen.getAllByRole('button', { name: 'Annuler' }).at(-1)!
+    await userEvent.click(toastUndo)
+    await waitFor(() => expect(budgetApi.removeExpense).toHaveBeenCalledWith(id))
+  })
+
+  it('« Tout acheté » coche le reste et propose la dépense', async () => {
+    vi.mocked(budgetApi.fetchCategories).mockResolvedValue([])
+    vi.mocked(budgetApi.fetchExpenses).mockResolvedValue([])
+    lists = [{ id: 'l1', name: 'Courses', position: 0 }]
+    todos = ['Lait', 'Pain', 'Œufs'].map((title, i) => ({
+      id: `t${i}`,
+      list_id: 'l1',
+      goal_id: null,
+      recurrence: null,
+      focus_on: null,
+      focus_week: null,
+      title,
+      done: false,
+      done_at: null,
+      due_date: null,
+      priority: 'normal' as const,
+      position: i,
+      created_at: '',
+    }))
+    renderPage()
+    const shopping = await screen.findByRole('region', { name: 'Liste de courses' })
+    await userEvent.click(await within(shopping).findByRole('button', { name: 'Tout acheté' }))
+    await waitFor(() => expect(todosApi.patchTodo).toHaveBeenCalledTimes(3))
+    expect(within(shopping).getByRole('form', { name: 'Dépense des courses' })).toBeInTheDocument()
+    await userEvent.click(within(shopping).getByRole('button', { name: 'Non merci' }))
+    expect(within(shopping).queryByRole('form', { name: 'Dépense des courses' })).toBeNull()
+    expect(budgetApi.insertExpense).not.toHaveBeenCalled()
   })
 })

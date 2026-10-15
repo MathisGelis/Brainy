@@ -1,7 +1,85 @@
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { Checkbox, useToast } from '@/components/ui'
+import { useBudget } from '@/features/budget/useBudget'
+import type { Todo } from '@/features/todos/types'
+import { monthOf, todayISO } from '@/lib/dates'
+import { formatCents, parseAmountToCents } from '@/lib/money'
+import { fold } from '@/lib/naturalDate'
 import { useShoppingList } from './useShoppingList'
+
+/** « Combien avez-vous payé ? » : la dépense part dans Budget, catégorie Courses si elle existe. */
+function PaymentPrompt({ onDone, onError }: { onDone: () => void; onError: (m: string) => void }) {
+  const toast = useToast()
+  const today = todayISO()
+  const { categories, addExpense, deleteExpense } = useBudget(monthOf(today), { onError })
+  const [amount, setAmount] = useState('')
+  const [invalid, setInvalid] = useState(false)
+  const category = categories.find((c) => !c.archived && fold(c.name).startsWith('course'))
+
+  function submit(e: FormEvent) {
+    e.preventDefault()
+    const cents = parseAmountToCents(amount)
+    if (cents === null) {
+      setInvalid(true)
+      return
+    }
+    const id = addExpense({
+      amount_cents: cents,
+      category_id: category?.id ?? null,
+      spent_on: today,
+      note: 'Courses',
+    })
+    toast.show(
+      `Dépense de ${formatCents(cents)} ajoutée${category ? ` dans ${category.name}` : ''}`,
+      () => deleteExpense(id),
+    )
+    onDone()
+  }
+
+  return (
+    <form
+      onSubmit={submit}
+      aria-label="Dépense des courses"
+      className="flex flex-col gap-2 rounded-2xl bg-surface p-3 text-sm"
+    >
+      <p className="font-semibold">Courses terminées ! Combien avez-vous payé ?</p>
+      <div className="flex flex-wrap items-center gap-2">
+        <input
+          value={amount}
+          onChange={(e) => {
+            setAmount(e.target.value)
+            setInvalid(false)
+          }}
+          inputMode="decimal"
+          aria-label="Montant des courses en euros"
+          aria-invalid={invalid}
+          placeholder="54,30"
+          autoFocus
+          className={`field min-h-11 w-28 px-3 md:min-h-10 ${invalid ? '!border-danger' : ''}`}
+        />
+        <button
+          type="submit"
+          className="btn-primary min-h-11 rounded-full px-4 text-sm font-semibold md:min-h-10"
+        >
+          Ajouter la dépense
+        </button>
+        <button
+          type="button"
+          onClick={onDone}
+          className="min-h-11 rounded-full px-3 text-muted transition-colors hover:text-text md:min-h-9"
+        >
+          Non merci
+        </button>
+      </div>
+      {invalid && (
+        <p role="alert" className="text-xs text-danger">
+          Montant invalide. Exemple : 54,30
+        </p>
+      )}
+    </form>
+  )
+}
 
 /** Liste de courses (liste de todos « Courses ») : cocher en magasin, ajouter, compléter depuis le menu. */
 export function ShoppingCard({
@@ -15,7 +93,22 @@ export function ShoppingCard({
   const toast = useToast()
   const shopping = useShoppingList({ onError })
   const [text, setText] = useState('')
+  const [paying, setPaying] = useState(false)
   const missing = shopping.missing(weekFoods)
+
+  function check(todo: Todo) {
+    const last = shopping.items.length === 1
+    toast.show(`« ${todo.title} » acheté`, shopping.check(todo))
+    if (last) setPaying(true)
+  }
+
+  function checkAll() {
+    const undos = shopping.items.map((todo) => shopping.check(todo))
+    toast.show(`${undos.length} article${undos.length > 1 ? 's' : ''} cochés`, () =>
+      undos.forEach((undo) => undo()),
+    )
+    setPaying(true)
+  }
 
   function add(e: FormEvent) {
     e.preventDefault()
@@ -66,8 +159,9 @@ export function ShoppingCard({
           </button>
         </div>
       )}
+      {paying && <PaymentPrompt onDone={() => setPaying(false)} onError={onError} />}
       {shopping.items.length === 0 ? (
-        <p className="text-sm text-muted">La liste est vide.</p>
+        !paying && <p className="text-sm text-muted">La liste est vide.</p>
       ) : (
         <ul>
           {shopping.items.map((todo) => (
@@ -79,7 +173,7 @@ export function ShoppingCard({
                 hideLabel
                 label={`Acheté : ${todo.title}`}
                 checked={false}
-                onChange={() => toast.show(`« ${todo.title} » acheté`, shopping.check(todo))}
+                onChange={() => check(todo)}
               />
               <span className="min-w-0 flex-1">{todo.title}</span>
               <button
@@ -93,6 +187,15 @@ export function ShoppingCard({
             </li>
           ))}
         </ul>
+      )}
+      {shopping.items.length > 1 && (
+        <button
+          type="button"
+          onClick={checkAll}
+          className="min-h-11 self-start rounded-full px-3 text-xs text-muted transition-colors hover:bg-surface hover:text-text md:min-h-8"
+        >
+          Tout acheté
+        </button>
       )}
       <form onSubmit={add}>
         <input

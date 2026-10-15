@@ -124,13 +124,17 @@ export function useBudget(
     isError: categoriesQuery.isError || expensesQuery.isError,
     refetch: () => Promise.all([categoriesQuery.refetch(), expensesQuery.refetch()]),
 
-    addExpense: (input: NewExpenseInput) =>
-      addExpenseM.mutate({
+    /** Ajoute une dépense ; renvoie son id (pour l'annuler). */
+    addExpense: (input: NewExpenseInput): string => {
+      const expense: Expense = {
         id: crypto.randomUUID(),
         recurring_id: null,
         created_at: new Date().toISOString(),
         ...input,
-      }),
+      }
+      addExpenseM.mutate(expense)
+      return expense.id
+    },
     /** Remet une dépense supprimée (annulation), avec son id d'origine. */
     restoreExpense: (expense: Expense) => addExpenseM.mutate(expense),
     updateExpense: (id: string, patch: ExpensePatch) => updateExpenseM.mutate({ id, patch }),
