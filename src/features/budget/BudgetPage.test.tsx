@@ -364,4 +364,19 @@ describe('BudgetPage', () => {
     await waitFor(() => expect(summary).toHaveTextContent(/Épargne 600,00\s€/))
     expect(summary).toHaveTextContent(/Solde \+1\s400,00\s€/)
   })
+
+  it('explique un échec dû à une migration manquante (PGRST204) et annule la dépense', async () => {
+    vi.mocked(api.insertExpense).mockRejectedValue({
+      code: 'PGRST204',
+      message: "Could not find the 'recurring_id' column of 'expenses' in the schema cache",
+    })
+    renderPage()
+    await screen.findByRole('button', { name: 'Courses' })
+    await userEvent.type(screen.getByLabelText('Montant en euros'), '12,50{Enter}')
+    expect(
+      await screen.findByText(/Enregistrement impossible : la base n'est pas à jour/),
+    ).toBeInTheDocument()
+    // la mise à jour optimiste est retirée
+    await waitFor(() => expect(screen.queryByText('12,50 €')).toBeNull())
+  })
 })

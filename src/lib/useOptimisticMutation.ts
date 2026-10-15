@@ -1,13 +1,6 @@
 import { useMutation, useQueryClient, type QueryKey } from '@tanstack/react-query'
+import { isSchemaError, saveErrorMessage } from './schemaErrors'
 
-/**
- * Mutation à mise à jour optimiste sur une liste mise en cache : le cache est modifié tout de suite,
- * restauré en cas d'erreur, puis resynchronisé avec le serveur.
- *
- * Les requêtes d'une même liste partagent un `scope` : elles partent dans l'ordre
- * (ex. « supprimer » puis « annuler » ne peuvent pas s'inverser), tandis que la mise à jour
- * optimiste (`onMutate`) reste immédiate.
- */
 export function useOptimisticMutation<T, V>(
   queryKey: QueryKey,
   request: (variables: V) => Promise<unknown>,
@@ -26,9 +19,11 @@ export function useOptimisticMutation<T, V>(
       queryClient.setQueryData<T[]>(queryKey, (old) => apply(old ?? [], variables))
       return { previous }
     },
-    onError: (_error, _variables, context) => {
+    onError: (error, _variables, context) => {
       if (context?.previous) queryClient.setQueryData(queryKey, context.previous)
-      onError?.("L'enregistrement a échoué. Vos modifications ont été annulées.")
+      onError?.(saveErrorMessage(error))
+      // Une colonne ou une table manque : on relance le contrôle pour afficher le bandeau
+      if (isSchemaError(error)) void queryClient.invalidateQueries({ queryKey: ['schema-check'] })
     },
     onSettled: () =>
       Promise.all(

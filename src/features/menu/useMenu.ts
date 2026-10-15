@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { saveErrorMessage } from '@/lib/schemaErrors'
 import { useOptimisticMutation } from '@/lib/useOptimisticMutation'
 import {
   fetchFoods,
@@ -165,9 +166,9 @@ export function useMacroTargets({ onError }: Options = {}) {
       queryClient.setQueryData(TARGETS_KEY, targets)
       return { previous }
     },
-    onError: (_e, _v, context) => {
+    onError: (error, _v, context) => {
       queryClient.setQueryData(TARGETS_KEY, context?.previous ?? null)
-      onError?.("L'enregistrement a échoué. Vos modifications ont été annulées.")
+      onError?.(saveErrorMessage(error))
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: TARGETS_KEY }),
   })
