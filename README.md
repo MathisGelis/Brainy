@@ -36,6 +36,25 @@ pas encore appliquées, dans l'ordre :
 
 Les migrations ne font qu'ajouter : aucune donnée existante n'est modifiée ni supprimée.
 
+Si une migration manque, l'app affiche un bandeau qui liste les fichiers à exécuter, et une écriture
+qui en dépend échoue avec « la base n'est pas à jour » (erreur PostgREST `PGRST204` ou `42703`).
+Pour vérifier à la main ce qui est appliqué :
+
+```sql
+select
+  exists (select 1 from information_schema.columns
+          where table_schema = 'public' and table_name = 'expenses' and column_name = 'recurring_id') as "0002",
+  exists (select 1 from information_schema.columns
+          where table_schema = 'public' and table_name = 'todos' and column_name = 'focus_on') as "0003",
+  exists (select 1 from information_schema.columns
+          where table_schema = 'public' and table_name = 'todos' and column_name = 'focus_week') as "0004",
+  exists (select 1 from information_schema.tables
+          where table_schema = 'public' and table_name = 'foods') as "0005";
+```
+
+N'exécutez que les migrations à `false`, dans l'ordre (les rejouer échoue : « already exists »).
+Si tout est à `true` mais que l'erreur persiste, rechargez le cache de PostgREST : `notify pgrst, 'reload schema';`
+
 ## Fonctionnalités en bref
 
 - **Saisie en langage naturel** : « Payer le loyer demain ! #maison tous les mois » (todo),
