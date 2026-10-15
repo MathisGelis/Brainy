@@ -79,6 +79,9 @@ Si tout est à `true` mais que l'erreur persiste, rechargez le cache de PostgRES
 - **Menu** (`#/menu`) : repas du jour ou prévus (« 200 g poulet midi », « 2 œufs demain matin »),
   macros face à tes objectifs, base d'aliments courants (valeurs indicatives, modifiables) ;
   chaque aliment ajouté propose d'aller dans la liste de courses (liste de todos « Courses »).
+  Recettes et repas types (« 2 parts curry soir », « Enregistrer comme repas type »), copie d'un jour
+  ou de la semaine précédente ; courses terminées → « Combien avez-vous payé ? » → dépense dans Budget.
+  L'accueil affiche les kcal restantes et le prochain repas prévu.
 - **Revue de la semaine** (`#/revue`, ou la carte de l'accueil le dimanche et le lundi), avec humeur,
   énergie et liens simples (« les jours de sport, énergie +0,8 »).
 - **Calendrier** (`#/calendrier`) : vue du mois ; le détail d'un jour permet de cocher, d'ajouter
