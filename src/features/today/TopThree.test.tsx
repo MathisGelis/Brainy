@@ -103,4 +103,15 @@ describe('TopThree', () => {
     expect(screen.queryByRole('group', { name: 'Suggestions pour le Top 3' })).toBeNull()
     expect(screen.queryByLabelText('Nouvelle priorité (Top 3 du jour)')).toBeNull()
   })
+
+  it('ne propose pas les articles de la liste de courses', async () => {
+    vi.mocked(todosApi.fetchLists).mockResolvedValue([{ id: 'l1', name: 'Courses', position: 0 }])
+    server = [...server, { ...base, id: 'c1', title: 'Lait de coco', list_id: 'l1' }]
+    renderTop()
+    const group = await screen.findByRole('group', { name: 'Suggestions pour le Top 3' })
+    await waitFor(() =>
+      expect(within(group).queryByRole('button', { name: /Lait de coco/ })).toBeNull(),
+    )
+    expect(within(group).getByRole('button', { name: /Payer le loyer/ })).toBeInTheDocument()
+  })
 })

@@ -5,6 +5,7 @@ import { PageHeader } from '@/components/ui/PageHeader'
 import { StepFlow } from '@/features/today/StepFlow'
 import { FocusPicker } from '@/features/today/TopThree'
 import type { Todo } from '@/features/todos/types'
+import { useWithoutShopping } from '@/features/menu/useShoppingList'
 import { useTodos } from '@/features/todos/useTodos'
 import { celebrate } from '@/lib/celebrate'
 import { addDays, formatDayMonth, formatLongDay, formatWeekdayShort, todayISO } from '@/lib/dates'
@@ -197,7 +198,8 @@ export default function PlanningPage() {
   const today = todayISO()
   const monday = planningMonday(today)
   const days = weekDays(monday)
-  const { todos } = useTodos({ onError })
+  const withoutShopping = useWithoutShopping()
+  const todos = withoutShopping(useTodos({ onError }).todos)
 
   function finish() {
     markWeekPlanned(monday)

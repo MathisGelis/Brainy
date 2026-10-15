@@ -19,6 +19,7 @@ import { useGoals } from '@/features/goals/useGoals'
 import { useDaysOff, useHabits } from '@/features/habits/useHabits'
 import { planningMonday } from '@/features/planning/planningLogic'
 import { weekFocusOf } from '@/features/todos/todoLogic'
+import { useWithoutShopping } from '@/features/menu/useShoppingList'
 import { useTodos } from '@/features/todos/useTodos'
 import {
   addDays,
@@ -205,7 +206,9 @@ export default function ReviewPage() {
   const sunday = addDays(monday, 6)
   const currentMonday = startOfWeek(today)
 
-  const { todos } = useTodos({ onError })
+  const withoutShopping = useWithoutShopping()
+  // Les articles de courses cochés ne sont pas des todos terminées
+  const todos = withoutShopping(useTodos({ onError }).todos)
   const { habits, entries } = useHabits({ onError })
   const { offDays } = useDaysOff({ onError })
   const { goals, milestones } = useGoals({ onError })

@@ -8,6 +8,16 @@ export const SHOPPING_LIST = 'Courses'
 const byPosition = (a: Todo, b: Todo) =>
   a.position - b.position || a.created_at.localeCompare(b.created_at)
 
+/**
+ * Retire les articles de la liste de courses : ce ne sont pas des tâches à proposer en priorité,
+ * à planifier ni à compter dans la revue.
+ */
+export function useWithoutShopping() {
+  const { lists } = useTodoLists()
+  const id = findListByName(lists, SHOPPING_LIST)?.id
+  return (todos: Todo[]) => (id ? todos.filter((t) => t.list_id !== id) : todos)
+}
+
 /** Liste de courses : une liste de todos « Courses », partagée avec l'onglet Todo. */
 export function useShoppingList({ onError }: { onError?: (message: string) => void } = {}) {
   const { todos, isLoading, addTodo, completeTodo, setDone, deleteTodo, restoreTodo } = useTodos({

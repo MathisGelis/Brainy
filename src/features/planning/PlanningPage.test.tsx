@@ -115,4 +115,15 @@ describe('PlanningPage', () => {
       }),
     )
   })
+
+  it('ne fait pas répartir les articles de la liste de courses', async () => {
+    vi.mocked(todosApi.fetchLists).mockResolvedValue([{ id: 'l1', name: 'courses', position: 0 }])
+    server = [...server, { ...base, id: 't9', title: 'Lait', list_id: 'l1' }]
+    renderPage()
+    await screen.findByText('Rappeler le garagiste')
+    await userEvent.click(screen.getByRole('button', { name: 'Suivant' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Suivant' }))
+    await screen.findByRole('group', { name: 'Jour pour « Ranger la cave »' })
+    expect(screen.queryByRole('group', { name: 'Jour pour « Lait »' })).toBeNull()
+  })
 })

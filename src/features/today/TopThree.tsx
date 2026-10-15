@@ -10,6 +10,7 @@ import {
   weekFocusOf,
 } from '@/features/todos/todoLogic'
 import type { Todo } from '@/features/todos/types'
+import { useWithoutShopping } from '@/features/menu/useShoppingList'
 import { useQuickTodo, useTodos } from '@/features/todos/useTodos'
 import { celebrate } from '@/lib/celebrate'
 import { parisHour, todayISO } from '@/lib/dates'
@@ -49,13 +50,16 @@ export function FocusPicker({ scope, onError, title, prompt }: PickerProps) {
     onError,
   })
   const addQuick = useQuickTodo({ onError })
+  const withoutShopping = useWithoutShopping()
   const [text, setText] = useState('')
   const words = WORDS[scope.kind]
   const key = scope.kind === 'day' ? scope.day : scope.monday
 
   const focus = scope.kind === 'day' ? focusOf(todos, key) : weekFocusOf(todos, key)
   const candidates = (
-    scope.kind === 'day' ? focusCandidates(todos, key) : weekFocusCandidates(todos, key)
+    scope.kind === 'day'
+      ? focusCandidates(withoutShopping(todos), key)
+      : weekFocusCandidates(withoutShopping(todos), key)
   ).slice(0, 5)
   const room = FOCUS_MAX - focus.length
   const done = focus.filter((t) => t.done).length
