@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { ToastProvider } from '@/components/ui'
 import * as checkinsApi from '@/features/checkins/checkinsApi'
+import * as menuApi from '@/features/menu/menuApi'
 import * as budgetApi from '@/features/budget/budgetApi'
 import * as habitsApi from '@/features/habits/habitsApi'
 import * as notesApi from '@/features/notes/notesApi'
@@ -12,6 +13,7 @@ import * as todosApi from '@/features/todos/todosApi'
 import { addDays, startOfWeek, todayISO } from '@/lib/dates'
 import TodayPage from './TodayPage'
 
+vi.mock('@/features/menu/menuApi')
 vi.mock('@/features/checkins/checkinsApi')
 vi.mock('@/features/todos/todosApi')
 vi.mock('@/features/habits/habitsApi')
@@ -50,6 +52,8 @@ function renderPage() {
 describe('TodayPage', () => {
   beforeEach(() => {
     vi.mocked(checkinsApi.fetchCheckins).mockResolvedValue([])
+    vi.mocked(menuApi.fetchMealItems).mockResolvedValue([])
+    vi.mocked(menuApi.fetchTargets).mockResolvedValue(null)
     vi.mocked(todosApi.fetchTodos).mockResolvedValue([
       { ...baseTodo, id: 't1', title: 'Payer le loyer', due_date: today },
       { ...baseTodo, id: 't2', title: 'Plus tard', due_date: addDays(today, 3) },
@@ -255,5 +259,44 @@ describe('TodayPage', () => {
       within(card).getByRole('checkbox', { name: 'Terminer « Finir le rapport »' }),
     )
     expect(todosApi.patchTodo).toHaveBeenCalledWith('w1', expect.objectContaining({ done: true }))
+  })
+
+  it('montre les kcal restantes et le prochain repas prévu, menant au Menu', async () => {
+    const meal = (id: string, mealId: 'lunch' | 'dinner', name: string, kcal: number) => ({
+      id,
+      day: today,
+      meal: mealId,
+      food_id: null,
+      recipe_id: null,
+      name,
+      grams: 100,
+      kcal,
+      protein_dg: 0,
+      carbs_dg: 0,
+      fat_dg: 0,
+      position: 0,
+      created_at: '',
+    })
+    vi.mocked(menuApi.fetchMealItems).mockResolvedValue([
+      meal('m1', 'lunch', 'Riz blanc (cuit)', 260),
+      meal('m2', 'dinner', 'Saumon', 280),
+    ])
+    vi.mocked(menuApi.fetchTargets).mockResolvedValue({
+      kcal: 2000,
+      protein_g: null,
+      carbs_g: null,
+      fat_g: null,
+    })
+    renderPage()
+    const card = await screen.findByRole('link', { name: /kcal restantes/ })
+    expect(card).toHaveAccessibleName(/^1\s460 kcal restantes\. .* prévu : /)
+    expect(card).toHaveTextContent('Saumon')
+    expect(card).toHaveAttribute('href', '/menu')
+  })
+
+  it('n’affiche rien du Menu sans repas ni objectif', async () => {
+    renderPage()
+    await screen.findByRole('region', { name: 'Todos du jour' })
+    expect(screen.queryByRole('link', { name: /kcal/ })).toBeNull()
   })
 })

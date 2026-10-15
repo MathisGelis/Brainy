@@ -19,6 +19,25 @@ export function defaultMeal(hour: number): Meal {
   return 'dinner'
 }
 
+/** Ordre des repas dans la journée (la collation se prend l'après-midi). */
+const DAY_ORDER: Meal[] = ['breakfast', 'lunch', 'snack', 'dinner']
+
+/**
+ * Prochain repas prévu : le repas en cours (selon l'heure) ou un suivant qui a des aliments.
+ * Null s'il n'y a plus rien de prévu dans la journée.
+ */
+export function nextPlannedMeal(
+  items: Pick<MealItem, 'meal' | 'name'>[],
+  hour: number,
+): { meal: Meal; names: string[] } | null {
+  const start = DAY_ORDER.indexOf(defaultMeal(hour))
+  for (const meal of DAY_ORDER.slice(start)) {
+    const names = items.filter((i) => i.meal === meal).map((i) => i.name)
+    if (names.length > 0) return { meal, names }
+  }
+  return null
+}
+
 const B = '(?<![\\p{L}\\d])'
 const E = '(?![\\p{L}\\d])'
 const MEAL_WORDS: [RegExp, Meal][] = [

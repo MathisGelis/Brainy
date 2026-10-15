@@ -6,6 +6,7 @@ import {
   gramsFor,
   inputToDg,
   missingFromShopping,
+  nextPlannedMeal,
   normalizeName,
   parseFoodInput,
   portionText,
@@ -152,5 +153,21 @@ describe('liste de courses', () => {
         ['oeufs', 'Riz blanc'],
       ),
     ).toEqual(['Poulet', 'Banane'])
+  })
+})
+
+describe('nextPlannedMeal', () => {
+  const items = [
+    { meal: 'breakfast' as const, name: 'Flocons d’avoine' },
+    { meal: 'dinner' as const, name: 'Saumon' },
+    { meal: 'dinner' as const, name: 'Riz blanc (cuit)' },
+  ]
+  it('donne le repas en cours ou le suivant qui a des aliments', () => {
+    expect(nextPlannedMeal(items, 8)).toEqual({ meal: 'breakfast', names: ['Flocons d’avoine'] })
+    expect(nextPlannedMeal(items, 12)).toEqual({
+      meal: 'dinner',
+      names: ['Saumon', 'Riz blanc (cuit)'],
+    })
+    expect(nextPlannedMeal([items[0]!], 20)).toBeNull()
   })
 })
