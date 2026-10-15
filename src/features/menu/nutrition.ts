@@ -188,8 +188,11 @@ export function scaleMacros(food: Per100, grams: number): Macros {
   }
 }
 
-/** Nouvelle quantité d'un élément de repas : on recalcule à partir de ses propres valeurs. */
-export function rescaleItem(item: MealItem, grams: number): Macros {
+/** Nouvelle quantité d'un élément de repas ou d'un ingrédient : recalcul à partir de ses propres valeurs. */
+export function rescaleItem(
+  item: Pick<MealItem, 'grams' | 'kcal' | 'protein_dg' | 'carbs_dg' | 'fat_dg'>,
+  grams: number,
+): Macros {
   const k = grams / item.grams
   return {
     kcal: Math.round(item.kcal * k),

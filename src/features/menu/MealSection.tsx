@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type FormEvent } from 'react'
 import { grams as g, MEALS, rescaleItem } from './nutrition'
 import type { Meal, MealItem, MealItemPatch } from './types'
 
@@ -8,11 +8,11 @@ const field = 'field min-h-11 px-3 md:min-h-10'
 
 type RowProps = {
   item: MealItem
-  /** Libellé si l'aliment manque à la liste de courses (null : déjà dedans, ou jour passé) */
-  missing: string | null
+  /** À acheter pour cet élément et absent de la liste de courses (vide : rien à proposer) */
+  missing: string[]
   onUpdate: (id: string, patch: MealItemPatch) => void
   onDelete: (item: MealItem) => void
-  onShop: (name: string) => void
+  onShop: (names: string[]) => void
 }
 
 function MealItemRow({ item, missing, onUpdate, onDelete, onShop }: RowProps) {
@@ -29,18 +29,25 @@ function MealItemRow({ item, missing, onUpdate, onDelete, onShop }: RowProps) {
           className="-mx-2 flex min-h-12 min-w-0 flex-1 items-center gap-3 rounded-xl px-2 text-left transition-colors hover:bg-surface"
         >
           <span className="min-w-0 flex-1">
-            <span className="block truncate">{item.name}</span>
+            <span className="block truncate">
+              {item.name}
+              {item.recipe_id && <span className="text-xs text-muted"> · recette</span>}
+            </span>
             <span className="block text-xs text-muted">
               {item.grams} g · P {g(item.protein_dg)} · G {g(item.carbs_dg)} · L {g(item.fat_dg)}
             </span>
           </span>
           <span className="text-sm font-semibold tabular-nums">{item.kcal} kcal</span>
         </button>
-        {missing && (
+        {missing.length > 0 && (
           <button
             type="button"
             onClick={() => onShop(missing)}
-            aria-label={`Ajouter « ${missing} » à la liste de courses`}
+            aria-label={
+              item.recipe_id
+                ? `Ajouter les ingrédients de « ${item.name} » à la liste de courses`
+                : `Ajouter « ${missing[0]} » à la liste de courses`
+            }
             title="Ajouter à la liste de courses"
             className={`${small} text-accent`}
           >
@@ -94,28 +101,80 @@ function MealItemRow({ item, missing, onUpdate, onDelete, onShop }: RowProps) {
   )
 }
 
+/** « Enregistrer comme repas type » : un nom, et le repas devient une recette d'une part. */
+function SaveTemplate({ label, onSave }: { label: string; onSave: (name: string) => void }) {
+  const [open, setOpen] = useState(false)
+  const [name, setName] = useState(`${label} habituel`)
+
+  function submit(e: FormEvent) {
+    e.preventDefault()
+    const trimmed = name.trim().slice(0, 80)
+    if (!trimmed) return
+    onSave(trimmed)
+    setOpen(false)
+  }
+
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="min-h-11 rounded-full px-2 text-xs font-normal text-muted normal-case transition-colors hover:bg-surface hover:text-text md:min-h-8"
+      >
+        Enregistrer comme repas type
+      </button>
+    )
+  }
+  return (
+    <form onSubmit={submit} className="flex items-center gap-1 normal-case">
+      <input
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        aria-label="Nom du repas type"
+        autoFocus
+        className="field min-h-9 w-44 px-3 text-xs font-normal text-text"
+      />
+      <button type="submit" className="min-h-9 rounded-full px-2 text-xs text-accent">
+        OK
+      </button>
+    </form>
+  )
+}
+
 type Props = {
   meal: Meal
   label: string
   items: MealItem[]
-  missingOf: (item: MealItem) => string | null
+  missingOf: (item: MealItem) => string[]
   onUpdate: (id: string, patch: MealItemPatch) => void
   onDelete: (item: MealItem) => void
-  onShop: (name: string) => void
+  onShop: (names: string[]) => void
+  onSaveTemplate: (name: string, items: MealItem[]) => void
 }
 
-/** Un repas du jour : ses aliments et son total. */
-export function MealSection({ meal, label, items, missingOf, onUpdate, onDelete, onShop }: Props) {
+/** Un repas du jour : ses aliments, son total, et de quoi le garder comme repas type. */
+export function MealSection({
+  meal,
+  label,
+  items,
+  missingOf,
+  onUpdate,
+  onDelete,
+  onShop,
+  onSaveTemplate,
+}: Props) {
   const kcal = items.reduce((s, i) => s + i.kcal, 0)
   return (
     <section aria-labelledby={`meal-${meal}`} className="flex flex-col">
-      <h3
-        id={`meal-${meal}`}
-        className="flex items-baseline justify-between text-xs font-semibold text-muted uppercase"
-      >
-        <span>{label}</span>
-        {items.length > 0 && <span className="normal-case tabular-nums">{kcal} kcal</span>}
-      </h3>
+      <div className="flex flex-wrap items-center justify-between gap-x-2 text-xs font-semibold text-muted uppercase">
+        <h3 id={`meal-${meal}`}>{label}</h3>
+        <span className="flex items-center gap-1">
+          {items.length > 0 && (
+            <SaveTemplate label={label} onSave={(name) => onSaveTemplate(name, items)} />
+          )}
+          {items.length > 0 && <span className="normal-case tabular-nums">{kcal} kcal</span>}
+        </span>
+      </div>
       {items.length === 0 ? (
         <p className="py-2 text-sm text-muted">Rien pour l’instant.</p>
       ) : (

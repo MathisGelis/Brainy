@@ -4,7 +4,6 @@ import { celebrate } from '@/lib/celebrate'
 import { formatDue, formatLongDay, parisHour, todayISO } from '@/lib/dates'
 import { CATALOG } from './catalog'
 import {
-  baseName,
   defaultMeal,
   gramsFor,
   grams as g,
@@ -17,8 +16,9 @@ import {
   searchFoods,
   type FoodChoice,
 } from './nutrition'
-import type { Food, Meal } from './types'
-import { useFoods, useMealItems } from './useMenu'
+import { forParts, partsFor, recipeMealItem, searchRecipes } from './recipeLogic'
+import type { Food, Meal, RecipeFull } from './types'
+import { useFoods, useMealItems, useRecipes } from './useMenu'
 import { useShoppingList } from './useShoppingList'
 
 const chip = 'rounded-full bg-surface px-2.5 py-1 text-xs text-text'
@@ -33,7 +33,7 @@ type Props = {
 }
 
 /** Valeurs d'un nouvel aliment, pour 100 g. */
-function NewFoodFields({
+export function NewFoodFields({
   name,
   onCreate,
 }: {
@@ -118,16 +118,29 @@ function NewFoodFields({
   )
 }
 
-/** Ajout en langage naturel : « 200 g poulet midi », « 2 œufs demain matin ». */
+/** Ce que la saisie peut désigner : une recette (la tienne) ou un aliment. */
+type Choice = { kind: 'recipe'; recipe: RecipeFull } | FoodChoice
+
+const choiceName = (c: Choice) => (c.kind === 'recipe' ? c.recipe.name : c.food.name)
+
+/** Phrase de proposition pour la liste de courses. */
+function proposalText(names: string[]): string {
+  if (names.length === 1) return `« ${names[0]} »`
+  const list = names.slice(0, 3).join(', ')
+  return `les ${names.length} ingrédients manquants (${list}${names.length > 3 ? '…' : ''})`
+}
+
+/** Ajout en langage naturel : « 200 g poulet midi », « 2 œufs demain matin », « 2 parts curry ». */
 export function AddFoodForm({ day, from, to, onError }: Props) {
   const toast = useToast()
   const { foods, makeFood } = useFoods({ onError })
+  const { recipes } = useRecipes({ onError })
   const { addItem, deleteItem } = useMealItems(from, to, { onError })
   const shopping = useShoppingList({ onError })
   const [text, setText] = useState('')
   const [pickedMeal, setPickedMeal] = useState<Meal | null>(null)
   const [choiceIndex, setChoiceIndex] = useState(0)
-  const [proposal, setProposal] = useState<string | null>(null)
+  const [proposal, setProposal] = useState<string[] | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const today = todayISO()
@@ -135,11 +148,26 @@ export function AddFoodForm({ day, from, to, onError }: Props) {
   const targetDay = parsed?.day ?? day
   const meal =
     pickedMeal ?? parsed?.meal ?? (targetDay === today ? defaultMeal(parisHour()) : 'lunch')
-  const choices = parsed ? searchFoods(parsed.query, foods, CATALOG) : []
-  const chosen: FoodChoice | undefined = choices[choiceIndex] ?? choices[0]
-  const grams = chosen && parsed ? gramsFor(parsed, chosen.food) : null
-  const macros = chosen && grams ? scaleMacros(chosen.food, grams) : null
-  const unknown = parsed && parsed.query.length >= 2 && choices.length === 0 ? parsed.query : null
+  // « parts » n'est qu'une unité pour les recettes : « 2 parts curry » cherche « curry »
+  const query = parsed?.query.replace(/^parts?\s+(?:de\s+|d['’])?/i, '') ?? ''
+  const choices: Choice[] = parsed
+    ? [
+        ...searchRecipes(query, recipes).map((recipe) => ({ kind: 'recipe' as const, recipe })),
+        ...searchFoods(query, foods, CATALOG),
+      ].slice(0, 6)
+    : []
+  const chosen: Choice | undefined = choices[choiceIndex] ?? choices[0]
+  const parts = chosen?.kind === 'recipe' && parsed ? partsFor(parsed, chosen.recipe) : null
+  const values =
+    chosen && parsed
+      ? chosen.kind === 'recipe'
+        ? forParts(chosen.recipe, parts!)
+        : (() => {
+            const q = gramsFor(parsed, chosen.food)
+            return { grams: q, ...scaleMacros(chosen.food, q) }
+          })()
+      : null
+  const unknown = parsed && query.length >= 2 && choices.length === 0 ? query : null
 
   function reset() {
     setText('')
@@ -148,14 +176,15 @@ export function AddFoodForm({ day, from, to, onError }: Props) {
     inputRef.current?.focus()
   }
 
-  function added(name: string, mealId: Meal, onDay: string, undo: () => void) {
+  function added(toBuy: string[], mealId: Meal, onDay: string, undo: () => void) {
     celebrate(0.4)
     toast.show(
       `Ajouté : ${mealLabel(mealId).toLowerCase()}${onDay === today ? '' : `, ${formatDue(onDay, today).toLowerCase()}`}`,
       undo,
     )
     // On propose la liste de courses pour ce qui est prévu (aujourd'hui ou plus tard)
-    setProposal(onDay >= today && shopping.missing([name]).length > 0 ? baseName(name) : null)
+    const missing = onDay >= today ? shopping.missing(toBuy) : []
+    setProposal(missing.length > 0 ? missing : null)
     reset()
   }
 
@@ -167,29 +196,47 @@ export function AddFoodForm({ day, from, to, onError }: Props) {
         day: targetDay,
         meal,
         food_id: food.id,
+        recipe_id: null,
         name: food.name,
         grams: q,
         ...scaleMacros(food, q),
       },
       newFood,
     )
-    added(food.name, meal, targetDay, () => deleteItem(item))
+    added([food.name], meal, targetDay, () => deleteItem(item))
+  }
+
+  function addRecipe(recipe: RecipeFull, n: number) {
+    const item = addItem(recipeMealItem(recipe, n, targetDay, meal))
+    added(
+      recipe.items.map((i) => i.name),
+      meal,
+      targetDay,
+      () => deleteItem(item),
+    )
   }
 
   function submit(e: FormEvent) {
     e.preventDefault()
     if (!chosen) return
-    if (chosen.kind === 'food') addFood(chosen.food)
+    if (chosen.kind === 'recipe') addRecipe(chosen.recipe, parts!)
+    else if (chosen.kind === 'food') addFood(chosen.food)
     else {
       const copy = makeFood({ ...chosen.food })
       addFood(copy, copy)
     }
   }
 
-  function addToShopping(name: string) {
-    const { added: list, undo } = shopping.add([name])
+  function addToShopping(names: string[]) {
+    const { added: list, undo } = shopping.add(names)
     setProposal(null)
-    if (list.length > 0) toast.show(`« ${name} » ajouté à la liste de courses`, undo)
+    if (list.length > 0)
+      toast.show(
+        list.length === 1
+          ? `« ${list[0]} » ajouté à la liste de courses`
+          : `${list.length} ingrédients ajoutés à la liste de courses`,
+        undo,
+      )
   }
 
   return (
@@ -232,19 +279,22 @@ export function AddFoodForm({ day, from, to, onError }: Props) {
         aria-live="polite"
         className="flex min-h-7 flex-wrap items-center gap-1.5"
       >
-        {chosen && grams !== null && macros && (
+        {chosen && values && (
           <>
             <span className="sr-only">Compris :</span>
-            <span className={`${chip} font-semibold`}>{chosen.food.name}</span>
+            <span className={`${chip} font-semibold`}>{choiceName(chosen)}</span>
             <span className={chip}>
-              {grams} g
-              {parsed?.count != null && chosen.food.portion_label
-                ? ` (${portionText(parsed.count, chosen.food.portion_label)})`
-                : ''}
+              {chosen.kind === 'recipe'
+                ? `${portionText(parts!, 'part')} · ${values.grams} g`
+                : `${values.grams} g${
+                    parsed?.count != null && chosen.food.portion_label
+                      ? ` (${portionText(parsed.count, chosen.food.portion_label)})`
+                      : ''
+                  }`}
             </span>
-            <span className={chip}>{macros.kcal} kcal</span>
+            <span className={chip}>{values.kcal} kcal</span>
             <span className={chip}>
-              P {g(macros.protein_dg)} · G {g(macros.carbs_dg)} · L {g(macros.fat_dg)}
+              P {g(values.protein_dg)} · G {g(values.carbs_dg)} · L {g(values.fat_dg)}
             </span>
             {targetDay !== day && (
               <span className={`${chip} text-accent`}>{formatLongDay(targetDay)}</span>
@@ -260,7 +310,7 @@ export function AddFoodForm({ day, from, to, onError }: Props) {
         <div role="group" aria-label="Aliments trouvés" className="flex flex-wrap gap-1.5">
           {choices.map((c, i) => (
             <button
-              key={`${c.kind}-${c.food.name}`}
+              key={`${c.kind}-${choiceName(c)}`}
               type="button"
               aria-pressed={chosen === c}
               onClick={() => {
@@ -269,7 +319,8 @@ export function AddFoodForm({ day, from, to, onError }: Props) {
               }}
               className="pill min-h-9 border border-[var(--field-border)] px-3 text-xs"
             >
-              {c.food.name}
+              {choiceName(c)}
+              {c.kind === 'recipe' && <span className="text-muted"> · recette</span>}
             </button>
           ))}
         </div>
@@ -292,7 +343,7 @@ export function AddFoodForm({ day, from, to, onError }: Props) {
       {proposal && (
         <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-surface px-3 py-2 text-sm">
           <span className="min-w-0 flex-1">
-            Ajouter <strong>« {proposal} »</strong> à la liste de courses ?
+            Ajouter <strong>{proposalText(proposal)}</strong> à la liste de courses ?
           </span>
           <button
             type="button"

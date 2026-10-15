@@ -8,7 +8,7 @@ import type { Todo, TodoList } from '@/features/todos/types'
 import { addDays, todayISO } from '@/lib/dates'
 import * as api from './menuApi'
 import MenuPage from './MenuPage'
-import type { Food, MacroTargets, MealItem } from './types'
+import type { Food, MacroTargets, MealItem, Recipe, RecipeItem } from './types'
 
 vi.mock('./menuApi')
 vi.mock('@/features/todos/todosApi')
@@ -36,6 +36,7 @@ const riceLunch: MealItem = {
   protein_dg: 54,
   carbs_dg: 560,
   fat_dg: 6,
+  recipe_id: null,
   position: 0,
   created_at: '',
 }
@@ -45,6 +46,8 @@ let items: MealItem[] = []
 let targets: MacroTargets | null = null
 let todos: Todo[] = []
 let lists: TodoList[] = []
+let recipes: Recipe[] = []
+let recipeItems: RecipeItem[] = []
 
 function renderPage() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
@@ -88,6 +91,36 @@ describe('MenuPage', () => {
     })
     vi.mocked(api.removeMealItem).mockImplementation(async (id) => {
       items = items.filter((i) => i.id !== id)
+    })
+    recipes = []
+    recipeItems = []
+    vi.mocked(api.fetchRecipes).mockImplementation(async () =>
+      recipes.map((r) => ({ ...r, items: recipeItems.filter((i) => i.recipe_id === r.id) })),
+    )
+    vi.mocked(api.insertRecipe).mockImplementation(async (r) => {
+      recipes = [
+        ...recipes,
+        { id: r.id, name: r.name, servings: r.servings, created_at: r.created_at },
+      ]
+    })
+    vi.mocked(api.patchRecipe).mockImplementation(async (id, patch) => {
+      recipes = recipes.map((r) => (r.id === id ? { ...r, ...patch } : r))
+    })
+    vi.mocked(api.removeRecipe).mockImplementation(async (id) => {
+      recipes = recipes.filter((r) => r.id !== id)
+      recipeItems = recipeItems.filter((i) => i.recipe_id !== id)
+    })
+    vi.mocked(api.insertRecipeItems).mockImplementation(async (added) => {
+      recipeItems = [...recipeItems, ...added]
+    })
+    vi.mocked(api.patchRecipeItem).mockImplementation(async (id, patch) => {
+      recipeItems = recipeItems.map((i) => (i.id === id ? { ...i, ...patch } : i))
+    })
+    vi.mocked(api.removeRecipeItem).mockImplementation(async (id) => {
+      recipeItems = recipeItems.filter((i) => i.id !== id)
+    })
+    vi.mocked(api.removeMealItems).mockImplementation(async (ids) => {
+      items = items.filter((i) => !ids.includes(i.id))
     })
     vi.mocked(api.fetchTargets).mockImplementation(async () => targets)
     vi.mocked(api.upsertTargets).mockImplementation(async (t) => {
@@ -329,5 +362,116 @@ describe('MenuPage', () => {
     await waitFor(() =>
       expect(api.insertFood).toHaveBeenCalledWith(expect.objectContaining({ id: 'f-rice' })),
     )
+  })
+
+  it('crée une recette, lui ajoute des ingrédients, puis l’ajoute au menu en parts', async () => {
+    renderPage()
+    const section = await screen.findByRole('region', { name: 'Recettes et repas types' })
+    await userEvent.type(
+      within(section).getByLabelText('Nom de la nouvelle recette'),
+      'Curry de poulet',
+    )
+    const parts = within(section).getByLabelText('Nombre de parts')
+    await userEvent.clear(parts)
+    await userEvent.type(parts, '4{Enter}')
+    await waitFor(() =>
+      expect(api.insertRecipe).toHaveBeenCalledWith(
+        expect.objectContaining({ name: 'Curry de poulet', servings: 4 }),
+      ),
+    )
+
+    const ingredient = within(section).getByLabelText('Ajouter un ingrédient à « Curry de poulet »')
+    await userEvent.type(ingredient, '600 g poulet cru{Enter}')
+    await userEvent.type(ingredient, '400 g riz blanc cuit{Enter}')
+    await waitFor(() => expect(api.insertRecipeItems).toHaveBeenCalledTimes(3)) // recette vide + 2
+    expect(within(section).getByText(/Par part : 250 g · 310 kcal/)).toBeInTheDocument()
+    // le riz cuit existait déjà dans Mes aliments, le poulet a été copié de la base
+    expect(api.insertFood).toHaveBeenCalledTimes(1)
+
+    const input = screen.getByLabelText('Ajouter un aliment')
+    await userEvent.type(input, '2 parts curry soir')
+    const hint = screen.getByText('Compris :').parentElement!
+    expect(hint).toHaveTextContent('Curry de poulet')
+    expect(hint).toHaveTextContent('2 parts · 500 g')
+    expect(hint).toHaveTextContent('620 kcal')
+    await userEvent.keyboard('{Enter}')
+    await waitFor(() =>
+      expect(api.insertMealItems).toHaveBeenLastCalledWith([
+        expect.objectContaining({
+          name: 'Curry de poulet',
+          grams: 500,
+          meal: 'dinner',
+          food_id: null,
+        }),
+      ]),
+    )
+    const added = vi.mocked(api.insertMealItems).mock.calls.at(-1)![0][0]!
+    expect(added.recipe_id).toBe(vi.mocked(api.insertRecipe).mock.calls[0]![0].id)
+
+    // ses ingrédients sont proposés pour la liste de courses (le riz est déjà au menu du jour)
+    const proposal = screen.getByText(/à la liste de courses \?/).closest('div')!
+    expect(proposal).toHaveTextContent('les 2 ingrédients manquants (Poulet, Riz blanc)')
+  })
+
+  it('enregistre un repas du jour comme repas type', async () => {
+    renderPage()
+    const lunch = await screen.findByRole('region', { name: /Déjeuner/ })
+    await userEvent.click(
+      within(lunch).getByRole('button', { name: 'Enregistrer comme repas type' }),
+    )
+    const name = within(lunch).getByLabelText('Nom du repas type')
+    expect(name).toHaveValue('Déjeuner habituel')
+    await userEvent.clear(name)
+    await userEvent.type(name, 'Riz du midi{Enter}')
+    await waitFor(() =>
+      expect(api.insertRecipeItems).toHaveBeenCalledWith([
+        expect.objectContaining({
+          name: 'Riz blanc (cuit)',
+          grams: 200,
+          kcal: 260,
+          food_id: 'f-rice',
+        }),
+      ]),
+    )
+    expect(api.insertRecipe).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'Riz du midi', servings: 1 }),
+    )
+    expect(await screen.findByText('Repas type « Riz du midi » enregistré')).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Modifier la recette « Riz du midi »' }),
+    ).toHaveTextContent('repas type · 260 kcal')
+  })
+
+  it('refait le menu d’un jour précédent, annulable', async () => {
+    const yesterday = addDays(today, -1)
+    items = [
+      { ...riceLunch, id: 'y1', day: yesterday, meal: 'dinner', name: 'Saumon', food_id: null },
+      {
+        ...riceLunch,
+        id: 'y2',
+        day: yesterday,
+        meal: 'dinner',
+        name: 'Brocoli',
+        food_id: null,
+        position: 1,
+      },
+    ]
+    renderPage()
+    await userEvent.click(await screen.findByRole('button', { name: 'Copier un menu…' }))
+    await userEvent.click(
+      await screen.findByRole('button', { name: new RegExp(`^Copier le menu du .* vers le `) }),
+    )
+    await waitFor(() =>
+      expect(api.insertMealItems).toHaveBeenCalledWith([
+        expect.objectContaining({ day: today, meal: 'dinner', name: 'Saumon', position: 0 }),
+        expect.objectContaining({ day: today, meal: 'dinner', name: 'Brocoli', position: 1 }),
+      ]),
+    )
+    const dinner = screen.getByRole('region', { name: /Dîner/ })
+    expect(await within(dinner).findByText('Saumon')).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Annuler' }))
+    const copies = vi.mocked(api.insertMealItems).mock.calls[0]![0].map((i) => i.id)
+    await waitFor(() => expect(api.removeMealItems).toHaveBeenCalledWith(copies))
   })
 })

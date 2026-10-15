@@ -3,13 +3,16 @@ import { useToast } from '@/components/ui'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { addDays, formatLongDay, formatWeekdayShort, startOfWeek, todayISO } from '@/lib/dates'
 import { AddFoodForm } from './AddFoodForm'
+import { CopyMenu } from './CopyMenu'
 import { FoodsManager } from './FoodsManager'
 import { MacroSummary } from './MacroSummary'
 import { MealSection } from './MealSection'
 import { baseName, MEALS, sumMacros } from './nutrition'
+import { RecipesManager } from './RecipesManager'
+import { ingredientsFromMeal, shoppingNames } from './recipeLogic'
 import { ShoppingCard } from './ShoppingCard'
 import type { MealItem } from './types'
-import { useMacroTargets, useMealItems } from './useMenu'
+import { useMacroTargets, useMealItems, useRecipes } from './useMenu'
 import { useShoppingList } from './useShoppingList'
 
 const nav =
@@ -30,18 +33,33 @@ export default function MenuPage() {
   })
   const { targets, hasTargets, saveTargets } = useMacroTargets({ onError })
   const shopping = useShoppingList({ onError })
+  const { recipes, createRecipe, deleteRecipe } = useRecipes({ onError })
 
   const dayItems = items.filter((i) => i.day === day)
   const totals = sumMacros(dayItems)
   const kcalOf = (d: string) => items.filter((i) => i.day === d).reduce((s, i) => s + i.kcal, 0)
-  // Pour les courses : ce qui est prévu à partir d'aujourd'hui
-  const weekFoods = items.filter((i) => i.day >= today).map((i) => i.name)
+  // Pour les courses : ce qui est prévu à partir d'aujourd'hui (ingrédients pour une recette)
+  const weekFoods = shoppingNames(
+    items.filter((i) => i.day >= today),
+    recipes,
+  )
   const missingOf = (item: MealItem) =>
-    item.day >= today ? (shopping.missing([item.name])[0] ?? null) : null
+    item.day >= today ? shopping.missing(shoppingNames([item], recipes)) : []
 
-  function onShop(name: string) {
-    const { added, undo } = shopping.add([name])
-    if (added.length > 0) toast.show(`« ${name} » ajouté à la liste de courses`, undo)
+  function onShop(names: string[]) {
+    const { added, undo } = shopping.add(names)
+    if (added.length === 0) return
+    toast.show(
+      added.length === 1
+        ? `« ${added[0]} » ajouté à la liste de courses`
+        : `${added.length} ingrédients ajoutés à la liste de courses`,
+      undo,
+    )
+  }
+
+  function onSaveTemplate(name: string, mealItems: MealItem[]) {
+    const recipe = createRecipe(name, 1, ingredientsFromMeal(mealItems))
+    toast.show(`Repas type « ${name} » enregistré`, () => deleteRecipe(recipe))
   }
 
   return (
@@ -108,6 +126,7 @@ export default function MenuPage() {
         })}
       </ul>
 
+      <CopyMenu day={day} from={from} to={to} onError={onError} />
       <AddFoodForm day={day} from={from} to={to} onError={onError} />
 
       <MacroSummary
@@ -144,12 +163,14 @@ export default function MenuPage() {
                 toast.show(`« ${baseName(item.name)} » retiré du menu`, deleteItem(item))
               }
               onShop={onShop}
+              onSaveTemplate={onSaveTemplate}
             />
           ))}
         </div>
       )}
 
       <ShoppingCard weekFoods={weekFoods} onError={onError} />
+      <RecipesManager onError={onError} />
       <FoodsManager onError={onError} />
     </>
   )

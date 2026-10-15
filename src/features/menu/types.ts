@@ -28,6 +28,8 @@ export type MealItem = {
   protein_dg: number
   carbs_dg: number
   fat_dg: number
+  /** Recette d'origine (ses ingrédients servent à la liste de courses) */
+  recipe_id: string | null
   position: number
   created_at: string
 }
@@ -46,3 +48,35 @@ export type MacroTargets = {
 
 /** Totaux : kcal et macros en dixièmes de gramme. */
 export type Macros = { kcal: number; protein_dg: number; carbs_dg: number; fat_dg: number }
+
+/** Recette (ou repas type quand elle fait une seule part). */
+export type Recipe = {
+  id: string
+  name: string
+  servings: number
+  created_at: string
+}
+
+export type RecipePatch = Partial<Pick<Recipe, 'name' | 'servings'>>
+
+/** Ingrédient d'une recette : valeurs figées pour la quantité donnée, comme un élément de repas. */
+export type RecipeItem = {
+  id: string
+  recipe_id: string
+  food_id: string | null
+  name: string
+  grams: number
+  kcal: number
+  protein_dg: number
+  carbs_dg: number
+  fat_dg: number
+  position: number
+  created_at: string
+}
+
+export type RecipeItemPatch = Partial<
+  Pick<RecipeItem, 'grams' | 'kcal' | 'protein_dg' | 'carbs_dg' | 'fat_dg'>
+>
+
+/** Recette avec ses ingrédients (tels qu'en cache). */
+export type RecipeFull = Recipe & { items: RecipeItem[] }
