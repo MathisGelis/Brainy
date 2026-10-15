@@ -100,6 +100,22 @@ const seed = {
     },
   ],
   macro_targets: [{ id: 'mt1', kcal: 2000, protein_g: 120, carbs_g: 250, fat_g: 70 }],
+  recipes: [{ id: 'r1', name: 'Curry de poulet', servings: 4, created_at: '2026-01-01T00:00:00Z' }],
+  recipe_items: [
+    {
+      id: 'ri1',
+      recipe_id: 'r1',
+      food_id: null,
+      name: 'Poulet (filet cru)',
+      grams: 600,
+      kcal: 720,
+      protein_dg: 1350,
+      carbs_dg: 0,
+      fat_dg: 156,
+      position: 0,
+      created_at: '2026-01-01T00:00:00Z',
+    },
+  ],
   goals: [
     {
       id: '55555555-5555-4555-8555-555555555555',
