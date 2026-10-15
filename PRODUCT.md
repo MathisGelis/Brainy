@@ -28,6 +28,7 @@ Vue synthèse en lecture + actions rapides :
 - Habitudes du jour (cochables ; quantité pour les habitudes chiffrées)
 - Prochain jalon de chaque objectif en cours (cochable)
 - Budget du mois : dépensé / budget, barre de progression
+- Menu du jour : kcal restantes et prochain repas prévu
 - Note du jour (journal) en un clic
 - Le dimanche : accès à la revue de la semaine ; du vendredi au lundi : planification de la semaine
 - Un bouton « + » global (raccourci `n`) : ajouter todo, note ou dépense
@@ -78,7 +79,10 @@ Vue synthèse en lecture + actions rapides :
 - Base d'aliments courants (valeurs indicatives pour 100 g) ; chaque aliment est copié dans « Mes aliments » et devient modifiable ; aliment inconnu : on saisit ses valeurs une fois
 - Tracker de macros : kcal, protéines, glucides, lipides du jour face aux objectifs ; kcal par jour de la semaine
 - Liste de courses (liste de todos « Courses ») : quand on ajoute un aliment au menu, proposition de l'y ajouter ; « tout ajouter » pour les aliments de la semaine, sans doublon
-- Repas, aliments et objectifs modifiables et supprimables
+- Recettes et repas types : ingrédients et nombre de parts, macros par part ; ajout au menu en un geste (« 2 parts curry ») ; « enregistrer ce repas comme repas type » ; leurs ingrédients vont dans la liste de courses
+- Copier le menu d'un jour récent ou dupliquer la semaine précédente
+- Courses terminées : « Combien as-tu payé ? » crée la dépense dans Budget (catégorie Courses)
+- Repas, aliments, recettes et objectifs modifiables et supprimables
 
 ### Transverse
 - Palette de commandes `Cmd/Ctrl+K` : aller à un onglet, créer, rechercher dans tout

@@ -33,6 +33,7 @@ pas encore appliquées, dans l'ordre :
 | `supabase/migrations/0003_rituels_epargne.sql` | 8 | Top 3 du jour, humeur et énergie, cagnottes d'épargne |
 | `supabase/migrations/0004_victoires_semaine.sql` | 9 | victoire du jour, priorités de la semaine |
 | `supabase/migrations/0005_menu.sql` | 10 | menu : aliments, repas, objectifs de macros |
+| `supabase/migrations/0006_recettes.sql` | 11 | recettes et repas types |
 
 Les migrations ne font qu'ajouter : aucune donnée existante n'est modifiée ni supprimée.
 
@@ -49,7 +50,9 @@ select
   exists (select 1 from information_schema.columns
           where table_schema = 'public' and table_name = 'todos' and column_name = 'focus_week') as "0004",
   exists (select 1 from information_schema.tables
-          where table_schema = 'public' and table_name = 'foods') as "0005";
+          where table_schema = 'public' and table_name = 'foods') as "0005",
+  exists (select 1 from information_schema.columns
+          where table_schema = 'public' and table_name = 'meal_items' and column_name = 'recipe_id') as "0006";
 ```
 
 N'exécutez que les migrations à `false`, dans l'ordre (les rejouer échoue : « already exists »).

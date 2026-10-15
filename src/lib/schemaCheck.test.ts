@@ -37,11 +37,13 @@ describe('missingMigrations', () => {
     responses.set('todos.focus_on', { code: '42703', message: 'column does not exist' })
     responses.set('todos.focus_week', { code: '42703', message: 'column does not exist' })
     responses.set('foods.id', { code: 'PGRST205', message: 'table not found' })
+    responses.set('meal_items.recipe_id', { code: '42P01', message: 'relation does not exist' })
     expect(await missingMigrations()).toEqual([
       '0002_enrichissements.sql',
       '0003_rituels_epargne.sql',
       '0004_victoires_semaine.sql',
       '0005_menu.sql',
+      '0006_recettes.sql',
     ])
   })
 

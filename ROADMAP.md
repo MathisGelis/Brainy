@@ -92,6 +92,14 @@ _Lighthouse (mobile, build de prod) sur la page de connexion : performance 97, a
 - [x] Liste de courses alimentée depuis le menu
 - [x] Tests (unitaires, e2e, axe dans les deux thèmes), Lighthouse
 
+## Phase 11 — Recettes, copie de menu, courses → budget (migration `0006_recettes.sql`)
+- [ ] Migration 0006 (recettes, ingrédients, lien repas → recette)
+- [ ] Recettes et repas types
+- [ ] Copier un jour ou la semaine précédente
+- [ ] Des courses au budget
+- [ ] Kcal restantes et prochain repas sur l'accueil
+- [ ] Tests (unitaires, e2e, axe dans les deux thèmes), Lighthouse
+
 ## Backlog (idées, ne pas implémenter sans validation)
 - PWA installable (hors-ligne léger)
 - Restauration d'une sauvegarde JSON
