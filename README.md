@@ -1,4 +1,4 @@
-# Cockpit
+# Brainy
 
 Dashboard personnel minimaliste : objectifs, notes, habitudes, todo, dépenses & budgets.
 Voir `PRODUCT.md`, `ARCHITECTURE.md`, `DATA_MODEL.md` et `ROADMAP.md`.
@@ -95,7 +95,7 @@ Panneaux de verre dépoli sur un fond animé three.js (orbe irisé + aurore), th
 
 - Le fond n'est chargé qu'avec un GPU, au repos du navigateur et hors mode économie de données ;
   sinon un dégradé CSS le remplace. Image fixe si les animations sont réduites ou si l'appareil peine.
-- Débogage sans GPU (machine virtuelle) : `localStorage.setItem('cockpit.webgl', 'force')`.
+- Débogage sans GPU (machine virtuelle) : `localStorage.setItem('brainy.webgl', 'force')`.
 
 ## Raccourcis clavier (desktop)
 

@@ -4,14 +4,26 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#eceef7" />
-    <meta name="description" content="Cockpit : objectifs, notes, habitudes, todo et budget." />
-    <title>Cockpit</title>
+    <meta name="description" content="Brainy : objectifs, notes, habitudes, todo et budget." />
+    <title>Brainy</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <script>
       // Thème appliqué avant le premier rendu (pas de flash) : préférence enregistrée, sinon système.
       ;(function () {
         var theme = null
         try {
-          theme = localStorage.getItem('cockpit.theme')
+          // L'app s'appelait Cockpit : reprend une fois les préférences enregistrées sous l'ancien nom.
+          var old = Object.keys(localStorage).filter(function (k) {
+            return k.indexOf('cockpit.') === 0
+          })
+          old.forEach(function (k) {
+            var next = 'brainy.' + k.slice(8)
+            if (localStorage.getItem(next) === null)
+              localStorage.setItem(next, localStorage.getItem(k))
+            localStorage.removeItem(k)
+          })
+          theme = localStorage.getItem('brainy.theme')
         } catch (e) {}
         if (theme !== 'light' && theme !== 'dark') {
           theme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'

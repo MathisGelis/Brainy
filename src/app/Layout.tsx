@@ -23,7 +23,7 @@ export function Brand() {
   return (
     <span className="flex items-center gap-2.5 font-semibold tracking-tight">
       <span aria-hidden className="brand-orb size-7 rounded-full" />
-      Cockpit
+      Brainy
     </span>
   )
 }

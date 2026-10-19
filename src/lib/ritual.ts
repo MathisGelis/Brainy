@@ -1,4 +1,4 @@
-const EVENING_KEY = 'cockpit.ritual.evening'
+const EVENING_KEY = 'brainy.ritual.evening'
 
 /** Jour du dernier rituel du soir terminé ou écarté sur cet appareil. */
 export function eveningRitualDoneOn(): string | null {
@@ -17,7 +17,7 @@ export function markEveningRitualDone(day: string) {
   }
 }
 
-const WEEK_KEY = 'cockpit.ritual.week'
+const WEEK_KEY = 'brainy.ritual.week'
 
 /** Lundi de la dernière semaine planifiée sur cet appareil. */
 export function weekPlannedFor(): string | null {

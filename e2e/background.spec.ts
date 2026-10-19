@@ -18,7 +18,7 @@ test('forcé, le fond three.js compile et apparaît sans erreur', async ({ page 
   page.on('console', (m) => {
     if (m.type() === 'error' && /three|shader|webgl/i.test(m.text())) errors.push(m.text())
   })
-  await page.addInitScript(() => localStorage.setItem('cockpit.webgl', 'force'))
+  await page.addInitScript(() => localStorage.setItem('brainy.webgl', 'force'))
   await page.goto('#/connexion')
   await expect(page.locator('canvas.opacity-100')).toHaveCount(1, { timeout: 20000 })
   await expect(page.locator('canvas')).toHaveAttribute('aria-hidden', 'true')

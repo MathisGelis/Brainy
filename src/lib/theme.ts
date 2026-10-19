@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 
 export type Theme = 'light' | 'dark'
 
-export const THEME_KEY = 'cockpit.theme'
+export const THEME_KEY = 'brainy.theme'
 const THEME_COLORS: Record<Theme, string> = { light: '#eceef7', dark: '#07070b' }
 
 export function readStoredTheme(): Theme | null {

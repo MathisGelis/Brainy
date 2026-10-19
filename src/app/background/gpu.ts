@@ -1,8 +1,8 @@
 /** Noms de moteurs WebGL logiciels (sans accélération GPU). */
 const SOFTWARE_RENDERER = /swiftshader|llvmpipe|softpipe|software|basic render/i
 
-/** Forçage pour le débogage (machine virtuelle, captures) : localStorage `cockpit.webgl` = `force`. */
-export const FORCE_WEBGL_KEY = 'cockpit.webgl'
+/** Forçage pour le débogage (machine virtuelle, captures) : localStorage `brainy.webgl` = `force`. */
+export const FORCE_WEBGL_KEY = 'brainy.webgl'
 
 export function isSoftwareRenderer(gl: WebGLRenderingContext | WebGL2RenderingContext): boolean {
   const info = gl.getExtension('WEBGL_debug_renderer_info')

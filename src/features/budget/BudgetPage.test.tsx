@@ -204,7 +204,7 @@ describe('BudgetPage', () => {
   })
 
   it('présélectionne la dernière catégorie utilisée', async () => {
-    localStorage.setItem('cockpit.lastCategory', 'c2')
+    localStorage.setItem('brainy.lastCategory', 'c2')
     renderPage()
     expect(
       await screen.findByRole('button', { name: 'Loisirs', pressed: true }),
@@ -212,7 +212,7 @@ describe('BudgetPage', () => {
   })
 
   it('devine la catégorie d’après l’historique, sans écraser un choix manuel', async () => {
-    localStorage.setItem('cockpit.lastCategory', 'c2')
+    localStorage.setItem('brainy.lastCategory', 'c2')
     vi.mocked(api.insertExpense).mockResolvedValue()
     const past = (note: string, category_id: string, id: string) => ({
       id,

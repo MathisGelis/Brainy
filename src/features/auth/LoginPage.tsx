@@ -30,7 +30,7 @@ export default function LoginPage() {
       <div className="glass w-full max-w-sm animate-rise rounded-[32px] px-6 pt-8 pb-6">
         <div className="mb-7 flex flex-col items-center gap-3 text-center">
           <span aria-hidden className="brand-orb size-14 rounded-full" />
-          <h1 className="text-[28px] leading-tight font-semibold tracking-tight">Cockpit</h1>
+          <h1 className="text-[28px] leading-tight font-semibold tracking-tight">Brainy</h1>
           <p className="text-muted">Votre journée, en un coup d'œil.</p>
         </div>
         <form onSubmit={onSubmit} className="flex flex-col gap-4">

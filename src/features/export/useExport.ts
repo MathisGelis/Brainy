@@ -26,7 +26,7 @@ export function useExport({ onError }: { onError?: (message: string) => void } =
       run(async () => {
         const backup = await fetchBackup()
         downloadFile(
-          `cockpit-${todayISO()}.json`,
+          `brainy-${todayISO()}.json`,
           JSON.stringify(backup, null, 2),
           'application/json',
         )

@@ -156,7 +156,7 @@ const WCAG = ['wcag2a', 'wcag2aa', 'wcag21aa']
 for (const theme of ['light', 'dark'] as const)
   for (const { path, ready } of pages) {
     test(`aucune violation axe (WCAG A/AA, ${theme}) : ${path || 'accueil'}`, async ({ page }) => {
-      await page.addInitScript((t) => localStorage.setItem('cockpit.theme', t), theme)
+      await page.addInitScript((t) => localStorage.setItem('brainy.theme', t), theme)
       await installFakeSupabase(page, seed)
       await page.goto(path)
       await expect(
@@ -194,7 +194,7 @@ test('aucune violation axe (WCAG A/AA) : palette de commandes ouverte', async ({
 
 for (const theme of ['light', 'dark'] as const)
   test(`aucune violation axe (WCAG A/AA, ${theme}) : menu déroulant ouvert`, async ({ page }) => {
-    await page.addInitScript((t) => localStorage.setItem('cockpit.theme', t), theme)
+    await page.addInitScript((t) => localStorage.setItem('brainy.theme', t), theme)
     await installFakeSupabase(page, seed)
     await page.goto('#/objectifs')
     await expect(page.locator('.animate-pulse')).toHaveCount(0)

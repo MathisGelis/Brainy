@@ -9,7 +9,7 @@ import type { NewExpenseInput } from './useBudget'
 import type { Category, EntryKind } from './types'
 import { useCategoryGuess } from './useCategoryGuess'
 
-const LAST_CATEGORY_KEY = 'cockpit.lastCategory'
+const LAST_CATEGORY_KEY = 'brainy.lastCategory'
 
 function readLastCategory(): string | null {
   try {
