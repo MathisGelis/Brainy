@@ -1,0 +1,135 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { pickOption } from '@/test/pickOption'
+import { ToastProvider } from '@/components/ui'
+import * as savingsApi from '@/features/savings/savingsApi'
+import * as habitsApi from '@/features/habits/habitsApi'
+import * as todosApi from '@/features/todos/todosApi'
+import * as api from './goalsApi'
+import GoalsPage from './GoalsPage'
+import type { Goal, Milestone } from './types'
+
+vi.mock('@/features/savings/savingsApi')
+vi.mock('./goalsApi')
+vi.mock('@/features/todos/todosApi')
+vi.mock('@/features/habits/habitsApi')
+
+const goal: Goal = {
+  id: 'g1',
+  title: 'Courir un semi',
+  description: null,
+  horizon: 'medium',
+  target_date: null,
+  status: 'active',
+  created_at: '2026-01-01T00:00:00Z',
+  updated_at: '2026-01-01T00:00:00Z',
+}
+const milestone = (id: string, done: boolean, position: number): Milestone => ({
+  id,
+  goal_id: 'g1',
+  title: id,
+  done,
+  done_at: null,
+  position,
+  created_at: '2026-01-01T00:00:00Z',
+})
+
+function renderPage() {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  render(
+    <QueryClientProvider client={client}>
+      <ToastProvider>
+        <GoalsPage />
+      </ToastProvider>
+    </QueryClientProvider>,
+  )
+}
+
+describe('GoalsPage', () => {
+  beforeEach(() => {
+    vi.mocked(savingsApi.fetchSavings).mockResolvedValue([])
+    vi.mocked(savingsApi.fetchMoves).mockResolvedValue([])
+    vi.mocked(api.fetchGoals).mockResolvedValue([goal])
+    vi.mocked(todosApi.fetchTodos).mockResolvedValue([
+      {
+        id: 't1',
+        list_id: null,
+        goal_id: null,
+        title: 'Acheter des chaussures',
+        done: false,
+        done_at: null,
+        due_date: null,
+        priority: 'normal',
+        recurrence: null,
+        focus_on: null,
+        focus_week: null,
+        position: 0,
+        created_at: '',
+      },
+    ])
+    vi.mocked(habitsApi.fetchHabits).mockResolvedValue([])
+    vi.mocked(habitsApi.fetchLogs).mockResolvedValue([])
+    vi.mocked(habitsApi.fetchDaysOff).mockResolvedValue([])
+    vi.mocked(api.fetchMilestones).mockResolvedValue([
+      milestone('10 km', true, 0),
+      milestone('15 km', false, 1),
+    ])
+    vi.mocked(api.patchMilestone).mockReturnValue(new Promise<void>(() => {}))
+    vi.mocked(api.insertGoal).mockReturnValue(new Promise<void>(() => {}))
+  })
+
+  it('affiche la progression calculée et la met à jour en cochant un jalon', async () => {
+    renderPage()
+    expect(await screen.findByText('1/2 jalons · 50 %')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Moyen terme' })).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: /Courir un semi/ }))
+    await userEvent.click(screen.getByRole('checkbox', { name: /15 km/ }))
+
+    expect(await screen.findByText('2/2 jalons · 100 %')).toBeInTheDocument()
+    expect(api.patchMilestone).toHaveBeenCalledWith('15 km', {
+      done: true,
+      done_at: expect.any(String),
+    })
+  })
+
+  it('ajoute un objectif dans le bon horizon', async () => {
+    renderPage()
+    await screen.findByText('Courir un semi')
+    await pickOption('Horizon', 'Long terme')
+    await userEvent.type(screen.getByLabelText('Nouvel objectif'), 'Apprendre le piano{Enter}')
+
+    expect(api.insertGoal).toHaveBeenCalledWith(
+      expect.objectContaining({ title: 'Apprendre le piano', horizon: 'long', status: 'active' }),
+    )
+    expect(await screen.findByRole('heading', { name: 'Long terme' })).toBeInTheDocument()
+  })
+
+  it('range un objectif atteint à part', async () => {
+    vi.mocked(api.patchGoal).mockReturnValue(new Promise<void>(() => {}))
+    renderPage()
+    await userEvent.click(await screen.findByRole('button', { name: /Courir un semi/ }))
+    await pickOption('Statut', 'Atteint')
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: 'Atteints ou abandonnés (1)' }),
+      ).toBeInTheDocument(),
+    )
+    expect(screen.getByText(/Aucun objectif en cours/)).toBeInTheDocument()
+  })
+
+  it('lie une todo à l’objectif : elle compte dans la progression', async () => {
+    vi.mocked(todosApi.patchTodo).mockReturnValue(new Promise<void>(() => {}))
+    renderPage()
+    await userEvent.click(await screen.findByRole('button', { name: /Courir un semi/ }))
+    await pickOption('Lier une todo à « Courir un semi »', 'Acheter des chaussures')
+
+    expect(todosApi.patchTodo).toHaveBeenCalledWith('t1', { goal_id: 'g1' })
+    expect(await screen.findByText('1/3 étapes · 33 %')).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Délier la todo « Acheter des chaussures »' }),
+    ).toBeInTheDocument()
+  })
+})

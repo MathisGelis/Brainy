@@ -120,6 +120,13 @@ create policy "own rows" on goals for all
 --        expense_categories, expenses
 ```
 
+## Évolutions (migrations suivantes, uniquement des ajouts)
+- `0002_enrichissements.sql` (phase 7) : récurrence et objectif lié sur `todos` ; jours précis, objectif chiffré et objectif lié sur `habits` (`habit_logs.amount`) ; `habit_days_off` ; `goal_milestones.done_at` ; `recurring_entries` (dépenses et revenus mensuels), `incomes`, `expenses.recurring_id` (une occurrence par règle et par date).
+- `0003_rituels_epargne.sql` (phase 8) : `todos.focus_on` (jour où la todo fait partie du Top 3) ; `day_checkins` (humeur et énergie 1–5, une saisie par jour) ; `savings_goals` (cagnotte : nom, cible, objectif lié, archivage) et `savings_moves` (versement > 0, retrait < 0 ; le solde est leur somme, l'épargne nette du mois est déduite du solde du budget).
+- `0004_victoires_semaine.sql` (phase 9) : `day_checkins.win` (victoire du jour, 280 caractères max) ; `todos.focus_week` (lundi de la semaine pour laquelle la todo est une des 3 priorités).
+- `0005_menu.sql` (phase 10) : `foods` (valeurs pour 100 g : kcal entières, macros en dixièmes de gramme, portion facultative) ; `meal_items` (aliment et quantité d'un repas d'un jour, valeurs figées à l'ajout) ; `macro_targets` (objectifs du jour, une ligne par utilisateur). La liste de courses réutilise une liste de todos « Courses ».
+- `0006_recettes.sql` (phase 11) : `recipes` (nom, nombre de parts ; 1 part = repas type) ; `recipe_items` (ingrédients, valeurs figées comme `meal_items`) ; `meal_items.recipe_id` (un élément de repas issu d'une recette, pour retrouver ses ingrédients).
+
 ## Notes de modélisation
 - La progression d'un objectif est **calculée** (jalons faits / total), pas stockée.
 - Streak et taux de réussite des habitudes sont calculés côté client à partir de `habit_logs`.

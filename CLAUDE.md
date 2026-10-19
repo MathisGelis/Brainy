@@ -1,4 +1,4 @@
-# CLAUDE.md — Cockpit (nom de travail)
+# CLAUDE.md — Brainy
 
 Dashboard personnel minimaliste : objectifs, notes, habitudes, todo, dépenses & budgets.
 Usage mono-utilisateur, desktop + mobile, ouvert tous les jours : la simplicité prime sur tout.

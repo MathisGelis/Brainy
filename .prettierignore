@@ -1,0 +1,6 @@
+dist
+pnpm-lock.yaml
+# Documents de projet : formatage manuel conservé
+/*.md
+test-results
+playwright-report
