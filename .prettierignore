@@ -1,4 +1,5 @@
 dist
+dist-e2e
 pnpm-lock.yaml
 # Documents de projet : formatage manuel conservé
 /*.md
