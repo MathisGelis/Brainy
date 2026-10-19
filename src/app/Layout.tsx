@@ -4,6 +4,7 @@ import { CalendarIcon, LogoutIcon, PlusIcon, SearchIcon, ThemeToggle } from '@/c
 import { signOut } from '@/features/auth/useAuth'
 import { useRecurringGeneration } from '@/features/budget/useBudgetExtras'
 import { navItems, secondaryNavItems } from './navItems'
+import { AppBanners } from './pwa/AppBanners'
 import { SchemaBanner } from './SchemaBanner'
 import type { QuickAddTab } from './QuickAdd'
 import { ShortcutsHelp } from './ShortcutsHelp'
@@ -228,6 +229,7 @@ export function Layout() {
             wide ? 'max-w-5xl' : 'max-w-3xl'
           }`}
         >
+          <AppBanners />
           <SchemaBanner />
           <Outlet />
         </div>
