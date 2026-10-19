@@ -285,6 +285,7 @@ export function RecipesManager({ onError }: { onError: (m: string) => void }) {
       )}
       <form onSubmit={create} className="flex flex-wrap gap-2">
         <input
+          enterKeyHint="send"
           value={name}
           onChange={(e) => setName(e.target.value)}
           aria-label="Nom de la nouvelle recette"

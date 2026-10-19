@@ -287,6 +287,7 @@ export default function CommandPalette({ onClose, onQuickAdd, onHelp }: Props) {
         className="glass-strong w-full max-w-xl animate-pop rounded-[26px] p-2"
       >
         <input
+          enterKeyHint="go"
           autoFocus
           role="combobox"
           aria-expanded="true"

@@ -169,6 +169,7 @@ export function FocusPicker({ scope, onError, title, prompt }: PickerProps) {
               )}
               <form onSubmit={add} className="flex gap-2">
                 <input
+                  enterKeyHint="send"
                   value={text}
                   onChange={(e) => setText(e.target.value)}
                   aria-label={`Nouvelle priorité (${title})`}

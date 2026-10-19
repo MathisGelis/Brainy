@@ -205,6 +205,7 @@ export function GoalCard({
           </ul>
           <form onSubmit={addMilestone} className="flex gap-2">
             <input
+              enterKeyHint="send"
               value={newMilestone}
               onChange={(e) => setNewMilestone(e.target.value)}
               aria-label={`Nouveau jalon pour « ${goal.title} »`}

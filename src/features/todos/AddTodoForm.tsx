@@ -47,6 +47,7 @@ export function AddTodoForm({ defaultDue, onAdd }: Props) {
     <form onSubmit={submit} className="mb-4">
       <div className="flex flex-wrap items-center gap-2">
         <input
+          enterKeyHint="send"
           ref={inputRef}
           value={text}
           onChange={(e) => setText(e.target.value)}

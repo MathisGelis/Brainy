@@ -80,6 +80,7 @@ function DayTodos({ day, onError }: { day: string; onError: (m: string) => void 
       )}
       <form onSubmit={add}>
         <input
+          enterKeyHint="send"
           value={text}
           onChange={(e) => setText(e.target.value)}
           aria-label={`Nouvelle todo pour le ${label}`}

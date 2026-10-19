@@ -89,6 +89,7 @@ export function CategoriesManager({ categories, onAdd, onAddDefaults, onUpdate, 
         </ul>
         <form onSubmit={submit} className="flex gap-2">
           <input
+            enterKeyHint="send"
             value={name}
             onChange={(e) => setName(e.target.value)}
             aria-label="Nouvelle catégorie"

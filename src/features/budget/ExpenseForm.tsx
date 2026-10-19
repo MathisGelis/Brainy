@@ -141,6 +141,7 @@ export function ExpenseForm({ categories, onAdd, onAddIncome, onAddRecurring }: 
       )}
       <div className="flex flex-wrap items-center gap-2">
         <input
+          enterKeyHint="send"
           ref={amountRef}
           value={text}
           onChange={(e) => {
