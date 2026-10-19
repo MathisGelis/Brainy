@@ -16,7 +16,8 @@ pnpm dev                     # http://localhost:5173/Brainy/
 | `pnpm build` | build de prod (`tsc` + Vite) |
 | `pnpm lint` / `pnpm typecheck` | ESLint / TypeScript strict |
 | `pnpm test` | tests unitaires et composants (Vitest) |
-| `pnpm test:e2e` | parcours critiques + contrôle d'accessibilité axe (Playwright, desktop et mobile) |
+| `pnpm test:e2e` | parcours critiques + contrôle d'accessibilité axe (Playwright, desktop et mobile) ; hors ligne sur un build de prod avec service worker |
+| `pnpm icons` | regénère les icônes et écrans de lancement iPhone depuis `public/favicon.svg` |
 
 Les tests e2e n'utilisent pas votre base : les appels à Supabase sont servis par un faux en mémoire
 (`e2e/fakeSupabase.ts`). Avant la première exécution : `pnpm exec playwright install chromium`
@@ -87,6 +88,13 @@ Si tout est à `true` mais que l'erreur persiste, rechargez le cache de PostgRES
 - **Calendrier** (`#/calendrier`) : vue du mois ; le détail d'un jour permet de cocher, d'ajouter
   une todo à cette date, de noter l'humeur.
 - Tout élément créé est modifiable et supprimable, avec « Annuler ».
+
+## Installer l'app (iPhone, Android, ordinateur)
+- **iPhone** : ouvrir le site dans Safari → bouton Partager → « Sur l'écran d'accueil ». L'app s'ouvre ensuite en plein écran.
+- **Android** (Chrome) : menu ⋮ → « Installer l'application ». **Ordinateur** (Chrome, Edge) : icône d'installation dans la barre d'adresse.
+- L'app est gardée sur l'appareil : ouverture instantanée et, hors ligne, consultation des dernières données (en lecture seule).
+- Après un déploiement, un bandeau « Nouvelle version disponible » propose de recharger.
+- Le service worker ne tourne qu'en build de prod (`pnpm build && pnpm preview`), pas avec `pnpm dev`.
 
 ## Design « Liquid glass »
 

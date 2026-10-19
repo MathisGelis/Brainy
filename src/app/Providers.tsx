@@ -5,7 +5,16 @@ import { ToastProvider } from '@/components/ui'
 
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(
-    () => new QueryClient({ defaultOptions: { queries: { staleTime: 30_000, retry: 1 } } }),
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          // Hors ligne, les lectures tentent quand même le réseau : le service worker répond
+          // avec la dernière réponse connue. Une modification hors ligne échoue (et s'annule)
+          // au lieu d'attendre en silence.
+          queries: { staleTime: 30_000, retry: 1, networkMode: 'offlineFirst' },
+          mutations: { networkMode: 'always' },
+        },
+      }),
   )
   return (
     <QueryClientProvider client={queryClient}>

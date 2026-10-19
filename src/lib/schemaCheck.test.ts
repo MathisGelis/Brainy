@@ -27,6 +27,12 @@ describe('isSchemaError', () => {
     expect(saveErrorMessage({ code: 'PGRST204' })).toMatch(/la base n'est pas à jour/)
     expect(saveErrorMessage(new Error('x'))).toMatch(/L'enregistrement a échoué/)
   })
+
+  it('dit quand l’échec vient du hors ligne', () => {
+    vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false)
+    expect(saveErrorMessage(new TypeError('Failed to fetch'))).toMatch(/^Hors ligne/)
+    vi.restoreAllMocks()
+  })
 })
 
 describe('missingMigrations', () => {

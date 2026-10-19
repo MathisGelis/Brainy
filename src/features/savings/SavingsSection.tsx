@@ -316,6 +316,7 @@ function NewSavingsForm({ onAdd }: { onAdd: (name: string, target: number) => vo
   return (
     <form onSubmit={submit} className="flex flex-wrap gap-2">
       <input
+        enterKeyHint="send"
         value={name}
         onChange={(e) => setName(e.target.value)}
         aria-label="Nom de la nouvelle cagnotte"

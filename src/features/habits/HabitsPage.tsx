@@ -56,6 +56,7 @@ export default function HabitsPage() {
       <form onSubmit={submit} className="mb-4 flex flex-col gap-2">
         <div className="flex flex-wrap items-center gap-2">
           <input
+            enterKeyHint="send"
             value={name}
             onChange={(e) => setName(e.target.value)}
             aria-label="Nouvelle habitude"

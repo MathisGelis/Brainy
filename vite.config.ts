@@ -3,11 +3,71 @@ import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import { VitePWA } from 'vite-plugin-pwa'
 
 // `base` = '/<nom-du-repo>/' pour GitHub Pages ; surchargeable via VITE_BASE.
 export default defineConfig({
   base: process.env.VITE_BASE ?? '/Brainy/',
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    // App installable : manifest + service worker Workbox (voir ARCHITECTURE.md, « Application installable »)
+    VitePWA({
+      registerType: 'prompt',
+      injectRegister: false,
+      includeManifestIcons: false,
+      manifest: {
+        id: './',
+        name: 'Brainy',
+        short_name: 'Brainy',
+        description: 'Objectifs, notes, habitudes, todo, budget et menu.',
+        lang: 'fr',
+        start_url: './',
+        scope: './',
+        display: 'standalone',
+        orientation: 'portrait',
+        background_color: '#eceef7',
+        theme_color: '#eceef7',
+        icons: [
+          { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+          { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+          {
+            src: 'icons/icon-maskable-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable',
+          },
+        ],
+      },
+      workbox: {
+        // Coquille de l'app ; three.js (fond animé, optionnel et lourd) en cache à la demande
+        // (icônes et écrans de lancement : lus par le système à l'installation, pas à mettre en précache)
+        globPatterns: ['**/*.{js,css,html,svg,woff2}'],
+        globIgnores: ['**/LiquidBackground-*.js'],
+        navigateFallback: 'index.html',
+        cleanupOutdatedCaches: true,
+        runtimeCaching: [
+          {
+            urlPattern: ({ url }) => /\/LiquidBackground-[\w-]+\.js$/.test(url.pathname),
+            handler: 'CacheFirst',
+            options: { cacheName: 'three', expiration: { maxEntries: 2 } },
+          },
+          {
+            // Lectures Supabase : réseau d'abord, dernière réponse connue hors ligne
+            urlPattern: ({ url, request }) =>
+              request.method === 'GET' && url.pathname.startsWith('/rest/v1/'),
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'supabase-data',
+              networkTimeoutSeconds: 5,
+              cacheableResponse: { statuses: [200] },
+              expiration: { maxEntries: 300, maxAgeSeconds: 30 * 24 * 3600 },
+            },
+          },
+        ],
+      },
+    }),
+  ],
   build: {
     // Le seul bloc au-delà de 500 kB est three.js (fond animé), chargé à part et au repos.
     chunkSizeWarningLimit: 600,

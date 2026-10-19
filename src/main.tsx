@@ -11,3 +11,7 @@ createRoot(document.getElementById('root')!).render(
     </Providers>
   </StrictMode>,
 )
+
+// Service worker (app installable, hors ligne) : build de prod seulement, après le premier rendu.
+if (import.meta.env.PROD && 'serviceWorker' in navigator)
+  void import('@/app/pwa/register').then((m) => m.registerServiceWorker())

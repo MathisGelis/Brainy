@@ -48,6 +48,7 @@ export function DayWin({ day, onError, label = 'Une victoire aujourd’hui ?' }:
       </label>
       <div className="flex items-center gap-2">
         <input
+          enterKeyHint="done"
           id={id}
           value={draft ?? saved}
           onChange={(e) => setDraft(e.target.value)}

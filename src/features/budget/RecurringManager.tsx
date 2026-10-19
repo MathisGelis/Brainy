@@ -29,6 +29,7 @@ function DayInput({
     <label className="flex items-center gap-1.5 text-xs text-muted">
       le
       <input
+        inputMode="numeric"
         type="number"
         min={1}
         max={31}
@@ -281,6 +282,7 @@ export function RecurringManager({ rules, categories, onAdd, onUpdate, onDelete 
               <label className="flex items-center gap-1.5 text-xs text-muted">
                 le
                 <input
+                  inputMode="numeric"
                   type="number"
                   min={1}
                   max={31}

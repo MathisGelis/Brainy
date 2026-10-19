@@ -243,6 +243,7 @@ export function AddFoodForm({ day, from, to, onError }: Props) {
     <div className="mb-5 flex flex-col gap-2">
       <form onSubmit={submit} className="flex gap-2">
         <input
+          enterKeyHint="send"
           ref={inputRef}
           value={text}
           onChange={(e) => {

@@ -199,6 +199,7 @@ export function ShoppingCard({
       )}
       <form onSubmit={add}>
         <input
+          enterKeyHint="send"
           value={text}
           onChange={(e) => setText(e.target.value)}
           aria-label="Ajouter à la liste de courses"

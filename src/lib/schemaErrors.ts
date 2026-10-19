@@ -12,7 +12,9 @@ export function isSchemaError(error: unknown): boolean {
 
 /** Message d'échec d'enregistrement ; une migration manquante est signalée comme telle. */
 export function saveErrorMessage(error: unknown): string {
-  return isSchemaError(error)
-    ? "Enregistrement impossible : la base n'est pas à jour (une migration manque, voir le bandeau)."
-    : "L'enregistrement a échoué. Vos modifications ont été annulées."
+  if (isSchemaError(error))
+    return "Enregistrement impossible : la base n'est pas à jour (une migration manque, voir le bandeau)."
+  if (typeof navigator !== 'undefined' && !navigator.onLine)
+    return 'Hors ligne : la modification n’a pas été enregistrée.'
+  return "L'enregistrement a échoué. Vos modifications ont été annulées."
 }

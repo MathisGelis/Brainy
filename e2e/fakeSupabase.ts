@@ -6,7 +6,7 @@ import type { Page, Route } from '@playwright/test'
  * le navigateur ; seules les requêtes réseau vers Supabase sont interceptées.
  */
 export const SUPABASE_URL = 'http://localhost:54321'
-const STORAGE_KEY = 'sb-localhost-auth-token'
+export const STORAGE_KEY = 'sb-localhost-auth-token'
 const USER_ID = '00000000-0000-4000-8000-000000000001'
 
 export type Row = Record<string, unknown>
@@ -143,8 +143,12 @@ export async function installFakeSupabase(page: Page, seed: FakeDb = {}): Promis
     key: STORAGE_KEY,
     value: JSON.stringify(session),
   })
-  await page.route(`${SUPABASE_URL}/auth/v1/**`, (route) => route.fulfill({ json: session.user }))
-  await page.route(`${SUPABASE_URL}/rest/v1/**`, (route) => handleRest(route, db))
+  // Interception au niveau du contexte : elle couvre aussi les requêtes du service worker.
+  const context = page.context()
+  await context.route(`${SUPABASE_URL}/auth/v1/**`, (route) =>
+    route.fulfill({ json: session.user }),
+  )
+  await context.route(`${SUPABASE_URL}/rest/v1/**`, (route) => handleRest(route, db))
   return db
 }
 

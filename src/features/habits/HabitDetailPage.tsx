@@ -79,6 +79,7 @@ export default function HabitDetailPage() {
           <label className="flex items-center gap-2 text-xs text-muted">
             Objectif par jour
             <input
+              inputMode="numeric"
               key={`goal-${habit.goal_amount}`}
               type="number"
               min={1}
@@ -132,6 +133,7 @@ export default function HabitDetailPage() {
                     {formatWeekdayShort(day)} {formatDayMonth(day)}
                   </label>
                   <input
+                    inputMode="numeric"
                     id={`amount-${day}`}
                     key={`${day}-${habitEntries.get(day) ?? ''}`}
                     type="number"

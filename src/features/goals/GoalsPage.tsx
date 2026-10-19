@@ -104,6 +104,7 @@ export default function GoalsPage() {
       <PageHeader title="Objectifs" />
       <form onSubmit={submit} className="mb-6 flex flex-wrap items-center gap-2">
         <input
+          enterKeyHint="send"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           aria-label="Nouvel objectif"

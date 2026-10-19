@@ -100,8 +100,16 @@ _Lighthouse (mobile, build de prod) sur la page de connexion : performance 97, a
 - [x] Kcal restantes et prochain repas sur l'accueil
 - [x] Tests (unitaires, e2e, axe dans les deux thèmes), Lighthouse
 
+## Phase 12 — Application installable (PWA)
+- [x] Manifest, icônes, réglages iPhone (plein écran, barre d'état, écrans de lancement)
+- [x] Service worker : app gardée sur l'appareil, données en lecture hors ligne, bandeau « Hors ligne »
+- [x] Nouvelle version signalée (« Recharger »)
+- [x] Finitions iPhone : pas de zoom à la saisie, pas de rebond, claviers adaptés
+- [x] Tests (unitaires, e2e hors ligne, axe), Lighthouse
+
 ## Backlog (idées, ne pas implémenter sans validation)
-- PWA installable (hors-ligne léger)
+- Saisie hors ligne (file d'attente des modifications, synchronisée au retour du réseau)
+- Notifications push (rappels des rituels, échéances) : abonnement Web Push, Edge Function + tâche planifiée Supabase
 - Restauration d'une sauvegarde JSON
 - Minuteur de concentration (Pomodoro)
 - Abonnements (coût annuel), anniversaires, suivis chiffrés, rétrospective annuelle, flux ICS
