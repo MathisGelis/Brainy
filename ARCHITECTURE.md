@@ -29,6 +29,7 @@ Le code doit isoler l'accès aux données derrière des hooks/repositories pour 
 - **Markdown** : react-markdown (notes)
 - **Tests** : Vitest + Testing Library ; Playwright pour 2-3 parcours critiques (phase finale)
 - **CI/CD** : GitHub Actions → build → déploiement GitHub Pages
+- **PWA** : `vite-plugin-pwa` (outil de build : génère le manifest et un service worker Workbox) ; seul `workbox-window` (~2 kB) est chargé, après le premier rendu
 
 ## Structure du repo
 ```
@@ -69,6 +70,14 @@ Le code doit isoler l'accès aux données derrière des hooks/repositories pour 
 
 ## Mode local
 `pnpm dev` pointe sur le même projet Supabase (base partagée). Optionnel : `supabase start` (CLI + Docker) pour une base 100 % locale en dev.
+
+## Application installable (PWA)
+- Service worker en mode « prompt » : nouvelle version proposée, jamais imposée ; vérifiée toutes les heures et au retour au premier plan
+- Coquille de l'app (HTML, JS, CSS, icônes) en précache ; three.js (fond animé, gros bloc optionnel) en cache à la demande
+- Lectures Supabase (`GET /rest/v1/…`) en « réseau d'abord » (5 s), repli sur la dernière réponse en cache ; vidé à la déconnexion
+- TanStack Query en `networkMode: 'offlineFirst'` pour que les lectures passent par ce cache hors ligne
+- Hors ligne, un jeton expiré ne déconnecte pas : la session reste en stockage et se rafraîchit au retour du réseau
+- Icônes et écrans de lancement iPhone générés par `pnpm icons` (Chromium de Playwright) dans `public/`
 
 ## Performance & robustesse
 - Mises à jour optimistes sur cochages et ajouts

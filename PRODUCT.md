@@ -91,8 +91,14 @@ Vue synthèse en lecture + actions rapides :
 - Calendrier : vue du mois (échéances, habitudes, dépenses, jalons, humeur) ; le détail d'un jour est actionnable
 - Tout élément créé est modifiable et supprimable (avec « Annuler » quand c'est possible)
 
+### Application installable (PWA)
+- S'installe sur l'écran d'accueil (iPhone : Partager → « Sur l'écran d'accueil » ; Android et ordinateur : « Installer ») et s'ouvre en plein écran, sans barres du navigateur, avec icône et écran de lancement Brainy
+- S'ouvre instantanément (l'app est gardée sur l'appareil) ; hors ligne, les dernières données chargées restent consultables, avec un bandeau « Hors ligne » ; les modifications demandent le réseau
+- Une nouvelle version est signalée (« Nouvelle version disponible — Recharger ») plutôt qu'appliquée en silence
+- Confort iPhone : pas de zoom à la saisie, pas de rebond de la page, clavier adapté à chaque champ
+
 ## Hors périmètre v1
-Multi-utilisateur, partage, notifications push, import bancaire, application mobile native, IA intégrée.
+Multi-utilisateur, partage, notifications push, saisie hors ligne, import bancaire, application mobile native, IA intégrée.
 
 ## Critères de succès
 - Ajouter une todo, une dépense ou cocher une habitude en < 5 s
