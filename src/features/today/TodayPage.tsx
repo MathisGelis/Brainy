@@ -13,6 +13,7 @@ import { PageHeader } from '@/components/ui/PageHeader'
 import { projectMonthEnd } from '@/features/budget/recurringLogic'
 import { useBudget } from '@/features/budget/useBudget'
 import { MoodEnergy } from '@/features/checkins/MoodEnergy'
+import { TodayEvents } from '@/features/events/TodayEvents'
 import { TodayMenuCard } from '@/features/menu/TodayMenuCard'
 import { useNotes } from '@/features/notes/useNotes'
 import { goalProgress, milestonesOf, nextMilestone } from '@/features/goals/goalLogic'
@@ -298,6 +299,7 @@ export default function TodayPage() {
         <p className="text-muted first-letter:uppercase">{dateLabel}</p>
         <DailyNoteButton today={today} onError={onError} />
       </div>
+      <TodayEvents today={today} onError={onError} />
       <TopThree day={today} onError={onError} />
       <WeekPriorities today={today} onError={onError} />
       <section aria-label="Humeur et énergie du jour" className="card mb-4 p-4">
