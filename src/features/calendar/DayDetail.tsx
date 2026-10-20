@@ -4,6 +4,7 @@ import { Checkbox, useToast } from '@/components/ui'
 import type { Category, Expense } from '@/features/budget/types'
 import { DayWin } from '@/features/checkins/DayWin'
 import { MoodEnergy } from '@/features/checkins/MoodEnergy'
+import { DayEvents } from '@/features/events/DayEvents'
 import type { Goal, Milestone } from '@/features/goals/types'
 import { TodayHabits } from '@/features/today/parts'
 import { parseTodoInput } from '@/features/todos/parseTodoInput'
@@ -131,6 +132,8 @@ export function DayDetail({ day, onError, expenses, categories, milestones, goal
         {label}
         {relative && <span className="font-normal text-muted"> · {relative}</span>}
       </h2>
+
+      <DayEvents day={day} onError={onError} />
 
       {past && (
         <section aria-label={`Humeur et énergie du ${label}`}>

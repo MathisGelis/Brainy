@@ -5,6 +5,9 @@ import { useBudget } from '@/features/budget/useBudget'
 import { useExpensesBetween } from '@/features/budget/useBudgetExtras'
 import { MoodFace } from '@/features/checkins/MoodEnergy'
 import { useCheckins } from '@/features/checkins/useCheckins'
+import { occurrencesByDay } from '@/features/events/eventLogic'
+import type { Occurrence } from '@/features/events/types'
+import { useEvents } from '@/features/events/useEvents'
 import { useGoals } from '@/features/goals/useGoals'
 import { useHabits } from '@/features/habits/useHabits'
 import { useTodos } from '@/features/todos/useTodos'
@@ -29,6 +32,7 @@ const euros = new Intl.NumberFormat('fr-FR', {
 function DayCell({
   day,
   summary,
+  occurrences,
   inMonth,
   isToday,
   selected,
@@ -37,13 +41,19 @@ function DayCell({
 }: {
   day: string
   summary: DaySummary
+  occurrences: Occurrence[]
   inMonth: boolean
   isToday: boolean
   selected: boolean
   onSelect: (day: string) => void
   onKeyDown: (e: KeyboardEvent<HTMLButtonElement>, day: string) => void
 }) {
-  const description = describeDay(summary, formatCents)
+  const description = [
+    occurrences.length > 0 && occurrences.map((o) => o.event.title).join(', '),
+    describeDay(summary, formatCents),
+  ]
+    .filter(Boolean)
+    .join(' ; ')
   const dots = Math.min(3, summary.todosOpen)
   return (
     <button
@@ -73,6 +83,25 @@ function DayCell({
           </span>
         )}
       </span>
+      {occurrences.length > 0 && (
+        <span aria-hidden className="flex flex-col gap-0.5">
+          {occurrences.slice(0, 2).map((o) => (
+            <span
+              key={`${o.event.id}-${o.start}`}
+              className={`h-1 bg-accent md:h-auto md:truncate md:bg-accent/15 md:px-1 md:text-[11px] md:leading-4 md:font-semibold md:text-accent ${
+                o.start !== o.end && day !== o.start
+                  ? 'rounded-l-none'
+                  : 'rounded-l-full md:rounded-l'
+              } ${o.start !== o.end && day !== o.end ? 'rounded-r-none' : 'rounded-r-full md:rounded-r'}`}
+            >
+              <span className="hidden md:inline">{o.event.title}</span>
+            </span>
+          ))}
+          {occurrences.length > 2 && (
+            <span className="text-[10px] leading-none text-muted">+{occurrences.length - 2}</span>
+          )}
+        </span>
+      )}
       <span className="flex flex-wrap items-center gap-0.5 md:gap-1">
         {Array.from({ length: dots }, (_, i) => (
           <span key={i} className="size-1.5 rounded-full bg-accent" />
@@ -92,7 +121,7 @@ function DayCell({
   )
 }
 
-/** Vue du mois : échéances, habitudes, dépenses, jalons, humeur ; le détail d'un jour est actionnable. */
+/** Vue du mois : événements, échéances, habitudes, dépenses, jalons, humeur ; le détail d'un jour est actionnable. */
 export default function CalendarPage() {
   const toast = useToast()
   const onError = (m: string) => toast.show(m)
@@ -108,6 +137,8 @@ export default function CalendarPage() {
   const { checkins } = useCheckins({ onError })
   const { categories } = useBudget(month, { onError })
   const { expenses } = useExpensesBetween(days[0]!, days[days.length - 1]!)
+  const { events } = useEvents({ onError })
+  const occurrences = occurrencesByDay(events, days[0]!, days[days.length - 1]!)
 
   const summaries = summarizeDays(days, {
     todos,
@@ -191,6 +222,7 @@ export default function CalendarPage() {
             <DayCell
               day={day}
               summary={summaries.get(day)!}
+              occurrences={occurrences.get(day) ?? []}
               inMonth={monthOf(day) === month}
               isToday={day === today}
               selected={day === selected}
@@ -201,6 +233,9 @@ export default function CalendarPage() {
         ))}
       </ol>
       <p className="mb-5 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
+        <span className="flex items-center gap-1">
+          <span aria-hidden className="h-1 w-3 rounded-full bg-accent" /> Événement
+        </span>
         <span className="flex items-center gap-1">
           <span aria-hidden className="size-1.5 rounded-full bg-accent" /> Todo à faire
         </span>

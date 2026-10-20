@@ -49,6 +49,38 @@ const seed = {
     },
   ],
   day_checkins: [{ id: 'c1', day: parisToday(), mood: 4, energy: 3, win: 'Dossier rendu' }],
+  events: [
+    {
+      id: '99999999-9999-4999-8999-999999999991',
+      title: 'Déplacement à Lyon',
+      start_on: parisToday(),
+      end_on: parisToday(),
+      start_time: null,
+      end_time: null,
+      note: null,
+      repeat: null,
+      repeat_every: 1,
+      repeat_days: null,
+      repeat_until: null,
+      skipped: [],
+      created_at: '2026-01-01T00:00:00Z',
+    },
+    {
+      id: '99999999-9999-4999-8999-999999999992',
+      title: 'Yoga',
+      start_on: '2026-01-05',
+      end_on: '2026-01-05',
+      start_time: '19:00:00',
+      end_time: '20:00:00',
+      note: null,
+      repeat: 'daily',
+      repeat_every: 1,
+      repeat_days: null,
+      repeat_until: null,
+      skipped: [],
+      created_at: '2026-01-01T00:00:00Z',
+    },
+  ],
   savings_goals: [
     {
       id: '66666666-6666-4666-8666-666666666666',
@@ -205,6 +237,22 @@ for (const theme of ['light', 'dark'] as const)
     await page.keyboard.press('Enter')
     await expect(box).toHaveText('Moyen terme')
     await box.click()
+    const results = await new AxeBuilder({ page }).withTags(WCAG).analyze()
+    expect(
+      results.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target).join(' | ')}`),
+    ).toEqual([])
+  })
+
+for (const theme of ['light', 'dark'] as const)
+  test(`aucune violation axe (WCAG A/AA, ${theme}) : événement en cours de modification`, async ({
+    page,
+  }) => {
+    await page.addInitScript((t) => localStorage.setItem('brainy.theme', t), theme)
+    await installFakeSupabase(page, seed)
+    await page.goto('#/calendrier')
+    await expect(page.locator('.animate-pulse')).toHaveCount(0)
+    await page.getByRole('button', { name: 'Modifier « Yoga »' }).click()
+    await expect(page.getByLabel('Titre de l’événement')).toBeVisible()
     const results = await new AxeBuilder({ page }).withTags(WCAG).analyze()
     expect(
       results.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target).join(' | ')}`),
