@@ -88,7 +88,8 @@ Vue synthèse en lecture + actions rapides :
 - Palette de commandes `Cmd/Ctrl+K` : aller à un onglet, créer, rechercher dans tout
 - Revue de la semaine : priorités tenues, todos faites, habitudes, dépenses, jalons atteints, victoires, humeur et énergie (avec liens simples : « les jours de sport, énergie +0,8 »)
 - Planification de la semaine (rituel du dimanche) : reprendre ce qui traîne, choisir 3 priorités, répartir les todos sans date sur les jours
-- Calendrier : vue du mois (échéances, habitudes, dépenses, jalons, humeur) ; le détail d'un jour est actionnable
+- Calendrier : vue du mois (échéances, habitudes, dépenses, jalons, humeur, événements) ; le détail d'un jour est actionnable
+- Événements du calendrier : sur un ou plusieurs jours (« en déplacement à Lyon du 12 au 14 nov. »), heure facultative (« dentiste mardi 14h30 »), récurrence (tous les N jours, semaines — jours au choix —, mois ou ans, jusqu'à une date). Saisie en une phrase depuis le détail d'un jour, puis tout est modifiable ; supprimer une seule occurrence ou toute la série (avec « Annuler »). Les événements du jour apparaissent sur l'accueil
 - Tout élément créé est modifiable et supprimable (avec « Annuler » quand c'est possible)
 
 ### Application installable (PWA)

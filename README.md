@@ -35,6 +35,7 @@ pas encore appliquées, dans l'ordre :
 | `supabase/migrations/0004_victoires_semaine.sql` | 9 | victoire du jour, priorités de la semaine |
 | `supabase/migrations/0005_menu.sql` | 10 | menu : aliments, repas, objectifs de macros |
 | `supabase/migrations/0006_recettes.sql` | 11 | recettes et repas types |
+| `supabase/migrations/0007_evenements.sql` | 13 | événements du calendrier (avec récurrences) |
 
 Les migrations ne font qu'ajouter : aucune donnée existante n'est modifiée ni supprimée.
 
@@ -53,7 +54,9 @@ select
   exists (select 1 from information_schema.tables
           where table_schema = 'public' and table_name = 'foods') as "0005",
   exists (select 1 from information_schema.columns
-          where table_schema = 'public' and table_name = 'meal_items' and column_name = 'recipe_id') as "0006";
+          where table_schema = 'public' and table_name = 'meal_items' and column_name = 'recipe_id') as "0006",
+  exists (select 1 from information_schema.tables
+          where table_schema = 'public' and table_name = 'events') as "0007";
 ```
 
 N'exécutez que les migrations à `false`, dans l'ordre (les rejouer échoue : « already exists »).
@@ -86,7 +89,10 @@ Si tout est à `true` mais que l'erreur persiste, rechargez le cache de PostgRES
 - **Revue de la semaine** (`#/revue`, ou la carte de l'accueil le dimanche et le lundi), avec humeur,
   énergie et liens simples (« les jours de sport, énergie +0,8 »).
 - **Calendrier** (`#/calendrier`) : vue du mois ; le détail d'un jour permet de cocher, d'ajouter
-  une todo à cette date, de noter l'humeur.
+  une todo à cette date, de noter l'humeur, et d'ajouter des **événements** en une phrase
+  (« Lyon du 12 au 14 nov », « Dentiste jeudi 14h30 », « Yoga tous les lundis de 19h à 20h »,
+  « Anniv de Léa le 3 mars tous les ans ») ; une occurrence ou toute la série se supprime.
+  Les événements du jour et du lendemain sont rappelés sur l'accueil (« Agenda »).
 - Tout élément créé est modifiable et supprimable, avec « Annuler ».
 
 ## Installer l'app (iPhone, Android, ordinateur)

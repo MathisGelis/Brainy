@@ -20,6 +20,9 @@ export const EXPORTED_TABLES = [
   'foods',
   'meal_items',
   'macro_targets',
+  'recipes',
+  'recipe_items',
+  'events',
 ] as const
 
 export type ExportedTable = (typeof EXPORTED_TABLES)[number]

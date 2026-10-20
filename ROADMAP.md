@@ -107,7 +107,15 @@ _Lighthouse (mobile, build de prod) sur la page de connexion : performance 97, a
 - [x] Finitions iPhone : pas de zoom à la saisie, pas de rebond, claviers adaptés
 - [x] Tests (unitaires, e2e hors ligne, axe), Lighthouse
 
+## Phase 13 — Événements du calendrier (migration `0007_evenements.sql`)
+- [x] Migration 0007 (événements, récurrence, occurrences supprimées)
+- [x] Occurrences récurrentes et saisie en langage naturel
+- [x] Calendrier : événements dans la grille et dans le détail d'un jour (ajout, modification, suppression d'une occurrence ou de la série)
+- [x] Événements du jour sur l'accueil
+- [x] Tests (unitaires, e2e, axe dans les deux thèmes)
+
 ## Backlog (idées, ne pas implémenter sans validation)
+- Événements : rappels, couleurs ou catégories, import/export iCal, jours en déplacement pris en compte par la planification de la semaine
 - Saisie hors ligne (file d'attente des modifications, synchronisée au retour du réseau)
 - Notifications push (rappels des rituels, échéances) : abonnement Web Push, Edge Function + tâche planifiée Supabase
 - Restauration d'une sauvegarde JSON
