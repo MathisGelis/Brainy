@@ -10,7 +10,7 @@ import * as habitsApi from '@/features/habits/habitsApi'
 import * as notesApi from '@/features/notes/notesApi'
 import * as goalsApi from '@/features/goals/goalsApi'
 import * as todosApi from '@/features/todos/todosApi'
-import { addDays, startOfWeek, todayISO } from '@/lib/dates'
+import { addDays, parisHour, startOfWeek, todayISO } from '@/lib/dates'
 import TodayPage from './TodayPage'
 
 vi.mock('@/features/menu/menuApi')
@@ -290,7 +290,8 @@ describe('TodayPage', () => {
     renderPage()
     const card = await screen.findByRole('link', { name: /kcal restantes/ })
     expect(card).toHaveAccessibleName(/^1\s460 kcal restantes\. .* prévu : /)
-    expect(card).toHaveTextContent('Saumon')
+    // avant 15 h c'est le déjeuner qui vient, ensuite le dîner
+    expect(card).toHaveTextContent(parisHour() < 15 ? 'Riz blanc' : 'Saumon')
     expect(card).toHaveAttribute('href', '/menu')
   })
 
