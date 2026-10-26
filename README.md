@@ -36,6 +36,7 @@ pas encore appliquées, dans l'ordre :
 | `supabase/migrations/0005_menu.sql` | 10 | menu : aliments, repas, objectifs de macros |
 | `supabase/migrations/0006_recettes.sql` | 11 | recettes et repas types |
 | `supabase/migrations/0007_evenements.sql` | 13 | événements du calendrier (avec récurrences) |
+| `supabase/migrations/0008_plan_financier.sql` | 14 | plan financier pluriannuel (import Excel) |
 
 Les migrations ne font qu'ajouter : aucune donnée existante n'est modifiée ni supprimée.
 
@@ -56,7 +57,9 @@ select
   exists (select 1 from information_schema.columns
           where table_schema = 'public' and table_name = 'meal_items' and column_name = 'recipe_id') as "0006",
   exists (select 1 from information_schema.tables
-          where table_schema = 'public' and table_name = 'events') as "0007";
+          where table_schema = 'public' and table_name = 'events') as "0007",
+  exists (select 1 from information_schema.tables
+          where table_schema = 'public' and table_name = 'plan_periods') as "0008";
 ```
 
 N'exécutez que les migrations à `false`, dans l'ordre (les rejouer échoue : « already exists »).
@@ -93,6 +96,12 @@ Si tout est à `true` mais que l'erreur persiste, rechargez le cache de PostgRES
   (« Lyon du 12 au 14 nov », « Dentiste jeudi 14h30 », « Yoga tous les lundis de 19h à 20h »,
   « Anniv de Léa le 3 mars tous les ans ») ; une occurrence ou toute la série se supprime.
   Les événements du jour et du lendemain sont rappelés sur l'accueil (« Agenda »).
+- **Plan financier** (`#/plan`, lien depuis Budget) : import une fois du classeur Excel « Suivi
+  financier » (lu dans le navigateur, rien n'est envoyé ailleurs que dans ta base), puis prévu face au
+  réel chaque mois, primes à marquer reçues (elles deviennent des revenus), enveloppes reliées aux
+  cagnottes, trajectoire d'épargne en € puis en CAD. Le format attendu : un onglet RECAP et un onglet
+  par période avec l'en-tête « Poste | Prévu/mois | mois… » ; les mois actifs d'un poste se lisent
+  dans son libellé (« Salaire (jan→juin) »).
 - Tout élément créé est modifiable et supprimable, avec « Annuler ».
 
 ## Installer l'app (iPhone, Android, ordinateur)

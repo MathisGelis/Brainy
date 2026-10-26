@@ -92,6 +92,12 @@ Vue synthèse en lecture + actions rapides :
 - Événements du calendrier : sur un ou plusieurs jours (« en déplacement à Lyon du 12 au 14 nov. »), heure facultative (« dentiste mardi 14h30 »), récurrence (tous les N jours, semaines — jours au choix —, mois ou ans, jusqu'à une date). Saisie en une phrase depuis le détail d'un jour, puis tout est modifiable ; supprimer une seule occurrence ou toute la série (avec « Annuler »). Les événements du jour apparaissent sur l'accueil
 - Tout élément créé est modifiable et supprimable (avec « Annuler » quand c'est possible)
 
+### Plan financier (depuis Budget)
+- Plan pluriannuel importé une fois d'un classeur Excel (périodes France puis Canada, postes prévus par mois, primes, enveloppes d'épargne, objectifs clés), puis modifiable dans l'app
+- Le réel n'est jamais ressaisi : chaque mois, revenus et dépenses de l'app face au prévu ; soldes des enveloppes depuis les cagnottes reliées ; une prime marquée reçue devient un revenu
+- Trajectoire : épargne réelle cumulée face à l'objectif de chaque période, par devise (€ puis CAD) et en équivalent au taux choisi
+- Les objectifs clés du classeur deviennent des Objectifs (échéance, statut)
+
 ### Application installable (PWA)
 - S'installe sur l'écran d'accueil (iPhone : Partager → « Sur l'écran d'accueil » ; Android et ordinateur : « Installer ») et s'ouvre en plein écran, sans barres du navigateur, avec icône et écran de lancement Brainy
 - S'ouvre instantanément (l'app est gardée sur l'appareil) ; hors ligne, les dernières données chargées restent consultables, avec un bandeau « Hors ligne » ; les modifications demandent le réseau
