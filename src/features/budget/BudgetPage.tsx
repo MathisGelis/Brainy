@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useToast } from '@/components/ui'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { savedInMonth } from '@/features/savings/savingsLogic'
@@ -74,6 +75,12 @@ export default function BudgetPage() {
   return (
     <>
       <PageHeader title="Budget" />
+      <Link
+        to="/plan"
+        className="-mt-4 mb-4 inline-flex min-h-11 items-center gap-1 text-sm text-accent md:min-h-9"
+      >
+        Plan financier →
+      </Link>
       <ExpenseForm
         categories={budget.categories}
         onAdd={budget.addExpense}
