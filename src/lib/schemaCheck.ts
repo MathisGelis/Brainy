@@ -10,6 +10,7 @@ export const MIGRATIONS = [
   { file: '0005_menu.sql', table: 'foods', columns: 'id' },
   { file: '0006_recettes.sql', table: 'meal_items', columns: 'recipe_id' },
   { file: '0007_evenements.sql', table: 'events', columns: 'id' },
+  { file: '0008_plan_financier.sql', table: 'plan_periods', columns: 'id' },
 ] as const
 
 /** Migrations absentes de la base, dans l'ordre (les erreurs réseau ne comptent pas). */

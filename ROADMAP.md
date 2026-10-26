@@ -114,7 +114,14 @@ _Lighthouse (mobile, build de prod) sur la page de connexion : performance 97, a
 - [x] Événements du jour sur l'accueil
 - [x] Tests (unitaires, e2e, axe dans les deux thèmes)
 
+## Phase 14 — Plan financier (migration `0008_plan_financier.sql`)
+- [x] Migration 0008 (périodes, postes, primes, enveloppes, taux € → CAD)
+- [x] Import du classeur Excel (lecture du fichier dans le navigateur, sans dépendance)
+- [x] Écran Plan : mois en cours prévu/réel, trajectoire d'épargne, primes, enveloppes
+- [x] Tests (unitaires avec un classeur fictif, e2e, axe dans les deux thèmes)
+
 ## Backlog (idées, ne pas implémenter sans validation)
+- Devise de l'app entière (€ puis CAD au déménagement) ; aujourd'hui le réel d'une période CAD est lu tel quel
 - Événements : rappels, couleurs ou catégories, import/export iCal, jours en déplacement pris en compte par la planification de la semaine
 - Saisie hors ligne (file d'attente des modifications, synchronisée au retour du réseau)
 - Notifications push (rappels des rituels, échéances) : abonnement Web Push, Edge Function + tâche planifiée Supabase

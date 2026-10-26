@@ -195,3 +195,17 @@ export async function fetchExpensesBetween(from: string, to: string): Promise<Ex
       .range(start, end),
   )
 }
+
+/** Revenus entre deux jours inclus. */
+export async function fetchIncomesBetween(from: string, to: string): Promise<Income[]> {
+  return fetchAllRows<Income>((start, end) =>
+    supabase
+      .from('incomes')
+      .select('*')
+      .gte('received_on', from)
+      .lte('received_on', to)
+      .order('received_on')
+      .order('id')
+      .range(start, end),
+  )
+}

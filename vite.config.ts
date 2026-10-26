@@ -87,6 +87,8 @@ export default defineConfig({
       },
     },
   },
+  // Classeurs Excel fictifs des tests, importés en ?inline
+  assetsInclude: ['**/*.xlsx'],
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },

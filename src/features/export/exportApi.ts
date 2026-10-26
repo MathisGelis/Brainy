@@ -23,6 +23,12 @@ export const EXPORTED_TABLES = [
   'recipes',
   'recipe_items',
   'events',
+  'plan_settings',
+  'plan_periods',
+  'plan_lines',
+  'plan_bonuses',
+  'plan_envelopes',
+  'plan_envelope_targets',
 ] as const
 
 export type ExportedTable = (typeof EXPORTED_TABLES)[number]
