@@ -120,8 +120,22 @@ describe('TodosPage', () => {
     const today = todayISO()
     vi.mocked(api.fetchTodos).mockResolvedValue([{ ...pain, due_date: addDays(today, -2) }])
     renderPage()
-    await userEvent.click(await screen.findByRole('button', { name: 'Demain' }))
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Reporter « Acheter du pain » à demain' }),
+    )
     expect(api.patchTodo).toHaveBeenCalledWith('t1', { due_date: addDays(today, 1) })
+  })
+
+  it('dit « Aujourd’hui » et, un lundi, donne la date du lundi suivant pour reporter', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-10-26T08:00:00Z')) // lundi
+    vi.mocked(api.fetchTodos).mockResolvedValue([{ ...pain, due_date: '2026-10-26' }])
+    renderPage()
+    expect(await screen.findByText("Aujourd'hui", { selector: 'span' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Reporter « Acheter du pain » au lundi 2 novembre' }),
+    ).toHaveTextContent('lundi 2 nov.')
+    vi.useRealTimers()
   })
 
   it('supprime une liste (la todo reste) puis l’annule', async () => {

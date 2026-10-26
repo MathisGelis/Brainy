@@ -2,7 +2,7 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useState } from 'react'
 import { Checkbox, Select } from '@/components/ui'
-import { addDays, formatDue } from '@/lib/dates'
+import { addDays, daysBetween, formatDayMonth, formatDue, formatLongDay } from '@/lib/dates'
 import { isoWeekday } from '@/lib/naturalDate'
 import { RecurrencePicker } from './RecurrencePicker'
 import { describeRecurrence, parseRecurrence } from './recurrence'
@@ -55,6 +55,7 @@ export function TodoItem({
 
   const overdue = !todo.done && todo.due_date !== null && todo.due_date < today
   const snoozable = !todo.done && todo.due_date !== null && todo.due_date <= today
+  const monday = nextMonday(today)
   const recurrence = parseRecurrence(todo.recurrence)
   const list = lists.find((l) => l.id === todo.list_id)
   const goal = goals.find((g) => g.id === todo.goal_id)
@@ -110,6 +111,12 @@ export function TodoItem({
       </div>
 
       <div className="flex flex-wrap items-center gap-1 pb-1 pl-1">
+        {/* Échéance proche dite en toutes lettres (« Aujourd'hui », « Demain », « Hier ») */}
+        {todo.due_date !== null && !todo.done && todo.due_date <= addDays(today, 1) && (
+          <span className={`pl-1 text-xs font-semibold ${overdue ? 'text-danger' : 'text-accent'}`}>
+            {formatDue(todo.due_date, today)}
+          </span>
+        )}
         <input
           type="date"
           value={todo.due_date ?? ''}
@@ -131,22 +138,28 @@ export function TodoItem({
           !
         </button>
         {snoozable && (
-          <>
+          <span className="flex items-center">
+            <span aria-hidden className="pl-1 text-xs text-muted">
+              Reporter :
+            </span>
             <button
               type="button"
+              aria-label={`Reporter « ${todo.title} » à demain`}
               className={small}
               onClick={() => onSnooze(todo.id, addDays(today, 1))}
             >
-              Demain
+              demain
             </button>
             <button
               type="button"
+              aria-label={`Reporter « ${todo.title} » au ${formatLongDay(monday)}`}
               className={small}
-              onClick={() => onSnooze(todo.id, nextMonday(today))}
+              onClick={() => onSnooze(todo.id, monday)}
             >
-              Lundi
+              {/* un lundi, « lundi » serait ambigu : on donne la date */}
+              {daysBetween(today, monday) >= 7 ? `lundi ${formatDayMonth(monday)}` : 'lundi'}
             </button>
-          </>
+          </span>
         )}
         {recurrence && (
           <span className="px-1 text-xs text-muted">↻ {describeRecurrence(recurrence)}</span>
