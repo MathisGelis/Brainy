@@ -1,4 +1,4 @@
-import { insertGoal } from '@/features/goals/goalsApi'
+import { insertGoal, insertMilestones } from '@/features/goals/goalsApi'
 import { insertSavings } from '@/features/savings/savingsApi'
 import { supabase } from '@/lib/supabase'
 import type { ImportRows } from './importRows'
@@ -55,6 +55,7 @@ export async function replacePlan(rows: ImportRows): Promise<void> {
   }
   for (const s of rows.savings) await insertSavings(s)
   for (const g of rows.goals) await insertGoal(g)
+  await insertMilestones(rows.milestones)
   await insert('plan_periods', rows.periods)
   await insert('plan_envelopes', rows.envelopes)
   await insert('plan_lines', rows.lines)

@@ -85,5 +85,5 @@ year_sheet('2028 Canada', '📅  2028 — Canada', ['Mai', 'Jun', 'Juil', 'Août
            [('Loyer Montréal', 1600), ('Vie courante', 800)],
            [('Frais installation', -2000, 'Mai 2028', None, None, None)],
            [('CELIAPP (600 CAD/mois)', 4800), ('CELI — ETF (500 CAD/mois)', 4000), ('Valeur condo (estimation)', 0)],
-           [('Mai 2028', 'Arrivée')])
+           [('Mai 2028', 'Arrivée'), ('Déc 2028', 'Déposer la demande de résidence permanente')])
 wb.save(sys.argv[1])

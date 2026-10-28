@@ -34,6 +34,8 @@ export type ImportedPeriod = {
   savings_target_cents: number | null
   age_label: string | null
   notes: string | null
+  /** Lignes du journal : date telle qu'écrite, mois si elle est précise */
+  journal: { label: string; month: string | null; text: string }[]
   lines: ImportedLine[]
   bonuses: ImportedBonus[]
   /** Solde visé en fin de période, par nom d'enveloppe (celui de `PlanImport.envelopes`) */
@@ -41,6 +43,8 @@ export type ImportedPeriod = {
 }
 
 export type ImportedGoal = {
+  /** Cible telle qu'écrite (« 15 000€ », « 40 000 CAD », « Jour J ») */
+  target_label: string | null
   title: string
   target_date: string | null
   description: string | null
@@ -231,11 +235,14 @@ function readPeriodSheet(s: Sheet): Omit<
 
   const notes: string[] = []
   for (let n = 2; n < header; n++) if (s.text(n, 1)) notes.push(s.text(n, 1))
-  const journal = findHeader(s, r, 'date', 'evenement')
-  if (journal) {
+  const journal: ImportedPeriod['journal'] = []
+  const journalHeader = findHeader(s, r, 'date', 'evenement')
+  if (journalHeader) {
     if (notes.length) notes.push('')
-    for (let j = journal + 1; j <= s.rowCount && s.text(j, 1); j++)
+    for (let j = journalHeader + 1; j <= s.rowCount && s.text(j, 1); j++) {
       notes.push(`${s.text(j, 1)} — ${s.text(j, 2)}`)
+      journal.push({ label: s.text(j, 1), month: parseMonthYear(s.text(j, 1)), text: s.text(j, 2) })
+    }
   }
 
   return {
@@ -244,6 +251,7 @@ function readPeriodSheet(s: Sheet): Omit<
     end_month: end,
     currency,
     notes: notes.length ? notes.join('\n') : null,
+    journal,
     lines,
     bonuses,
     envelopes: [],
@@ -300,6 +308,7 @@ export function parsePlanWorkbook(sheets: Sheet[]): PlanImport {
         ].filter(Boolean)
         goals.push({
           title,
+          target_label: recap.text(r, 4) || null,
           target_date: parseDeadline(recap.text(r, 2)),
           description: details.length ? details.join('\n') : null,
           achieved: /✅|fait|atteint/i.test(recap.text(r, 5)),
