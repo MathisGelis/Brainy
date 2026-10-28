@@ -152,6 +152,11 @@ describe('TodayPage', () => {
     expect(await within(section).findByText('Payer le loyer')).toBeInTheDocument()
     expect(within(section).getByText('En retard')).toBeInTheDocument()
     expect(within(section).queryByText('Plus tard')).not.toBeInTheDocument()
+    // le report est une action, pas une échéance : rien n'y est écrit « Demain » tout court
+    expect(
+      within(section).getByRole('button', { name: 'Reporter « Payer le loyer » à demain' }),
+    ).toHaveTextContent('Reporter à demain')
+    expect(within(section).queryByText('Demain', { exact: true })).toBeNull()
   })
 
   it('coche une habitude du jour en un clic', async () => {
