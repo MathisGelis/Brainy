@@ -114,9 +114,10 @@ function TodayTodos({ today, onError }: { today: string; onError: (m: string) =>
             type="button"
             onClick={() => onSnooze(todo)}
             aria-label={`Reporter « ${todo.title} » à demain`}
-            className="min-h-11 rounded-full px-2.5 text-xs text-muted transition-colors hover:bg-surface hover:text-text md:min-h-8"
+            className="min-h-11 shrink-0 rounded-full px-2.5 text-xs text-muted transition-colors hover:bg-surface hover:text-text md:min-h-8"
           >
-            Demain
+            {/* une action, pas une échéance : ces todos sont pour aujourd'hui */}
+            Reporter à demain
           </button>
         </li>
       ))}

@@ -6,7 +6,7 @@ import {
   removeIncome,
 } from '@/features/budget/budgetApi'
 import type { Income } from '@/features/budget/types'
-import { GOALS_KEY } from '@/features/goals/useGoals'
+import { GOALS_KEY, MILESTONES_KEY } from '@/features/goals/useGoals'
 import { SAVINGS_KEY } from '@/features/savings/useSavings'
 import { saveErrorMessage } from '@/lib/schemaErrors'
 import type { ImportRows } from './importRows'
@@ -90,7 +90,7 @@ export function usePlan({ onError }: Options = {}) {
     onError: fail,
     onSettled: () =>
       Promise.all(
-        [PLAN_KEY, SAVINGS_KEY, GOALS_KEY].map((queryKey) =>
+        [PLAN_KEY, SAVINGS_KEY, GOALS_KEY, MILESTONES_KEY].map((queryKey) =>
           queryClient.invalidateQueries({ queryKey }),
         ),
       ),

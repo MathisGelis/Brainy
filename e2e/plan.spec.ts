@@ -28,13 +28,22 @@ test('plan financier : importer le classeur, puis une prime reçue devient un re
   await page.getByLabel('Classeur Excel du plan').setInputFiles(FIXTURE)
   const summary = page.getByRole('list', { name: 'Contenu du classeur' })
   await expect(summary).toContainText('3 périodes')
-  await expect(summary).toContainText('3 objectifs clés (1 déjà dans Objectifs)')
+  await expect(summary).toContainText(
+    '3 objectifs clés (1 déjà dans Objectifs), avec 4 jalons tirés du plan',
+  )
   await page.getByRole('button', { name: 'Importer', exact: true }).click()
 
   await expect(page.getByText(/^Plan importé : 3 périodes, 2 objectifs ajoutés/)).toBeVisible()
   await expect.poll(() => db.plan_periods?.length).toBe(3)
   expect(db.plan_lines).toHaveLength(12)
   expect(db.goals).toHaveLength(3)
+  // jalons tirés du classeur : trajectoire du Livret A, et le journal pour l'objectif déjà là
+  expect(db.goal_milestones?.map((m) => m.title)).toEqual(
+    expect.arrayContaining([
+      expect.stringMatching(/^Livret A \/ Matelas € : 10\s000\s€ fin décembre 2027$/),
+      'Déposer la demande de résidence permanente (Déc 2028)',
+    ]),
+  )
   // cagnotte en euros créée pour l'assurance-vie et le livret
   expect(db.savings_goals?.map((s) => s.name).sort()).toEqual([
     'Assurance-vie',

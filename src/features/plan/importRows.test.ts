@@ -18,7 +18,7 @@ const savings = (name: string): SavingsGoal => ({
 describe('importRows', () => {
   it('relie les ids entre tables, les cagnottes existantes, et crée les cagnottes en euros manquantes', async () => {
     const plan = parsePlanWorkbook(await readXlsx(planFixture()))
-    const existingGoal = { title: 'Résidence permanente' } as Goal
+    const existingGoal = { id: 'g-rp', title: 'Résidence permanente' } as Goal
     const rows = importRows(
       plan,
       { savings: [savings('Livret A')], goals: [existingGoal], savingsCount: 1 },
@@ -52,6 +52,36 @@ describe('importRows', () => {
       ['Ouvrir une assurance-vie', 'short', 'achieved'],
       ['Atteindre 10 000€ de base', 'long', 'active'],
     ])
+
+    // jalons : trajectoire du Livret A (cible 10 000 €) ; journal pour l'objectif déjà là
+    const goalId = (title: string) =>
+      rows.goals.find((g) => g.title === title)?.id ?? existingGoal.id
+    const titles = (title: string) =>
+      rows.milestones.filter((m) => m.goal_id === goalId(title)).map((m) => m.title)
+    expect(titles('Atteindre 10 000€ de base')).toEqual([
+      expect.stringMatching(/^Livret A \/ Matelas € : 1\s000\s€ fin décembre 2026$/),
+      expect.stringMatching(/^Livret A \/ Matelas € : 10\s000\s€ fin décembre 2027$/),
+    ])
+    expect(titles('Résidence permanente')).toEqual([
+      'Déposer la demande de résidence permanente (Déc 2028)',
+    ])
+    // objectif déjà atteint : ses jalons le sont aussi
+    expect(
+      rows.milestones
+        .filter((m) => m.goal_id === goalId('Ouvrir une assurance-vie'))
+        .every((m) => m.done),
+    ).toBe(true)
+  })
+
+  it('ne touche pas aux jalons d’un objectif qui en a déjà', async () => {
+    const plan = parsePlanWorkbook(await readXlsx(planFixture()))
+    const existingGoal = { id: 'g-rp', title: 'Résidence permanente' } as Goal
+    const rows = importRows(
+      plan,
+      { savings: [], goals: [existingGoal], savingsCount: 0, milestones: [{ goal_id: 'g-rp' }] },
+      { createSavings: false, today: '2026-10-26' },
+    )
+    expect(rows.milestones.some((m) => m.goal_id === 'g-rp')).toBe(false)
   })
 
   it('sans création de cagnottes, les enveloppes non reliées restent libres', async () => {

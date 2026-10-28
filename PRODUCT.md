@@ -96,7 +96,7 @@ Vue synthèse en lecture + actions rapides :
 - Plan pluriannuel importé une fois d'un classeur Excel (périodes France puis Canada, postes prévus par mois, primes, enveloppes d'épargne, objectifs clés), puis modifiable dans l'app
 - Le réel n'est jamais ressaisi : chaque mois, revenus et dépenses de l'app face au prévu ; soldes des enveloppes depuis les cagnottes reliées ; une prime marquée reçue devient un revenu
 - Trajectoire : épargne réelle cumulée face à l'objectif de chaque période, par devise (€ puis CAD) et en équivalent au taux choisi
-- Les objectifs clés du classeur deviennent des Objectifs (échéance, statut)
+- Les objectifs clés du classeur deviennent des Objectifs (échéance, statut), avec des jalons tirés du plan : la trajectoire de l'enveloppe visée et les lignes du journal ou primes qui en parlent, jusqu'à l'échéance ; un réimport en ajoute aux objectifs qui n'en ont pas
 
 ### Application installable (PWA)
 - S'installe sur l'écran d'accueil (iPhone : Partager → « Sur l'écran d'accueil » ; Android et ordinateur : « Installer ») et s'ouvre en plein écran, sans barres du navigateur, avec icône et écran de lancement Brainy

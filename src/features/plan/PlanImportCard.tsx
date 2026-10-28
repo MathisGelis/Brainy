@@ -23,7 +23,7 @@ export function PlanImportCard({
   const toast = useToast()
   const { importPlan, isImporting } = usePlan({ onError })
   const { goals: savings } = useSavings({ onError })
-  const { goals } = useGoals({ onError })
+  const { goals, milestones } = useGoals({ onError })
   const [parsed, setParsed] = useState<{ name: string; plan: PlanImport } | null>(null)
   const [problem, setProblem] = useState<string | null>(null)
   const [createSavings, setCreateSavings] = useState(true)
@@ -50,7 +50,7 @@ export function PlanImportCard({
     parsed &&
     importRows(
       parsed.plan,
-      { savings, goals, savingsCount: savings.length },
+      { savings, goals, milestones, savingsCount: savings.length },
       { createSavings, today: todayISO() },
     )
 
@@ -114,6 +114,8 @@ export function PlanImportCard({
               {plural(parsed.plan.goals.length, 'objectif clé', 'objectifs clés')}
               {parsed.plan.goals.length > rows.goals.length &&
                 ` (${parsed.plan.goals.length - rows.goals.length} déjà dans Objectifs)`}
+              {rows.milestones.length > 0 &&
+                `, avec ${plural(rows.milestones.length, 'jalon')} tiré${rows.milestones.length > 1 ? 's' : ''} du plan`}
             </li>
           </ul>
           <Checkbox

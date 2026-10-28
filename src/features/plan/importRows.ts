@@ -1,6 +1,7 @@
-import type { Goal } from '@/features/goals/types'
+import type { Goal, Milestone } from '@/features/goals/types'
 import type { SavingsGoal } from '@/features/savings/types'
 import { fold } from '@/lib/naturalDate'
+import { goalMilestones } from './goalMilestones'
 import { matchEnvelope, type PlanImport } from './importPlan'
 import type { PlanBonus, PlanEnvelope, PlanEnvelopeTarget, PlanLine, PlanPeriod } from './types'
 
@@ -14,6 +15,8 @@ export type ImportRows = {
   savings: SavingsGoal[]
   /** Objectifs clés absents de l'onglet Objectifs (même titre = déjà là) */
   goals: Goal[]
+  /** Jalons tirés du classeur, pour les objectifs créés et ceux déjà là qui n'en ont aucun */
+  milestones: Milestone[]
 }
 
 const horizonOf = (target: string | null, today: string): Goal['horizon'] => {
@@ -31,7 +34,12 @@ const horizonOf = (target: string | null, today: string): Goal['horizon'] => {
  */
 export function importRows(
   plan: PlanImport,
-  existing: { savings: SavingsGoal[]; goals: Goal[]; savingsCount: number },
+  existing: {
+    savings: SavingsGoal[]
+    goals: Goal[]
+    savingsCount: number
+    milestones?: Pick<Milestone, 'goal_id'>[]
+  },
   options: { createSavings: boolean; today: string },
 ): ImportRows {
   const now = new Date().toISOString()
@@ -44,6 +52,7 @@ export function importRows(
     targets: [],
     savings: [],
     goals: [],
+    milestones: [],
   }
 
   const envelopeIds = new Map<string, string>()
@@ -132,19 +141,34 @@ export function importRows(
     }
   })
 
-  const titles = new Set(existing.goals.map((g) => fold(g.title.trim())))
+  const byTitle = new Map(existing.goals.map((g) => [fold(g.title.trim()), g]))
+  const withMilestones = new Set((existing.milestones ?? []).map((m) => m.goal_id))
   for (const g of plan.goals) {
-    if (titles.has(fold(g.title.trim()))) continue
-    rows.goals.push({
-      id: id(),
-      title: g.title,
-      description: g.description,
-      horizon: horizonOf(g.target_date, options.today),
-      target_date: g.target_date,
-      status: g.achieved ? 'achieved' : 'active',
-      created_at: now,
-      updated_at: now,
-    })
+    let goalId = byTitle.get(fold(g.title.trim()))?.id
+    if (goalId === undefined) {
+      goalId = id()
+      rows.goals.push({
+        id: goalId,
+        title: g.title,
+        description: g.description,
+        horizon: horizonOf(g.target_date, options.today),
+        target_date: g.target_date,
+        status: g.achieved ? 'achieved' : 'active',
+        created_at: now,
+        updated_at: now,
+      })
+    } else if (withMilestones.has(goalId)) continue // jalons déjà posés : on n'y touche pas
+    goalMilestones(g, plan).forEach((title, position) =>
+      rows.milestones.push({
+        id: id(),
+        goal_id: goalId,
+        title,
+        done: g.achieved,
+        done_at: g.achieved ? now : null,
+        position,
+        created_at: now,
+      }),
+    )
   }
   return rows
 }
