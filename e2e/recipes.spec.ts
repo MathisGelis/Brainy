@@ -29,7 +29,7 @@ test('recette : créer, ajouter au menu en parts, ingrédients vers la liste de 
   await input.fill('2 parts curry soir')
   await input.press('Enter')
   const dinner = page.getByRole('region', { name: /Dîner/ })
-  await expect(dinner.getByText('Curry de poulet')).toBeVisible()
+  await expect(dinner.getByRole('button', { name: /^Modifier « Curry de poulet »/ })).toBeVisible()
   await expect.poll(() => db.meal_items?.[0]?.recipe_id).toBe(db.recipes?.[0]?.id)
 
   const proposal = page.getByText('à la liste de courses ?').locator('xpath=ancestor::div[1]')
@@ -37,10 +37,15 @@ test('recette : créer, ajouter au menu en parts, ingrédients vers la liste de 
   await proposal.getByRole('button', { name: 'Ajouter' }).click()
   await expect.poll(() => db.todos?.map((t) => t.title)).toEqual(['Poulet', 'Riz blanc'])
 
-  // l'accueil reprend les kcal restantes et le dîner prévu
+  // pas encore mangé (coché d'office seulement si l'heure du dîner est passée)
+  const eaten = dinner.getByRole('checkbox', { name: '« Curry de poulet » mangé' })
+  if (await eaten.isChecked()) await eaten.click()
+  await expect.poll(() => db.meal_items?.[0]?.eaten).toBe(false)
+
+  // l'accueil reprend les kcal restantes (seul le mangé compte) et le dîner prévu
   await page.goto('')
   await expect(
-    page.getByRole('link', { name: /1\s107 kcal restantes\. Dîner prévu : Curry de poulet/ }),
+    page.getByRole('link', { name: /2\s000 kcal restantes\. Dîner prévu : Curry de poulet/ }),
   ).toBeVisible()
 })
 
@@ -78,7 +83,9 @@ test('copier le menu d’hier puis payer les courses', async ({ page }) => {
   await page.goto('#/menu')
   await page.getByRole('button', { name: 'Copier un menu…' }).click()
   await page.getByRole('button', { name: /^Copier le menu du .* vers le / }).click()
-  await expect(page.getByRole('region', { name: /Déjeuner/ }).getByText('Saumon')).toBeVisible()
+  await expect(
+    page.getByRole('region', { name: /Déjeuner/ }).getByText('Saumon', { exact: true }),
+  ).toBeVisible()
   await expect.poll(() => db.meal_items?.filter((i) => i.day === parisToday()).length).toBe(1)
 
   const shopping = page.getByRole('region', { name: 'Liste de courses' })

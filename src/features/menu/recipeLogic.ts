@@ -46,7 +46,7 @@ export function recipeMealItem(
   parts: number,
   day: string,
   meal: Meal,
-): Omit<MealItem, 'id' | 'created_at' | 'position'> {
+): Omit<MealItem, 'id' | 'created_at' | 'position' | 'plan_id' | 'eaten'> {
   return {
     day,
     meal,
@@ -130,6 +130,15 @@ export function copyMealItems(
     )
     .map((i) => {
       const day = shift(i.day)
-      return { ...i, id: makeId(), day, position: slot(day, i.meal), created_at: now }
+      // une copie est un ajout à la main, à manger : ni plan d'origine, ni déjà mangée
+      return {
+        ...i,
+        id: makeId(),
+        day,
+        position: slot(day, i.meal),
+        created_at: now,
+        plan_id: null,
+        eaten: false,
+      }
     })
 }

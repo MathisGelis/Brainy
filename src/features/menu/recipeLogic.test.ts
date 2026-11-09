@@ -48,6 +48,8 @@ const item = (over: Partial<MealItem>): MealItem => ({
   protein_dg: 13,
   carbs_dg: 240,
   fat_dg: 4,
+  plan_id: null,
+  eaten: false,
   position: 0,
   created_at: '',
   ...over,

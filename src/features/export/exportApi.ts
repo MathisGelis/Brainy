@@ -29,6 +29,9 @@ export const EXPORTED_TABLES = [
   'plan_bonuses',
   'plan_envelopes',
   'plan_envelope_targets',
+  'meal_plans',
+  'meal_plan_weeks',
+  'pantry',
 ] as const
 
 export type ExportedTable = (typeof EXPORTED_TABLES)[number]

@@ -23,6 +23,15 @@ export function defaultMeal(hour: number): Meal {
 const DAY_ORDER: Meal[] = ['breakfast', 'lunch', 'snack', 'dinner']
 
 /**
+ * Un ajout à la main est-il déjà mangé ? Oui pour un jour passé, ou pour un repas d'aujourd'hui
+ * qui n'est pas plus tard que le repas en cours ; sinon il est seulement prévu.
+ */
+export function eatenByDefault(day: string, meal: Meal, today: string, hour: number): boolean {
+  if (day !== today) return day < today
+  return DAY_ORDER.indexOf(meal) <= DAY_ORDER.indexOf(defaultMeal(hour))
+}
+
+/**
  * Prochain repas prévu : le repas en cours (selon l'heure) ou un suivant qui a des aliments.
  * Null s'il n'y a plus rien de prévu dans la journée.
  */
@@ -257,19 +266,24 @@ export function portionText(count: number, label: string): string {
 /** Grammes affichés pour un total : arrondis à l'entier. */
 export const grams = (dg: number) => `${Math.round(dg / 10)} g`
 
+/** Titre d'article sans sa quantité : « Riz — 400 g » → « Riz ». */
+export const stripQuantity = (title: string) =>
+  title.replace(/\s+[—–-]\s+[\d.,]+\s*k?g$/i, '').trim()
+
 /**
- * Aliments du menu absents de la liste de courses (comparés par nom de base) :
- * un seul par nom, dans l'ordre où ils apparaissent.
+ * Aliments du menu absents de la liste de courses (comparés par nom de base, quantité ignorée) :
+ * un seul par nom, dans l'ordre où ils apparaissent. Un nom avec quantité la garde.
  */
 export function missingFromShopping(names: string[], shopping: string[]): string[] {
-  const have = new Set(shopping.map((s) => normalizeName(baseName(s))))
+  const have = new Set(shopping.map((s) => normalizeName(baseName(stripQuantity(s)))))
   const out: string[] = []
   for (const name of names) {
-    const base = baseName(name)
+    const plain = stripQuantity(name)
+    const base = baseName(plain)
     const key = normalizeName(base)
     if (!key || have.has(key)) continue
     have.add(key)
-    out.push(base)
+    out.push(plain === name.trim() ? base : name.trim())
   }
   return out
 }

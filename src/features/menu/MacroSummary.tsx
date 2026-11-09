@@ -61,11 +61,15 @@ function TargetsForm({
 /** Tracker du jour : kcal et macros face aux objectifs. */
 export function MacroSummary({
   totals,
+  planned,
   targets,
   hasTargets,
   onSaveTargets,
 }: {
+  /** Ce qui est coché « mangé » */
   totals: Macros
+  /** Tout le jour, mangé ou seulement prévu */
+  planned: Macros
   targets: MacroTargets
   hasTargets: boolean
   onSaveTargets: (t: MacroTargets) => void
@@ -81,8 +85,13 @@ export function MacroSummary({
             {totals.kcal}
           </span>{' '}
           <span className="text-muted">
-            {targets.kcal !== null ? `/ ${targets.kcal} kcal` : 'kcal'}
+            {targets.kcal !== null ? `/ ${targets.kcal} kcal` : 'kcal'} mangées
           </span>
+          {planned.kcal > totals.kcal && (
+            <span className="block text-xs text-muted">
+              {planned.kcal - totals.kcal} kcal encore prévues ({planned.kcal} kcal sur la journée)
+            </span>
+          )}
         </p>
         <button
           type="button"

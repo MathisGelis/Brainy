@@ -6,15 +6,19 @@ import { useMacroTargets, useMealItems } from './useMenu'
 
 const number = new Intl.NumberFormat('fr-FR')
 
-/** Sur l'accueil : kcal restantes (ou du jour) et prochain repas prévu ; mène au Menu. */
+/** Sur le dashboard : kcal restantes (d'après ce qui est mangé) et prochain repas à manger ; mène au Menu. */
 export function TodayMenuCard({ today, onError }: { today: string; onError: (m: string) => void }) {
   const { items, isLoading, isError } = useMealItems(today, today, { onError })
   const { targets, isLoading: targetsLoading } = useMacroTargets({ onError })
   if (isLoading || targetsLoading || isError) return null
   if (items.length === 0 && targets.kcal === null) return null
 
-  const kcal = items.reduce((s, i) => s + i.kcal, 0)
-  const next = nextPlannedMeal(items, parisHour())
+  // Seul ce qui est coché « mangé » compte ; le prochain repas est le prochain encore à manger
+  const kcal = items.filter((i) => i.eaten).reduce((s, i) => s + i.kcal, 0)
+  const next = nextPlannedMeal(
+    items.filter((i) => !i.eaten),
+    parisHour(),
+  )
   const target = targets.kcal
   const headline =
     target === null

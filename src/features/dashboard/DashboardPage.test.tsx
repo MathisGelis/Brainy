@@ -11,7 +11,7 @@ import * as notesApi from '@/features/notes/notesApi'
 import * as goalsApi from '@/features/goals/goalsApi'
 import * as todosApi from '@/features/todos/todosApi'
 import * as savingsApi from '@/features/savings/savingsApi'
-import { addDays, formatLongDay, parisHour, todayISO } from '@/lib/dates'
+import { addDays, formatLongDay, todayISO } from '@/lib/dates'
 import DashboardPage from './DashboardPage'
 
 vi.mock('@/features/menu/menuApi')
@@ -223,6 +223,8 @@ describe('DashboardPage', () => {
       protein_dg: 0,
       carbs_dg: 0,
       fat_dg: 0,
+      plan_id: null,
+      eaten: mealId === 'lunch',
       position: 0,
       created_at: '',
     })
@@ -238,9 +240,8 @@ describe('DashboardPage', () => {
     })
     renderPage()
     const card = await screen.findByRole('link', { name: /kcal restantes/ })
-    expect(card).toHaveAccessibleName(/^1\s460 kcal restantes\. .* prévu : /)
-    // avant 15 h c'est le déjeuner qui vient, ensuite le dîner
-    expect(card).toHaveTextContent(parisHour() < 15 ? 'Riz blanc' : 'Saumon')
+    // seul le déjeuner (260 kcal) est coché mangé ; le dîner reste à manger
+    expect(card).toHaveAccessibleName(/^1\s740 kcal restantes\. Dîner prévu : Saumon/)
     expect(card).toHaveAttribute('href', '/menu')
   })
   it('n’affiche rien du Menu sans repas ni objectif', async () => {

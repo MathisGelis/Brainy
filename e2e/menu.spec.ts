@@ -14,7 +14,7 @@ test('menu : ajouter un aliment de la base, suivre les macros, remplir la liste 
   await input.press('Enter')
 
   const lunch = page.getByRole('region', { name: /Déjeuner/ })
-  await expect(lunch.getByText('Poulet (filet cuit)')).toBeVisible()
+  await expect(lunch.getByText('Poulet (filet cuit)', { exact: true })).toBeVisible()
   await expect(page.getByRole('region', { name: 'Macros du jour' })).toContainText('248')
   await expect.poll(() => db.meal_items?.[0]?.grams).toBe(150)
   await expect.poll(() => db.foods?.[0]?.name).toBe('Poulet (filet cuit)')
@@ -31,7 +31,7 @@ test('menu : ajouter un aliment de la base, suivre les macros, remplir la liste 
   await input.fill('100 g poulet cuit soir')
   await input.press('Enter')
   await expect(
-    page.getByRole('region', { name: /Dîner/ }).getByText('Poulet (filet cuit)'),
+    page.getByRole('region', { name: /Dîner/ }).getByText('Poulet (filet cuit)', { exact: true }),
   ).toBeVisible()
   await expect(page.getByText('à la liste de courses ?')).toHaveCount(0)
 

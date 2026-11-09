@@ -30,13 +30,38 @@ export type MealItem = {
   fat_dg: number
   /** Recette d'origine (ses ingrédients servent à la liste de courses) */
   recipe_id: string | null
+  /** Plan de repas d'origine ; null = ajouté à la main */
+  plan_id: string | null
+  /** Mangé (coché) ou seulement prévu */
+  eaten: boolean
   position: number
   created_at: string
 }
 
 export type MealItemPatch = Partial<
-  Pick<MealItem, 'meal' | 'day' | 'grams' | 'kcal' | 'protein_dg' | 'carbs_dg' | 'fat_dg'>
+  Pick<MealItem, 'meal' | 'day' | 'grams' | 'kcal' | 'protein_dg' | 'carbs_dg' | 'fat_dg' | 'eaten'>
 >
+
+/** Plan de repas importé (fichier Markdown gardé tel quel). */
+export type MealPlan = { id: string; name: string; content: string; created_at: string }
+
+/** Plan choisi pour une semaine (lundi), avec son type de semaine s'il en a. */
+export type MealPlanWeek = {
+  id: string
+  monday: string
+  plan_id: string
+  week_type: string | null
+  created_at: string
+}
+
+/** Stock à la maison d'un aliment (clé = nom normalisé). */
+export type PantryItem = {
+  id: string
+  key: string
+  name: string
+  grams: number
+  updated_at: string
+}
 
 /** Objectifs du jour (null : pas d'objectif). */
 export type MacroTargets = {

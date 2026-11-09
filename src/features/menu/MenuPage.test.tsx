@@ -10,7 +10,7 @@ import type { Todo, TodoList } from '@/features/todos/types'
 import { addDays, todayISO } from '@/lib/dates'
 import * as api from './menuApi'
 import MenuPage from './MenuPage'
-import type { Food, MacroTargets, MealItem, Recipe, RecipeItem } from './types'
+import type { Food, MacroTargets, MealItem, PantryItem, Recipe, RecipeItem } from './types'
 
 vi.mock('./menuApi')
 vi.mock('@/features/todos/todosApi')
@@ -40,11 +40,14 @@ const riceLunch: MealItem = {
   carbs_dg: 560,
   fat_dg: 6,
   recipe_id: null,
+  plan_id: null,
+  eaten: true,
   position: 0,
   created_at: '',
 }
 
 let foods: Food[] = []
+let pantry: PantryItem[] = []
 let items: MealItem[] = []
 let targets: MacroTargets | null = null
 let todos: Todo[] = []
@@ -69,6 +72,7 @@ describe('MenuPage', () => {
   beforeEach(() => {
     foods = [rice]
     items = [riceLunch]
+    pantry = []
     targets = null
     todos = []
     lists = []
@@ -126,6 +130,12 @@ describe('MenuPage', () => {
       items = items.filter((i) => !ids.includes(i.id))
     })
     vi.mocked(api.fetchTargets).mockImplementation(async () => targets)
+    vi.mocked(api.fetchMealPlans).mockResolvedValue([])
+    vi.mocked(api.fetchPlanWeeks).mockResolvedValue([])
+    vi.mocked(api.fetchPantry).mockImplementation(async () => pantry.map((p) => ({ ...p })))
+    vi.mocked(api.upsertPantry).mockImplementation(async (rows) => {
+      pantry = [...pantry.filter((p) => !rows.some((r) => r.key === p.key)), ...rows]
+    })
     vi.mocked(api.upsertTargets).mockImplementation(async (t) => {
       targets = t
     })
@@ -294,9 +304,16 @@ describe('MenuPage', () => {
     const tomorrow = addDays(today, 1)
     items = [
       riceLunch,
-      { ...riceLunch, id: 'm2', day: tomorrow, name: 'Saumon', food_id: null },
-      { ...riceLunch, id: 'm3', day: tomorrow, name: 'Riz blanc (cuit)', meal: 'dinner' },
-      { ...riceLunch, id: 'm4', day: tomorrow, name: 'Brocoli', food_id: null },
+      { ...riceLunch, id: 'm2', day: tomorrow, name: 'Saumon', food_id: null, eaten: false },
+      {
+        ...riceLunch,
+        id: 'm3',
+        day: tomorrow,
+        name: 'Riz blanc (cuit)',
+        meal: 'dinner',
+        eaten: false,
+      },
+      { ...riceLunch, id: 'm4', day: tomorrow, name: 'Brocoli', food_id: null, eaten: false },
     ]
     lists = [{ id: 'l1', name: 'courses', position: 0 }]
     todos = [
@@ -320,18 +337,18 @@ describe('MenuPage', () => {
     const shopping = await screen.findByRole('region', { name: 'Liste de courses' })
     await waitFor(() =>
       expect(shopping).toHaveTextContent(
-        '2 aliments du menu de la semaine ne sont pas sur la liste : Riz blanc, Saumon',
+        '2 aliments à acheter pour les repas prévus : Saumon — 200 g, Riz blanc — 200 g',
       ),
     )
     await userEvent.click(within(shopping).getByRole('button', { name: 'Tout ajouter' }))
     await waitFor(() => expect(todosApi.insertTodo).toHaveBeenCalledTimes(2))
     expect(todosApi.insertList).not.toHaveBeenCalled()
     expect(vi.mocked(todosApi.insertTodo).mock.calls.map((c) => c[0].title)).toEqual([
-      'Riz blanc',
-      'Saumon',
+      'Saumon — 200 g',
+      'Riz blanc — 200 g',
     ])
     expect(
-      await within(shopping).findByRole('checkbox', { name: 'Acheté : Saumon' }),
+      await within(shopping).findByRole('checkbox', { name: 'Acheté : Saumon — 200 g' }),
     ).toBeInTheDocument()
 
     await userEvent.click(within(shopping).getByRole('checkbox', { name: 'Acheté : Brocolis' }))
@@ -340,6 +357,72 @@ describe('MenuPage', () => {
         't1',
         expect.objectContaining({ done: true }),
       ),
+    )
+  })
+
+  it('courses : besoin des repas prévus moins le stock ; acheter et manger font bouger le stock', async () => {
+    const tomorrow = addDays(today, 1)
+    items = [
+      { ...riceLunch, id: 'm2', day: tomorrow, name: 'Saumon', food_id: null, eaten: false },
+      { ...riceLunch, id: 'm3', day: tomorrow, meal: 'dinner', eaten: false },
+    ]
+    pantry = [{ id: 'p1', key: 'riz blanc', name: 'Riz blanc', grams: 150, updated_at: '' }]
+    lists = [{ id: 'l1', name: 'Courses', position: 0 }]
+    todos = [
+      {
+        id: 't1',
+        list_id: 'l1',
+        goal_id: null,
+        recurrence: null,
+        focus_on: null,
+        focus_week: null,
+        title: 'Saumon — 200 g',
+        done: false,
+        done_at: null,
+        due_date: null,
+        priority: 'normal',
+        position: 0,
+        created_at: '',
+      },
+    ]
+    renderPage()
+    const shopping = await screen.findByRole('region', { name: 'Liste de courses' })
+    // 200 g de riz prévus, 150 g à la maison : 50 g à acheter ; le saumon est déjà sur la liste
+    await waitFor(() =>
+      expect(shopping).toHaveTextContent('À acheter pour les repas prévus : Riz blanc — 50 g.'),
+    )
+    await userEvent.click(within(shopping).getByText(/Quantités pour les repas prévus/))
+    const table = within(shopping).getByRole('table')
+    expect(within(table).getByRole('row', { name: /Riz blanc/ })).toHaveTextContent('200 g')
+    const stock = within(table).getByLabelText('Riz blanc à la maison, en grammes')
+    await userEvent.clear(stock)
+    await userEvent.type(stock, '250{Enter}')
+    await waitFor(() =>
+      expect(api.upsertPantry).toHaveBeenLastCalledWith([
+        expect.objectContaining({ key: 'riz blanc', grams: 250 }),
+      ]),
+    )
+    expect(within(table).getByRole('row', { name: /Riz blanc/ })).toHaveTextContent('Assez')
+
+    // acheté : le saumon entre dans le stock
+    await userEvent.click(
+      within(shopping).getByRole('checkbox', { name: 'Acheté : Saumon — 200 g' }),
+    )
+    await waitFor(() =>
+      expect(api.upsertPantry).toHaveBeenLastCalledWith([
+        expect.objectContaining({ key: 'saumon', name: 'Saumon', grams: 200 }),
+      ]),
+    )
+
+    // mangé : le riz du dîner sort du stock
+    await userEvent.click(screen.getByRole('button', { name: /^Jour suivant/ }))
+    await userEvent.click(
+      await screen.findByRole('checkbox', { name: '« Riz blanc (cuit) » mangé' }),
+    )
+    await waitFor(() =>
+      expect(api.upsertPantry).toHaveBeenLastCalledWith([
+        expect.objectContaining({ key: 'riz blanc', grams: 50 }),
+      ]),
     )
   })
 

@@ -11,6 +11,9 @@ import type {
   RecipeItem,
   RecipeItemPatch,
   RecipePatch,
+  MealPlan,
+  MealPlanWeek,
+  PantryItem,
 } from './types'
 
 export async function fetchFoods(): Promise<Food[]> {
@@ -138,4 +141,67 @@ export async function upsertTargets(targets: MacroTargets): Promise<void> {
     .from('macro_targets')
     .upsert({ ...targets, updated_at: new Date().toISOString() }, { onConflict: 'user_id' })
   if (error) throw error
+}
+
+// Plans de repas, plan de chaque semaine, stock à la maison
+
+export async function fetchMealPlans(): Promise<MealPlan[]> {
+  const { data, error } = await supabase.from('meal_plans').select('*').order('created_at')
+  if (error) throw error
+  return data as MealPlan[]
+}
+
+export async function insertMealPlan(plan: MealPlan): Promise<void> {
+  const { error } = await supabase.from('meal_plans').insert(plan)
+  if (error) throw error
+}
+
+/** Supprime le plan et ses semaines (cascade) ; les repas posés restent, sans plan d'origine. */
+export async function removeMealPlan(id: string): Promise<void> {
+  const { error } = await supabase.from('meal_plans').delete().eq('id', id)
+  if (error) throw error
+}
+
+export async function fetchPlanWeeks(): Promise<MealPlanWeek[]> {
+  const { data, error } = await supabase.from('meal_plan_weeks').select('*').order('monday')
+  if (error) throw error
+  return data as MealPlanWeek[]
+}
+
+/** Un plan par lundi : crée ou remplace. */
+export async function upsertPlanWeek(week: MealPlanWeek): Promise<void> {
+  const { error } = await supabase
+    .from('meal_plan_weeks')
+    .upsert(week, { onConflict: 'user_id,monday' })
+  if (error) throw error
+}
+
+export async function removePlanWeek(monday: string): Promise<void> {
+  const { error } = await supabase.from('meal_plan_weeks').delete().eq('monday', monday)
+  if (error) throw error
+}
+
+export async function fetchPantry(): Promise<PantryItem[]> {
+  const { data, error } = await supabase.from('pantry').select('*').order('name')
+  if (error) throw error
+  return data as PantryItem[]
+}
+
+/** Quantités par clé : crée ou remplace (le stock d'une clé est unique). */
+export async function upsertPantry(items: PantryItem[]): Promise<void> {
+  if (items.length === 0) return
+  const { error } = await supabase.from('pantry').upsert(items, { onConflict: 'user_id,key' })
+  if (error) throw error
+}
+
+/** Repas posés par un plan et pas encore mangés, à partir d'un jour. */
+export async function fetchPlanItems(planId: string, from: string): Promise<MealItem[]> {
+  const { data, error } = await supabase
+    .from('meal_items')
+    .select('*')
+    .eq('plan_id', planId)
+    .eq('eaten', false)
+    .gte('day', from)
+  if (error) throw error
+  return data as MealItem[]
 }
