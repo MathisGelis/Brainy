@@ -15,7 +15,7 @@ import { useQuickTodo, useTodos } from '@/features/todos/useTodos'
 import { addMonths, formatDayMonth, formatDue, monthOf, todayISO } from '@/lib/dates'
 import { formatCents } from '@/lib/money'
 import { useTheme } from '@/lib/theme'
-import { navItems } from '../navItems'
+import { navItems, TODAY_PATH } from '../navItems'
 import type { QuickAddTab } from '../QuickAdd'
 import { searchPalette, type PaletteItem } from './paletteSearch'
 
@@ -64,6 +64,13 @@ export default function CommandPalette({ onClose, onQuickAdd, onHelp }: Props) {
       label: `Aller à ${n.label}`,
       run: go(n.to),
     })),
+    {
+      id: 'go-plan',
+      group: 'Commandes',
+      label: 'Aller au Plan financier',
+      keywords: 'épargne trajectoire excel canada',
+      run: go('/plan'),
+    },
     {
       id: 'new-todo',
       group: 'Commandes',
@@ -122,7 +129,7 @@ export default function CommandPalette({ onClose, onQuickAdd, onHelp }: Props) {
       group: 'Commandes',
       label: 'Top 3 du jour',
       keywords: 'priorités focus',
-      run: go('/'),
+      run: go(TODAY_PATH),
     },
     {
       id: 'ritual',

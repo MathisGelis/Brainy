@@ -31,6 +31,7 @@ import {
 } from '@/lib/dates'
 import { formatCents } from '@/lib/money'
 import { defaultReviewWeek, summarizeWeek, type HabitWeek } from './reviewLogic'
+import { TODAY_PATH } from '@/app/navItems'
 
 function Card({
   title,
@@ -100,7 +101,7 @@ function MoodCard({
       {mood === null && energy === null ? (
         <p className="text-muted">
           Aucune saisie cette semaine.{' '}
-          <Link to="/" className="text-accent">
+          <Link to={TODAY_PATH} className="text-accent">
             Noter mon humeur
           </Link>
         </p>

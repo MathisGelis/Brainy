@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { installFakeSupabase, parisToday } from './fakeSupabase'
+import { openSection } from './nav'
 
 test('ajouter une todo au clavier, la retrouver après rechargement', async ({ page }) => {
   const db = await installFakeSupabase(page)
@@ -34,14 +35,14 @@ test("cocher une habitude depuis « Aujourd'hui »", async ({ page }) => {
       },
     ],
   })
-  await page.goto('')
+  await page.goto('#/aujourdhui')
 
   const box = page.getByRole('checkbox', { name: "Lecture fait aujourd'hui" })
   await box.click()
   await expect(box).toBeChecked()
   await expect.poll(() => db.habit_logs?.map((l) => l.day)).toEqual([parisToday()])
 
-  await page.getByRole('link', { name: 'Habitudes' }).first().click()
+  await openSection(page, 'Habitudes')
   await expect(page.getByText('Série : 1 jour')).toBeVisible()
 })
 
@@ -104,7 +105,7 @@ test('palette Ctrl+K : ajouter une dépense en une phrase', async ({ page }) => 
     ],
   })
   await page.goto('')
-  await expect(page.getByRole('heading', { name: "Aujourd'hui", level: 1 })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Dashboard', level: 1 })).toBeVisible()
   await page.keyboard.press('Control+k')
   await page.getByRole('combobox', { name: 'Rechercher ou créer' }).fill('12,50 resto')
   await page.getByRole('option', { name: /Ajouter la dépense de 12,50/ }).click()

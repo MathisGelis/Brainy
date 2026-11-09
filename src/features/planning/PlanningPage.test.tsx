@@ -38,7 +38,7 @@ function renderPage() {
         <MemoryRouter initialEntries={['/semaine']}>
           <Routes>
             <Route path="/semaine" element={<PlanningPage />} />
-            <Route path="/" element={<p>Accueil</p>} />
+            <Route path="/aujourdhui" element={<p>Accueil</p>} />
           </Routes>
         </MemoryRouter>
       </ToastProvider>

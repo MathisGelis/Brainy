@@ -41,7 +41,7 @@ function renderPage() {
         <MemoryRouter initialEntries={['/rituel']}>
           <Routes>
             <Route path="/rituel" element={<RitualPage />} />
-            <Route path="/" element={<p>Accueil</p>} />
+            <Route path="/aujourdhui" element={<p>Accueil</p>} />
           </Routes>
         </MemoryRouter>
       </ToastProvider>

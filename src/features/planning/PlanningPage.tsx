@@ -11,6 +11,7 @@ import { celebrate } from '@/lib/celebrate'
 import { addDays, formatDayMonth, formatLongDay, formatWeekdayShort, todayISO } from '@/lib/dates'
 import { markWeekPlanned } from '@/lib/ritual'
 import { dayLoad, overdueTodos, planningMonday, toSchedule, weekDays } from './planningLogic'
+import { TODAY_PATH } from '@/app/navItems'
 
 const small =
   'min-h-11 rounded-full px-3 text-xs text-muted transition-colors hover:bg-surface hover:text-text md:min-h-9'
@@ -205,7 +206,7 @@ export default function PlanningPage() {
     markWeekPlanned(monday)
     celebrate(1.2)
     toast.show('Semaine planifiée. Bonne semaine !')
-    navigate('/')
+    navigate(TODAY_PATH)
   }
 
   return (

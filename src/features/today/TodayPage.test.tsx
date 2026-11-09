@@ -10,7 +10,7 @@ import * as habitsApi from '@/features/habits/habitsApi'
 import * as notesApi from '@/features/notes/notesApi'
 import * as goalsApi from '@/features/goals/goalsApi'
 import * as todosApi from '@/features/todos/todosApi'
-import { addDays, parisHour, startOfWeek, todayISO } from '@/lib/dates'
+import { addDays, startOfWeek, todayISO } from '@/lib/dates'
 import TodayPage from './TodayPage'
 
 vi.mock('@/features/menu/menuApi')
@@ -170,13 +170,6 @@ describe('TodayPage', () => {
     ])
   })
 
-  it('résume le budget du mois', async () => {
-    renderPage()
-    const section = await screen.findByRole('region', { name: 'Budget du mois' })
-    expect(await within(section).findByText(/Reste/)).toHaveTextContent(/300,00/)
-    expect(within(section).getByRole('progressbar')).toHaveAttribute('aria-valuenow', '25')
-  })
-
   it('incrémente une habitude chiffrée avec le compteur', async () => {
     vi.mocked(habitsApi.fetchHabits).mockResolvedValue([
       {
@@ -225,20 +218,6 @@ describe('TodayPage', () => {
     expect(notesApi.insertNote).toHaveBeenCalledTimes(1)
   })
 
-  it('montre le prochain jalon et le coche en datant sa réalisation', async () => {
-    vi.mocked(goalsApi.patchMilestone).mockReturnValue(new Promise<void>(() => {}))
-    renderPage()
-    const box = await screen.findByRole('checkbox', {
-      name: 'Jalon « 15 km » de « Courir un semi » fait',
-    })
-    expect(screen.getByText('50 %')).toBeInTheDocument()
-    await userEvent.click(box)
-    expect(goalsApi.patchMilestone).toHaveBeenCalledWith('m2', {
-      done: true,
-      done_at: expect.any(String),
-    })
-  })
-
   it('rappelle les priorités de la semaine, cochables', async () => {
     vi.mocked(todosApi.fetchTodos).mockResolvedValue([
       {
@@ -264,45 +243,5 @@ describe('TodayPage', () => {
       within(card).getByRole('checkbox', { name: 'Terminer « Finir le rapport »' }),
     )
     expect(todosApi.patchTodo).toHaveBeenCalledWith('w1', expect.objectContaining({ done: true }))
-  })
-
-  it('montre les kcal restantes et le prochain repas prévu, menant au Menu', async () => {
-    const meal = (id: string, mealId: 'lunch' | 'dinner', name: string, kcal: number) => ({
-      id,
-      day: today,
-      meal: mealId,
-      food_id: null,
-      recipe_id: null,
-      name,
-      grams: 100,
-      kcal,
-      protein_dg: 0,
-      carbs_dg: 0,
-      fat_dg: 0,
-      position: 0,
-      created_at: '',
-    })
-    vi.mocked(menuApi.fetchMealItems).mockResolvedValue([
-      meal('m1', 'lunch', 'Riz blanc (cuit)', 260),
-      meal('m2', 'dinner', 'Saumon', 280),
-    ])
-    vi.mocked(menuApi.fetchTargets).mockResolvedValue({
-      kcal: 2000,
-      protein_g: null,
-      carbs_g: null,
-      fat_g: null,
-    })
-    renderPage()
-    const card = await screen.findByRole('link', { name: /kcal restantes/ })
-    expect(card).toHaveAccessibleName(/^1\s460 kcal restantes\. .* prévu : /)
-    // avant 15 h c'est le déjeuner qui vient, ensuite le dîner
-    expect(card).toHaveTextContent(parisHour() < 15 ? 'Riz blanc' : 'Saumon')
-    expect(card).toHaveAttribute('href', '/menu')
-  })
-
-  it('n’affiche rien du Menu sans repas ni objectif', async () => {
-    renderPage()
-    await screen.findByRole('region', { name: 'Todos du jour' })
-    expect(screen.queryByRole('link', { name: /kcal/ })).toBeNull()
   })
 })

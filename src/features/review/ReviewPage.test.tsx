@@ -133,7 +133,7 @@ describe('ReviewPage', () => {
     const card = await screen.findByRole('region', { name: 'Humeur et énergie' })
     expect(within(card).getByRole('link', { name: 'Noter mon humeur' })).toHaveAttribute(
       'href',
-      '/',
+      '/aujourdhui',
     )
   })
 

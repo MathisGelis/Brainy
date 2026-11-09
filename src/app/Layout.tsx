@@ -1,8 +1,16 @@
 import { lazy, Suspense, useLayoutEffect, useRef, useState } from 'react'
 import { NavLink, Outlet, useLocation, useMatch } from 'react-router-dom'
-import { CalendarIcon, LogoutIcon, PlusIcon, SearchIcon, ThemeToggle } from '@/components/ui'
+import {
+  CalendarIcon,
+  LogoutIcon,
+  MoreIcon,
+  PlusIcon,
+  SearchIcon,
+  ThemeToggle,
+} from '@/components/ui'
 import { signOut } from '@/features/auth/useAuth'
 import { useRecurringGeneration } from '@/features/budget/useBudgetExtras'
+import { MoreMenu } from './MoreMenu'
 import { navItems, secondaryNavItems } from './navItems'
 import { AppBanners } from './pwa/AppBanners'
 import { SchemaBanner } from './SchemaBanner'
@@ -19,6 +27,12 @@ function tabFor(pathname: string): QuickAddTab {
   if (pathname.startsWith('/budget')) return 'expense'
   return 'todo'
 }
+
+/** Onglet de la barre mobile (aussi appliqué au bouton « Plus »). */
+const tabClass = ({ isActive }: { isActive: boolean }) =>
+  `relative z-10 flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-[24px] text-[10px] leading-tight tracking-tight transition-colors ${
+    isActive ? 'font-semibold text-accent' : 'text-muted hover:text-text'
+  }`
 
 export function Brand() {
   return (
@@ -63,8 +77,10 @@ function useNavIndicator(pathname: string) {
 }
 
 export function Layout() {
-  // Les notes (liste + éditeur) ont besoin de plus de largeur que les autres écrans.
-  const wide = useMatch('/notes/*') !== null
+  // Les notes (liste + éditeur) et le dashboard ont besoin de plus de largeur que les autres écrans.
+  const notes = useMatch('/notes/*') !== null
+  const dashboard = useMatch({ path: '/', end: true }) !== null
+  const wide = notes || dashboard
   const { pathname } = useLocation()
   const section = pathname.split('/')[1] ?? ''
   const [quickAdd, setQuickAdd] = useState<QuickAddTab | null>(null)
@@ -83,7 +99,20 @@ export function Layout() {
     returnFocus.current?.focus()
   }
   const plusRef = useRef<HTMLButtonElement>(null)
-  const { navRef, indicatorRef } = useNavIndicator(pathname)
+  const { navRef: sideNavRef, indicatorRef: sideIndicatorRef } = useNavIndicator(pathname)
+  const { navRef: tabNavRef, indicatorRef: tabIndicatorRef } = useNavIndicator(pathname)
+  // Menu « Plus » ouvert pour une page donnée : changer de page le referme sans effet
+  const [moreFor, setMoreFor] = useState<string | null>(null)
+  const more = moreFor === pathname
+  const moreButtonRef = useRef<HTMLButtonElement>(null)
+  // Onglet courant rangé dans « Plus » : le bouton « Plus » s'allume à sa place
+  const inMore = !navItems.some(
+    (n) => n.mobile && (n.end ? pathname === n.to : pathname.startsWith(n.to)),
+  )
+  function closeMore() {
+    setMoreFor(null)
+    moreButtonRef.current?.focus()
+  }
   // Loyer, abonnements, salaire : occurrences du mois créées à l'ouverture de l'app
   useRecurringGeneration()
 
@@ -96,6 +125,7 @@ export function Layout() {
     onNew: () => setQuickAdd((current) => current ?? tabFor(pathname)),
     onHelp: () => setHelp((v) => !v),
     onEscape: () => {
+      if (more) closeMore()
       if (palette) closePalette()
       if (quickAdd) closeQuickAdd()
       setHelp(false)
@@ -113,58 +143,48 @@ export function Layout() {
         Aller au contenu
       </button>
 
-      {/* Barre latérale (desktop) / barre d'onglets flottante (mobile) */}
-      <div className="fixed inset-x-2 bottom-[calc(env(safe-area-inset-bottom)+10px)] z-40 md:inset-x-auto md:top-4 md:bottom-4 md:left-4 md:w-60">
-        <div className="glass flex h-full flex-col rounded-[30px] p-1 md:rounded-[28px] md:p-3">
-          <div className="hidden px-3 pt-2 pb-4 md:block">
+      {/* Barre latérale (desktop) */}
+      <div className="fixed top-4 bottom-4 left-4 z-40 hidden w-60 md:block">
+        <div className="glass flex h-full flex-col rounded-[28px] p-3">
+          <div className="px-3 pt-2 pb-4">
             <Brand />
           </div>
           <button
             type="button"
             onClick={openPalette}
-            className="mb-3 hidden min-h-10 items-center gap-2 rounded-2xl border border-[var(--field-border)] bg-bg px-3 text-sm text-muted transition-colors hover:text-text md:flex"
+            className="mb-3 flex min-h-10 items-center gap-2 rounded-2xl border border-[var(--field-border)] bg-bg px-3 text-sm text-muted transition-colors hover:text-text"
           >
             <SearchIcon width={16} height={16} />
             <span className="flex-1 text-left">Rechercher</span>
             <kbd className="font-sans text-xs">⌘K</kbd>
           </button>
           <nav
-            ref={navRef}
+            ref={sideNavRef}
             aria-label="Navigation principale"
-            className="relative grid grid-cols-7 md:flex md:flex-col md:gap-1"
+            className="relative flex flex-col gap-1"
           >
             <span
-              ref={indicatorRef}
+              ref={sideIndicatorRef}
               aria-hidden
-              className="nav-indicator absolute top-0 left-0 rounded-[24px] md:rounded-2xl"
+              className="nav-indicator absolute top-0 left-0 rounded-2xl"
             />
-            {navItems.map(({ to, label, short, end, icon: Icon }) => (
+            {navItems.map(({ to, label, end, icon: Icon }) => (
               <NavLink
                 key={to}
                 to={to}
                 end={end}
                 className={({ isActive }) =>
-                  `relative z-10 flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-[24px] text-[10px] leading-tight tracking-tight transition-colors md:min-h-10 md:tracking-normal md:flex-row md:justify-start md:gap-3 md:rounded-2xl md:px-3 md:text-sm ${
+                  `relative z-10 flex min-h-10 items-center gap-3 rounded-2xl px-3 text-sm transition-colors ${
                     isActive ? 'font-semibold text-accent' : 'text-muted hover:text-text'
                   }`
                 }
               >
                 <Icon />
-                {short ? (
-                  <>
-                    <span className="md:hidden">{short}</span>
-                    <span className="hidden md:inline">{label}</span>
-                  </>
-                ) : (
-                  <span>{label}</span>
-                )}
+                <span>{label}</span>
               </NavLink>
             ))}
           </nav>
-          <nav
-            aria-label="Vues"
-            className="mt-3 hidden flex-col gap-1 border-t border-border pt-3 md:flex"
-          >
+          <nav aria-label="Vues" className="mt-3 flex flex-col gap-1 border-t border-border pt-3">
             {secondaryNavItems.map(({ to, label, icon: Icon }) => (
               <NavLink
                 key={to}
@@ -180,7 +200,7 @@ export function Layout() {
               </NavLink>
             ))}
           </nav>
-          <div className="mt-auto hidden items-center justify-between border-t border-border pt-3 md:flex">
+          <div className="mt-auto flex items-center justify-between border-t border-border pt-3">
             <ThemeToggle />
             <button
               type="button"
@@ -191,6 +211,43 @@ export function Layout() {
               Déconnexion
             </button>
           </div>
+        </div>
+      </div>
+
+      {/* Barre d'onglets flottante (mobile) : 4 onglets + « Plus » */}
+      <div className="fixed inset-x-2 bottom-[calc(env(safe-area-inset-bottom)+10px)] z-50 md:hidden">
+        {more && <MoreMenu id="menu-plus" onClose={closeMore} ignore={moreButtonRef} />}
+        <div className="glass rounded-[30px] p-1">
+          <nav
+            ref={tabNavRef}
+            aria-label="Navigation principale"
+            className="relative grid grid-cols-5"
+          >
+            <span
+              ref={tabIndicatorRef}
+              aria-hidden
+              className="nav-indicator absolute top-0 left-0 rounded-[24px]"
+            />
+            {navItems
+              .filter((n) => n.mobile)
+              .map(({ to, label, end, icon: Icon }) => (
+                <NavLink key={to} to={to} end={end} className={tabClass}>
+                  <Icon />
+                  <span>{label}</span>
+                </NavLink>
+              ))}
+            <button
+              ref={moreButtonRef}
+              type="button"
+              aria-expanded={more}
+              aria-controls="menu-plus"
+              onClick={() => (more ? closeMore() : setMoreFor(pathname))}
+              className={tabClass({ isActive: more || inMore })}
+            >
+              <MoreIcon />
+              <span>Plus</span>
+            </button>
+          </nav>
         </div>
       </div>
 

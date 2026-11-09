@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui'
+import { TODAY_PATH } from '@/app/navItems'
 
 export type Step = { title: string; body: ReactNode }
 
@@ -34,7 +35,7 @@ export function StepFlow({ steps, onFinish }: { steps: Step[]; onFinish: () => v
       <div className="flex items-center justify-between gap-2">
         <button
           type="button"
-          onClick={() => (step === 0 ? navigate('/') : setStep(step - 1))}
+          onClick={() => (step === 0 ? navigate(TODAY_PATH) : setStep(step - 1))}
           className="min-h-11 rounded-full px-4 text-muted transition-colors hover:bg-surface hover:text-text"
         >
           {step === 0 ? 'Plus tard' : 'Précédent'}

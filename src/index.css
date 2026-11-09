@@ -43,6 +43,32 @@
   color-scheme: light;
 }
 
+/*
+ * Graphiques du dashboard : palette validée (dataviz, scripts/validate_palette.js) contre le fond
+ * des cartes, en clair et en sombre. Série 1 = violet de l'app, série 2 = orange ; rampe à 4 paliers
+ * d'un seul violet pour la carte de chaleur ; gris de mise en retrait pour le « reste ».
+ */
+:root {
+  --viz-1: #4a3ddc;
+  --viz-2: #eb6834;
+  --viz-quiet: #b6b8c9;
+  --viz-grid: rgba(20, 20, 70, 0.12);
+  --heat-1: #a9a1f0;
+  --heat-2: #8378e6;
+  --heat-3: #5f52df;
+  --heat-4: #3a2db5;
+}
+:root[data-theme='dark'] {
+  --viz-1: #9085e9;
+  --viz-2: #d95926;
+  --viz-quiet: #4c4d60;
+  --viz-grid: rgba(255, 255, 255, 0.1);
+  --heat-1: #4b4398;
+  --heat-2: #6a5fcc;
+  --heat-3: #8c82e8;
+  --heat-4: #b4adf7;
+}
+
 :root[data-theme='dark'] {
   --canvas: #07070b;
   --text: #f2f2f7;

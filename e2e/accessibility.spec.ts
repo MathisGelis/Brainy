@@ -163,7 +163,9 @@ const seed = {
 }
 
 const pages = [
-  { path: '', ready: { role: 'heading', name: "Aujourd'hui" } },
+  { path: '', ready: { role: 'heading', name: 'Dashboard' } },
+  { path: '#/aujourdhui', ready: { role: 'heading', name: "Aujourd'hui" } },
+  { path: '#/plan', ready: { role: 'heading', name: 'Plan financier' } },
   { path: '#/todo', ready: { role: 'heading', name: 'Todo' } },
   { path: '#/habitudes', ready: { role: 'heading', name: 'Habitudes' } },
   {
@@ -214,7 +216,7 @@ test('aucune violation axe (WCAG A/AA) : connexion', async ({ page }) => {
 test('aucune violation axe (WCAG A/AA) : palette de commandes ouverte', async ({ page }) => {
   await installFakeSupabase(page, seed)
   await page.goto('')
-  await expect(page.getByRole('heading', { name: "Aujourd'hui", level: 1 })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Dashboard', level: 1 })).toBeVisible()
   await page.keyboard.press('Control+k')
   await page.getByRole('combobox', { name: 'Rechercher ou créer' }).fill('loyer')
   await expect(page.getByRole('option').first()).toBeVisible()
@@ -258,3 +260,18 @@ for (const theme of ['light', 'dark'] as const)
       results.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target).join(' | ')}`),
     ).toEqual([])
   })
+
+test('aucune violation axe (WCAG A/AA) : menu « Plus » ouvert sur mobile', async ({
+  page,
+}, info) => {
+  test.skip(info.project.name !== 'mobile', 'menu propre à la barre mobile')
+  await installFakeSupabase(page, seed)
+  await page.goto('')
+  await expect(page.locator('.animate-pulse')).toHaveCount(0)
+  await page.getByRole('button', { name: 'Plus' }).click()
+  await expect(page.getByRole('navigation', { name: 'Autres sections' })).toBeVisible()
+  const results = await new AxeBuilder({ page }).withTags(WCAG).analyze()
+  expect(
+    results.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target).join(' | ')}`),
+  ).toEqual([])
+})

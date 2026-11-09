@@ -6,6 +6,7 @@ import { usePointerLight } from './background/usePointerLight'
 import { RequireAuth } from '@/features/auth/RequireAuth'
 
 const LoginPage = lazy(() => import('@/features/auth/LoginPage'))
+const DashboardPage = lazy(() => import('@/features/dashboard/DashboardPage'))
 const TodayPage = lazy(() => import('@/features/today/TodayPage'))
 const GoalsPage = lazy(() => import('@/features/goals/GoalsPage'))
 const NotesPage = lazy(() => import('@/features/notes/NotesPage'))
@@ -30,7 +31,8 @@ export function App() {
           <Route path="connexion" element={<LoginPage />} />
           <Route element={<RequireAuth />}>
             <Route element={<Layout />}>
-              <Route index element={<TodayPage />} />
+              <Route index element={<DashboardPage />} />
+              <Route path="aujourdhui" element={<TodayPage />} />
               <Route path="objectifs" element={<GoalsPage />} />
               <Route path="notes/:noteId?" element={<NotesPage />} />
               <Route path="habitudes" element={<HabitsPage />} />
