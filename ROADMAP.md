@@ -120,6 +120,12 @@ _Lighthouse (mobile, build de prod) sur la page de connexion : performance 97, a
 - [x] Écran Plan : mois en cours prévu/réel, trajectoire d'épargne, primes, enveloppes
 - [x] Tests (unitaires avec un classeur fictif, e2e, axe dans les deux thèmes)
 
+## Phase 15 — Dashboard et navigation mobile
+- [x] Dashboard en page d'accueil : chiffres clés, todos sur 7 jours, carte de chaleur des habitudes, budget par catégorie, humeur et énergie, jalons, épargne, menu
+- [x] Aujourd'hui allégé (jalons, budget et menu passent au Dashboard), sur `/aujourdhui`
+- [x] Navigation mobile : 4 onglets + menu « Plus » ; Plan financier dans la navigation
+- [x] Tests (unitaires, e2e, axe dans les deux thèmes, menu « Plus » ouvert)
+
 ## Backlog (idées, ne pas implémenter sans validation)
 - Devise de l'app entière (€ puis CAD au déménagement) ; aujourd'hui le réel d'une période CAD est lu tel quel
 - Événements : rappels, couleurs ou catégories, import/export iCal, jours en déplacement pris en compte par la planification de la semaine

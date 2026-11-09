@@ -13,22 +13,29 @@ Un seul endroit, ouvert chaque jour, pour piloter sa vie perso : ce que je vise,
 Un seul utilisateur (Mathis). Auth simple (magic link ou email/mot de passe Supabase). Inscription publique désactivée.
 
 ## Navigation
-Barre latérale (desktop) / barre d'onglets en bas (mobile) :
-`Aujourd'hui · Objectifs · Notes · Habitudes · Todo · Budget · Menu`
+- Desktop : barre latérale `Dashboard · Aujourd'hui · Objectifs · Notes · Habitudes · Todo · Budget · Menu`, puis `Calendrier · Revue de la semaine · Plan financier`
+- Mobile : barre d'onglets en bas `Dashboard · Aujourd'hui · Todo · Budget · Plus` ; « Plus » ouvre un panneau avec les autres sections, le thème et la déconnexion (Échap, un toucher à côté ou un changement de page le referment)
+
+## Dashboard (page d'accueil, `/`)
+Vue très visuelle, en lecture ; l'action quotidienne reste sur Aujourd'hui (lien « Ma journée » avec ce qu'il reste à faire) :
+- Chiffres clés : todos faites sur 7 jours, part des habitudes faites cette semaine, reste à dépenser du mois (jauge), humeur moyenne sur 7 jours, chacun avec l'écart face à la période d'avant
+- Todos terminées sur les 7 derniers jours (colonnes, aujourd'hui mis en avant)
+- Habitudes sur 12 semaines (carte de chaleur : plus foncé = plus d'habitudes faites)
+- Budget du mois (dépensé, reste, rythme de fin de mois) et dépenses par catégorie face au budget
+- Humeur et énergie sur 30 jours (deux courbes, lisibles jour par jour au clavier)
+- Prochains jalons (cochables), cagnottes d'épargne, menu du jour (kcal restantes)
+- Chaque graphique a une info-bulle au survol et au clavier, et une vue tableau ; palette validée en clair et en sombre
 
 ## Specs par onglet
 
-### Aujourd'hui (page d'accueil)
-Vue synthèse en lecture + actions rapides :
+### Aujourd'hui (`/aujourdhui`)
+La journée, en actions (les vues d'ensemble sont sur le Dashboard) :
 - Top 3 du jour : les 3 priorités choisies le matin (ou la veille au soir), en tête de page
 - Rituel du matin (choisir le Top 3) et du soir (humeur, victoire du jour, habitudes, reports, Top 3 de demain), en 30 secondes
 - Priorités de la semaine (3 todos) rappelées sous le Top 3
 - Humeur et énergie du jour (1 à 5) en un geste
 - Todos du jour (cochables, report en un geste)
 - Habitudes du jour (cochables ; quantité pour les habitudes chiffrées)
-- Prochain jalon de chaque objectif en cours (cochable)
-- Budget du mois : dépensé / budget, barre de progression
-- Menu du jour : kcal restantes et prochain repas prévu
 - Note du jour (journal) en un clic
 - Le dimanche : accès à la revue de la semaine ; du vendredi au lundi : planification de la semaine
 - Un bouton « + » global (raccourci `n`) : ajouter todo, note ou dépense

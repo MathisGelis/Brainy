@@ -75,7 +75,10 @@ Si tout est à `true` mais que l'erreur persiste, rechargez le cache de PostgRES
   dépenses/revenus récurrents générés automatiquement.
 - **Habitudes** : jours précis, jours off (vacances), objectifs chiffrés.
 - **Notes** : cases `- [ ]` cochables dans l'aperçu, note du jour.
-- **Objectifs** : todos et habitudes liées, prochains jalons sur l'accueil.
+- **Dashboard** (accueil, `#/`) : chiffres clés de la semaine, todos sur 7 jours, carte de chaleur des
+  habitudes, budget par catégorie, courbe humeur/énergie, jalons, épargne. La journée en actions est sur
+  **Aujourd'hui** (`#/aujourdhui`). Sur mobile : 4 onglets et un menu « Plus » pour le reste.
+- **Objectifs** : todos et habitudes liées, prochains jalons sur le Dashboard.
 - **Top 3 du jour** en tête de l'accueil (suggestions ou saisie directe) ; **rituel du soir**
   (`#/rituel`, proposé à partir de 18 h) : humeur, habitudes, reports, Top 3 de demain.
 - **Humeur et énergie** (1 à 5) en un geste sur l'accueil ; **victoire du jour** notée dans le rituel du soir.
@@ -122,12 +125,12 @@ Panneaux de verre dépoli sur un fond animé three.js (orbe irisé + aurore), th
 
 ## Raccourcis clavier (desktop)
 
-`⌘K` / `Ctrl+K` palette · `n` ajout rapide (todo, note, dépense) · `/` rechercher dans les notes · `g` puis `a` `o` `n` `h` `t` `b` `m`
-pour changer d'onglet, `c` calendrier, `r` revue, `p` planifier la semaine · `?` liste des raccourcis · `Échap` fermer.
+`⌘K` / `Ctrl+K` palette · `n` ajout rapide (todo, note, dépense) · `/` rechercher dans les notes · `g` puis `d` dashboard, `a` aujourd'hui, `o` `n` `h` `t` `b` `m`
+pour changer d'onglet, `c` calendrier, `r` revue, `p` planifier la semaine, `f` plan financier · `?` liste des raccourcis · `Échap` fermer.
 
 ## Données
 
-- Export : accueil → « Compte et données » → JSON (sauvegarde complète) ou CSV des dépenses
+- Export : Aujourd'hui → « Compte et données » → JSON (sauvegarde complète) ou CSV des dépenses
   (format tableur français : `;` et virgule décimale).
 - Montants stockés en centimes ; jours en `YYYY-MM-DD`, fuseau Europe/Paris.
 
