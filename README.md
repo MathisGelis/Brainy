@@ -92,6 +92,11 @@ Si tout est à `true` mais que l'erreur persiste, rechargez le cache de PostgRES
   Recettes et repas types (« 2 parts curry soir », « Enregistrer comme repas type »), copie d'un jour
   ou de la semaine précédente ; courses terminées → « Combien avez-vous payé ? » → dépense dans Budget.
   L'accueil affiche les kcal restantes et le prochain repas prévu.
+  **Plan de repas en Markdown** : Menu → « Importer un plan de repas (.md) » (modèle téléchargeable).
+  Format : `## Objectifs` (« Calories : 2200 kcal »…), `## Aliments` (tableau : Aliment | kcal | Protéines |
+  Glucides | Lipides | Portion, valeurs pour 100 g), `## Recettes` (`### Nom (2 parts)` puis les
+  ingrédients en liste), `## Semaine` (`### Lundi`, `### Tous les jours` ou `### 2026-12-24`, puis
+  « - Déjeuner : 150 g Saumon, Poulet riz (1 part), Salade (450 kcal, P 25, G 40, L 18) »).
 - **Revue de la semaine** (`#/revue`, ou la carte de l'accueil le dimanche et le lundi), avec humeur,
   énergie et liens simples (« les jours de sport, énergie +0,8 »).
 - **Calendrier** (`#/calendrier`) : vue du mois ; le détail d'un jour permet de cocher, d'ajouter

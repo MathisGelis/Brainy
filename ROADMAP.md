@@ -126,6 +126,12 @@ _Lighthouse (mobile, build de prod) sur la page de connexion : performance 97, a
 - [x] Navigation mobile : 4 onglets + menu « Plus » ; Plan financier dans la navigation
 - [x] Tests (unitaires, e2e, axe dans les deux thèmes, menu « Plus » ouvert)
 
+## Phase 16 — Plan de repas en Markdown
+- [x] Format .md (aliments et macros, recettes, jours, objectifs) et modèle téléchargeable
+- [x] Rapprochement des aliments (fichier, mes aliments, base courante) et des recettes ; quantités en g/ml, portions, parts, valeurs données sur la ligne
+- [x] Import dans l'onglet Menu : aperçu, semaine de départ, 1 à 4 semaines, remplacement
+- [x] Tests (unitaires, e2e, axe dans les deux thèmes)
+
 ## Backlog (idées, ne pas implémenter sans validation)
 - Devise de l'app entière (€ puis CAD au déménagement) ; aujourd'hui le réel d'une période CAD est lu tel quel
 - Événements : rappels, couleurs ou catégories, import/export iCal, jours en déplacement pris en compte par la planification de la semaine

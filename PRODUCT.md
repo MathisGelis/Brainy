@@ -88,6 +88,7 @@ La journée, en actions (les vues d'ensemble sont sur le Dashboard) :
 - Liste de courses (liste de todos « Courses ») : quand on ajoute un aliment au menu, proposition de l'y ajouter ; « tout ajouter » pour les aliments de la semaine, sans doublon
 - Recettes et repas types : ingrédients et nombre de parts, macros par part ; ajout au menu en un geste (« 2 parts curry ») ; « enregistrer ce repas comme repas type » ; leurs ingrédients vont dans la liste de courses
 - Copier le menu d'un jour récent ou dupliquer la semaine précédente
+- Importer un plan de repas en Markdown (modèle téléchargeable) : aliments avec leurs macros pour 100 g, recettes et parts, repas jour par jour (« Lundi », « Tous les jours » ou une date), objectifs ; posé sur 1 à 4 semaines à partir de la semaine choisie, en remplaçant ou non ce qui est déjà prévu. Aperçu avant d'enregistrer : ce qui sera créé ou mis à jour, rapprochements à vérifier, lignes ignorées. Les aliments sont cherchés dans le fichier, puis dans « Mes aliments », puis dans la base courante ; une recette de même nom est remplacée, pas dupliquée
 - Courses terminées : « Combien as-tu payé ? » crée la dépense dans Budget (catégorie Courses)
 - Repas, aliments, recettes et objectifs modifiables et supprimables
 
