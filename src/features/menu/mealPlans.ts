@@ -40,11 +40,32 @@ export function resolvePlanLibrary(md: MealPlanMd, ctx: Ctx): ResolvedPlan {
  */
 export function previewPlan(md: MealPlanMd, ctx: Ctx, monday: string): ResolvedPlan {
   const types = planTypes(md)
-  return resolveMealPlan(md, ctx, {
+  const plan = resolveMealPlan(md, ctx, {
     monday,
     weeks: Math.max(1, types.length),
     weekTypes: types.length > 0 ? types : undefined,
   })
+  return { ...plan, notes: [...repeatedDays(md), ...plan.notes] }
+}
+
+/**
+ * Jours décrits deux fois pour les mêmes semaines : leurs repas s'additionnent (deux petits-déjeuners…),
+ * souvent le signe d'un titre de semaine non reconnu.
+ */
+export function repeatedDays(md: MealPlanMd): string[] {
+  const seen = new Map<string, { label: string; count: number }>()
+  for (const d of md.days) {
+    const key = `${d.cycle ?? ''}|${d.key.kind === 'weekday' ? d.key.weekday : d.key.kind === 'date' ? d.key.date : 'every'}`
+    const s = seen.get(key)
+    if (s) s.count += 1
+    else seen.set(key, { label: d.label, count: 1 })
+  }
+  return [...seen.values()]
+    .filter((s) => s.count > 1)
+    .map(
+      (s) =>
+        `« ${s.label} » est décrit ${s.count} fois pour les mêmes semaines : ses repas s’additionnent. Pour des semaines différentes, titrez-les « ## Semaine A », « ## Semaine B »…`,
+    )
 }
 
 /**

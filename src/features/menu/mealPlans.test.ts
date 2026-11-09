@@ -1,5 +1,5 @@
 import { parseMealPlanMd } from './mealPlanMd'
-import { choiceValue, parseChoice, planTypes, planWeekChanges } from './mealPlans'
+import { choiceValue, parseChoice, planTypes, planWeekChanges, repeatedDays } from './mealPlans'
 import type { MealItem } from './types'
 
 const meal = (id: string, over: Partial<MealItem>): MealItem => ({
@@ -61,5 +61,28 @@ describe('plan de chaque semaine', () => {
       removeIds: ['a'],
       add: [],
     })
+  })
+})
+
+describe('titres de semaine', () => {
+  const cycles = (title: string) =>
+    parseMealPlanMd(`## ${title}\n### Lundi\n- Déjeuner : X (1 kcal)\n`).days.map((d) => d.cycle)
+
+  it('reconnaît un type suivi d’un nom, ou numéroté', () => {
+    expect(cycles('Semaine A')).toEqual(['A'])
+    expect(cycles('Semaine A — sèche')).toEqual(['A'])
+    expect(cycles('Semaine B (prise de masse)')).toEqual(['B'])
+    expect(cycles('Semaine A :')).toEqual(['A'])
+    expect(cycles('Semaine type C')).toEqual(['C'])
+    expect(cycles('Semaine 2')).toEqual(['B'])
+    expect(cycles('Semaine')).toEqual([null])
+    expect(cycles('Semaine actuelle')).toEqual([null])
+  })
+
+  it('signale un jour décrit deux fois pour les mêmes semaines', () => {
+    const md = parseMealPlanMd(
+      '## Semaine\n### Lundi\n- Déjeuner : X (1 kcal)\n## Semaine\n### Lundi\n- Déjeuner : Y (1 kcal)\n## Semaine A\n### Mardi\n- Dîner : Z (1 kcal)\n## Semaine B\n### Mardi\n- Dîner : W (1 kcal)\n',
+    )
+    expect(repeatedDays(md)).toEqual([expect.stringMatching(/^« Lundi » est décrit 2 fois/)])
   })
 })

@@ -265,10 +265,13 @@ export function parseMealPlanMd(md: string): MealPlanMd {
         return
       }
       // « Semaine A », « Semaine B »… : les jours qui suivent n'ont lieu que les semaines de ce type
-      const ab = /^semaine\s+([a-z])$/.exec(fold(h.text).trim())
-      if (ab) {
+      // (suivi ou non d'un nom : « Semaine A — sèche », « Semaine B (masse) » ; « Semaine 1 » = A)
+      const ab = /^semaine\s+(?:type\s+)?([a-z]|[1-9]\d?)(?![\p{L}\d])/u.exec(fold(h.text).trim())
+      if (ab && (/[a-z]/.test(ab[1]!) || Number(ab[1]) <= 26)) {
         section = 'days'
-        cycle = ab[1]!.toUpperCase()
+        cycle = /[a-z]/.test(ab[1]!)
+          ? ab[1]!.toUpperCase()
+          : String.fromCharCode(64 + Number(ab[1]))
         day = null
         meal = null
         recipe = null
