@@ -81,14 +81,14 @@ La journée, en actions (les vues d'ensemble sont sur le Dashboard) :
 - Liste des dépenses et revenus du mois avec édition/suppression
 
 ### Menu (repas et macros)
-- Repas du jour (petit-déjeuner, déjeuner, dîner, collation) : passés = ce qui a été mangé, à venir = menu prévu
+- Repas du jour (petit-déjeuner, déjeuner, dîner, collation) : chaque élément se coche « mangé » ou non (coché d'office pour un ajout à la main d'un repas déjà passé) ; les totaux comptent le mangé, avec ce qui reste prévu sur la journée
 - Ajout en langage naturel : « 200 g poulet midi », « 2 œufs », « 1 banane collation demain »
 - Base d'aliments courants (valeurs indicatives pour 100 g) ; chaque aliment est copié dans « Mes aliments » et devient modifiable ; aliment inconnu : on saisit ses valeurs une fois
 - Tracker de macros : kcal, protéines, glucides, lipides du jour face aux objectifs ; kcal par jour de la semaine
-- Liste de courses (liste de todos « Courses ») : quand on ajoute un aliment au menu, proposition de l'y ajouter ; « tout ajouter » pour les aliments de la semaine, sans doublon
+- Liste de courses (liste de todos « Courses ») : quand on ajoute un aliment au menu, proposition de l'y ajouter. Quantités : les repas pas encore mangés de la semaine donnent le besoin par aliment (ingrédients des recettes au prorata) ; on note ce qu'on a à la maison ; « tout ajouter » met le reste à acheter sur la liste (« Riz — 400 g »), sans doublon. Un article acheté entre dans le stock, un repas coché mangé en sort (décocher l'y remet)
 - Recettes et repas types : ingrédients et nombre de parts, macros par part ; ajout au menu en un geste (« 2 parts curry ») ; « enregistrer ce repas comme repas type » ; leurs ingrédients vont dans la liste de courses
 - Copier le menu d'un jour récent ou dupliquer la semaine précédente
-- Importer un plan de repas en Markdown (modèle téléchargeable) : aliments avec leurs macros pour 100 g, recettes et parts, repas jour par jour (« Lundi », « Tous les jours » ou une date), objectifs ; plusieurs types de semaine (« Semaine A », « Semaine B »…), le type de chaque semaine importée choisi un par un (ou aucun) ; posé sur 1 à 8 semaines à partir de la semaine choisie, en remplaçant ou non ce qui est déjà prévu. Aperçu avant d'enregistrer : ce qui sera créé ou mis à jour, rapprochements à vérifier, lignes ignorées. Les aliments sont cherchés dans le fichier, puis dans « Mes aliments », puis dans la base courante ; une recette de même nom est remplacée, pas dupliquée
+- Plans de repas en Markdown (modèle téléchargeable), autant qu'on veut, gardés dans l'app : aliments avec leurs macros pour 100 g, recettes et parts, repas jour par jour (« Lundi », « Tous les jours » ou une date), objectifs, éventuellement plusieurs types de semaine (« Semaine A », « Semaine B »…). Aperçu avant d'ajouter : ce qui sera créé ou mis à jour, rapprochements à vérifier, lignes ignorées ; les aliments sont cherchés dans le fichier, puis dans « Mes aliments », puis dans la base courante ; une recette de même nom est remplacée, pas dupliquée. Pour chacune des 6 semaines à venir, un sélecteur choisit le plan suivi (et son type de semaine) ou aucun : changer remplace les repas posés par le plan et pas encore mangés, à partir d'aujourd'hui ; les ajouts à la main et les repas mangés restent. Supprimer un plan retire ses repas à venir non mangés (avec « Annuler »)
 - Courses terminées : « Combien as-tu payé ? » crée la dépense dans Budget (catégorie Courses)
 - Repas, aliments, recettes et objectifs modifiables et supprimables
 

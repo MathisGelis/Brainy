@@ -37,8 +37,10 @@ pas encore appliquées, dans l'ordre :
 | `supabase/migrations/0006_recettes.sql` | 11 | recettes et repas types |
 | `supabase/migrations/0007_evenements.sql` | 13 | événements du calendrier (avec récurrences) |
 | `supabase/migrations/0008_plan_financier.sql` | 14 | plan financier pluriannuel (import Excel) |
+| `supabase/migrations/0009_plans_repas.sql` | 17 | plans de repas multiples, repas mangés, stock à la maison |
 
-Les migrations ne font qu'ajouter : aucune donnée existante n'est modifiée ni supprimée.
+Les migrations ne font qu'ajouter : aucune donnée existante n'est supprimée (seule 0009 initialise la
+nouvelle colonne « mangé » des repas existants : cochée jusqu'à aujourd'hui).
 
 Si une migration manque, l'app affiche un bandeau qui liste les fichiers à exécuter, et une écriture
 qui en dépend échoue avec « la base n'est pas à jour » (erreur PostgREST `PGRST204` ou `42703`).
@@ -59,7 +61,9 @@ select
   exists (select 1 from information_schema.tables
           where table_schema = 'public' and table_name = 'events') as "0007",
   exists (select 1 from information_schema.tables
-          where table_schema = 'public' and table_name = 'plan_periods') as "0008";
+          where table_schema = 'public' and table_name = 'plan_periods') as "0008",
+  exists (select 1 from information_schema.columns
+          where table_schema = 'public' and table_name = 'meal_items' and column_name = 'eaten') as "0009";
 ```
 
 N'exécutez que les migrations à `false`, dans l'ordre (les rejouer échoue : « already exists »).
@@ -92,13 +96,17 @@ Si tout est à `true` mais que l'erreur persiste, rechargez le cache de PostgRES
   Recettes et repas types (« 2 parts curry soir », « Enregistrer comme repas type »), copie d'un jour
   ou de la semaine précédente ; courses terminées → « Combien avez-vous payé ? » → dépense dans Budget.
   L'accueil affiche les kcal restantes et le prochain repas prévu.
-  **Plan de repas en Markdown** : Menu → « Importer un plan de repas (.md) » (modèle téléchargeable).
+  Chaque élément de repas se coche « mangé » : les totaux et les kcal restantes ne comptent que le mangé.
+  Courses avec quantités : le besoin des repas prévus, ce qu'on a à la maison, et le reste à acheter
+  (« Riz — 400 g ») ; un achat coché entre dans le stock, un repas mangé en sort.
+  **Plans de repas en Markdown** : Menu → « Plans de repas » (modèle téléchargeable), autant qu'on veut,
+  puis un sélecteur par semaine (6 à venir) pour choisir le plan suivi, ou aucun.
   Format : `## Objectifs` (« Calories : 2200 kcal »…), `## Aliments` (tableau : Aliment | kcal | Protéines |
   Glucides | Lipides | Portion, valeurs pour 100 g), `## Recettes` (`### Nom (2 parts)` puis les
   ingrédients en liste), `## Semaine` (`### Lundi`, `### Tous les jours` ou `### 2026-12-24`, puis
   « - Déjeuner : 150 g Saumon, Poulet riz (1 part), Salade (450 kcal, P 25, G 40, L 18) »).
-  Plusieurs types de semaine : `## Semaine A`, `## Semaine B`…, chacune avec ses jours ; à l'import, on
-  choisit le type de chaque semaine une par une (A, A, B, rien…).
+  Plusieurs types de semaine : `## Semaine A`, `## Semaine B`…, chacune avec ses jours ; le sélecteur
+  propose « Plan · Semaine A », « Plan · Semaine B »… pour chaque semaine.
 - **Revue de la semaine** (`#/revue`, ou la carte de l'accueil le dimanche et le lundi), avec humeur,
   énergie et liens simples (« les jours de sport, énergie +0,8 »).
 - **Calendrier** (`#/calendrier`) : vue du mois ; le détail d'un jour permet de cocher, d'ajouter

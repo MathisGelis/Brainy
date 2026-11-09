@@ -133,6 +133,13 @@ _Lighthouse (mobile, build de prod) sur la page de connexion : performance 97, a
 - [x] Types de semaine (A, B…) dans un même fichier, choisis semaine par semaine à l'import
 - [x] Tests (unitaires, e2e, axe dans les deux thèmes)
 
+## Phase 17 — Plans multiples, repas mangés, courses avec quantités (migration `0009_plans_repas.sql`)
+- [x] Migration 0009 (plans, plan de chaque semaine, `meal_items.plan_id` et `eaten`, stock à la maison)
+- [x] Bibliothèque de plans .md (autant qu'on veut) et sélecteur de plan semaine par semaine (6 semaines)
+- [x] Mangé / pas encore : case par élément, totaux mangés face au prévu, kcal restantes sur l'accueil
+- [x] Courses : besoin des repas prévus, quantité à la maison, reste à acheter ; stock mis à jour aux achats et aux repas mangés
+- [x] Tests (unitaires, e2e, axe dans les deux thèmes)
+
 ## Backlog (idées, ne pas implémenter sans validation)
 - Devise de l'app entière (€ puis CAD au déménagement) ; aujourd'hui le réel d'une période CAD est lu tel quel
 - Événements : rappels, couleurs ou catégories, import/export iCal, jours en déplacement pris en compte par la planification de la semaine
