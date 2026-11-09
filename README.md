@@ -105,7 +105,8 @@ Si tout est à `true` mais que l'erreur persiste, rechargez le cache de PostgRES
   Glucides | Lipides | Portion, valeurs pour 100 g), `## Recettes` (`### Nom (2 parts)` puis les
   ingrédients en liste), `## Semaine` (`### Lundi`, `### Tous les jours` ou `### 2026-12-24`, puis
   « - Déjeuner : 150 g Saumon, Poulet riz (1 part), Salade (450 kcal, P 25, G 40, L 18) »).
-  Plusieurs types de semaine : `## Semaine A`, `## Semaine B`…, chacune avec ses jours ; le sélecteur
+  Plusieurs types de semaine : `## Semaine A`, `## Semaine B`… (un nom peut suivre : « Semaine A — sèche » ;
+  « Semaine 1 », « Semaine 2 » valent A, B), chacune avec ses jours ; le sélecteur
   propose « Plan · Semaine A », « Plan · Semaine B »… pour chaque semaine.
 - **Revue de la semaine** (`#/revue`, ou la carte de l'accueil le dimanche et le lundi), avec humeur,
   énergie et liens simples (« les jours de sport, énergie +0,8 »).
