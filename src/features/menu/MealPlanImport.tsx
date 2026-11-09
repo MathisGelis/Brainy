@@ -43,6 +43,7 @@ export function MealPlanImport({ onError }: { onError: (m: string) => void }) {
   const [monday, setMonday] = useState(thisMonday)
   const [weeks, setWeeks] = useState('1')
   const [replace, setReplace] = useState(true)
+  const [startCycle, setStartCycle] = useState<'A' | 'B'>('A')
   const [saving, setSaving] = useState(false)
 
   const mondays: SelectOption<string>[] = [0, 1, 2, 3].map((w) => {
@@ -52,7 +53,7 @@ export function MealPlanImport({ onError }: { onError: (m: string) => void }) {
       label: `${w === 0 ? 'Cette semaine' : w === 1 ? 'Semaine prochaine' : `Semaine du ${formatDayMonth(m)}`} (lun. ${formatDayMonth(m)})`,
     }
   })
-  const repeats: SelectOption<string>[] = ['1', '2', '3', '4'].map((n) => ({
+  const repeats: SelectOption<string>[] = ['1', '2', '3', '4', '6', '8'].map((n) => ({
     value: n,
     label: n === '1' ? '1 semaine' : `${n} semaines`,
   }))
@@ -66,7 +67,22 @@ export function MealPlanImport({ onError }: { onError: (m: string) => void }) {
 
   const plan =
     file &&
-    resolveMealPlan(file.md, { foods, recipes, catalog: CATALOG }, { monday, weeks: Number(weeks) })
+    resolveMealPlan(
+      file.md,
+      { foods, recipes, catalog: CATALOG },
+      { monday, weeks: Number(weeks), startCycle },
+    )
+  // Plan A/B : quelles semaines reçoivent A, lesquelles B
+  const cycles = Boolean(file?.md.days.some((d) => d.cycle))
+  const cycleLine = (['A', 'B'] as const)
+    .map((letter) => {
+      const mondaysOf = Array.from({ length: Number(weeks) }, (_, w) => w)
+        .filter((w) => (w % 2 === 0) === (letter === startCycle))
+        .map((w) => formatDayMonth(addDays(monday, 7 * w)))
+      return mondaysOf.length ? `Semaine ${letter} : ${mondaysOf.join(', ')}` : null
+    })
+    .filter(Boolean)
+    .join(' · ')
   const empty =
     plan &&
     plan.mealItems.length === 0 &&
@@ -205,7 +221,24 @@ export function MealPlanImport({ onError }: { onError: (m: string) => void }) {
                   options={repeats}
                   className="field min-h-11 px-3 md:min-h-9"
                 />
+                {cycles && (
+                  <Select
+                    label="Type de la semaine de départ"
+                    value={startCycle}
+                    onChange={setStartCycle}
+                    options={[
+                      { value: 'A', label: 'Commence par une semaine A' },
+                      { value: 'B', label: 'Commence par une semaine B' },
+                    ]}
+                    className="field min-h-11 px-3 md:min-h-9"
+                  />
+                )}
               </div>
+            )}
+            {cycles && (
+              <p className="text-xs text-muted" aria-live="polite">
+                {cycleLine}
+              </p>
             )}
             <Checkbox
               label="Remplacer les repas déjà prévus ces jours-là"

@@ -92,6 +92,62 @@ describe('parseMealPlanMd', () => {
   })
 })
 
+describe('semaines A et B', () => {
+  const AB = `## Semaine A
+### Lundi
+- Déjeuner : Plat A (500 kcal, P 30, G 50, L 15)
+### Tous les jours
+- Collation : Fruit A (80 kcal)
+
+## Semaine B
+### Lundi
+- Déjeuner : Plat B (600 kcal, P 35, G 60, L 20)
+
+## Semaine
+### Mardi
+- Dîner : Soupe (300 kcal)
+<!-- une note ignorée
+- Déjeuner : ceci n'est pas un repas
+-->
+`
+
+  it('rattache chaque jour à sa semaine, et un « ## Semaine » simple revient à toutes les semaines', () => {
+    const md = parseMealPlanMd(AB)
+    expect(md.problems).toEqual([])
+    expect(md.days.map((d) => [d.label, d.cycle])).toEqual([
+      ['Lundi (semaine A)', 'A'],
+      ['Tous les jours (semaine A)', 'A'],
+      ['Lundi (semaine B)', 'B'],
+      ['Mardi', null],
+    ])
+  })
+
+  it('alterne A et B à partir de la lettre choisie pour la semaine de départ', () => {
+    const md = parseMealPlanMd(AB)
+    const ctx = { foods: [], recipes: [], catalog: CATALOG }
+    const lunches = (startCycle: 'A' | 'B') =>
+      resolveMealPlan(md, ctx, { monday: '2026-11-16', weeks: 4, startCycle })
+        .mealItems.filter((m) => m.meal === 'lunch')
+        .map((m) => [m.day, m.name])
+    expect(lunches('A')).toEqual([
+      ['2026-11-16', 'Plat A'],
+      ['2026-11-30', 'Plat A'],
+      ['2026-11-23', 'Plat B'],
+      ['2026-12-07', 'Plat B'],
+    ])
+    expect(
+      lunches('B')
+        .map(([day, name]) => `${day} ${name}`)
+        .sort(),
+    ).toEqual(['2026-11-16 Plat B', '2026-11-23 Plat A', '2026-11-30 Plat B', '2026-12-07 Plat A'])
+    const r = resolveMealPlan(md, ctx, { monday: '2026-11-16', weeks: 4, startCycle: 'A' })
+    // collation « tous les jours » de la semaine A seulement : 2 semaines × 7 jours
+    expect(r.mealItems.filter((m) => m.name === 'Fruit A')).toHaveLength(14)
+    // la soupe du mardi, hors A/B : chaque semaine
+    expect(r.mealItems.filter((m) => m.name === 'Soupe')).toHaveLength(4)
+  })
+})
+
 describe('resolveMealPlan', () => {
   const myFoods: Food[] = [
     {

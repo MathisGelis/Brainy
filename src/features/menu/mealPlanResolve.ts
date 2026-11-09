@@ -50,7 +50,12 @@ const matches = (candidate: string, wanted: string) =>
 export function resolveMealPlan(
   md: MealPlanMd,
   ctx: { foods: Food[]; recipes: RecipeFull[]; catalog: CatalogFood[] },
-  options: { monday: string; weeks: number },
+  options: {
+    monday: string
+    weeks: number
+    /** Plan A/B : lettre de la semaine de départ ; les suivantes alternent */
+    startCycle?: 'A' | 'B'
+  },
 ): ResolvedPlan {
   const now = new Date().toISOString()
   const id = () => crypto.randomUUID()
@@ -176,9 +181,13 @@ export function resolveMealPlan(
   }
 
   // 3. Les repas, jour par jour
-  const dates = (key: MealPlanMd['days'][number]['key']): string[] => {
+  const start = options.startCycle ?? 'A'
+  const letterOf = (w: number) => (w % 2 === 0 ? start : start === 'A' ? 'B' : 'A')
+  const dates = (key: MealPlanMd['days'][number]['key'], cycle: 'A' | 'B' | null): string[] => {
     if (key.kind === 'date') return [key.date]
-    const weeks = Array.from({ length: options.weeks }, (_, w) => addDays(options.monday, 7 * w))
+    const weeks = Array.from({ length: options.weeks }, (_, w) => w)
+      .filter((w) => cycle === null || letterOf(w) === cycle)
+      .map((w) => addDays(options.monday, 7 * w))
     if (key.kind === 'every')
       return weeks.flatMap((m) => Array.from({ length: 7 }, (_, i) => addDays(m, i)))
     return weeks.map((m) => addDays(m, key.weekday - 1))
@@ -229,7 +238,7 @@ export function resolveMealPlan(
             fat_dg: v.fat_dg,
           }
         }
-        for (const day of dates(d.key)) {
+        for (const day of dates(d.key, d.cycle)) {
           const slot = `${day}|${meal}`
           const position = positions.get(slot) ?? 0
           positions.set(slot, position + 1)

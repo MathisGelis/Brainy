@@ -124,3 +124,41 @@ for (const theme of ['light', 'dark'] as const)
       results.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target).join(' | ')}`),
     ).toEqual([])
   })
+
+test('menu : plan à semaines A et B, en commençant par une semaine B', async ({ page }) => {
+  const db = await installFakeSupabase(page)
+  await page.goto('#/menu')
+  await page.getByText('Importer un plan de repas (.md)').click()
+  await page.getByLabel('Fichier du plan de repas').setInputFiles({
+    name: 'ab.md',
+    mimeType: 'text/markdown',
+    buffer: Buffer.from(`## Semaine A
+### Lundi
+- Déjeuner : Plat A (500 kcal, P 30, G 50, L 15)
+## Semaine B
+### Lundi
+- Déjeuner : Plat B (600 kcal, P 35, G 60, L 20)
+`),
+  })
+  await page.getByRole('combobox', { name: 'Nombre de semaines' }).click()
+  await page.getByRole('option', { name: '4 semaines' }).click()
+  await page.getByRole('combobox', { name: 'Type de la semaine de départ' }).click()
+  await page.getByRole('option', { name: 'Commence par une semaine B' }).click()
+  const start = monday(0)
+  const fmt = (iso: string) =>
+    new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short', timeZone: 'UTC' }).format(
+      new Date(`${iso}T12:00:00Z`),
+    )
+  await expect(page.getByText(/^Semaine A : /)).toHaveText(
+    `Semaine A : ${fmt(plusDays(start, 7))}, ${fmt(plusDays(start, 21))} · Semaine B : ${fmt(start)}, ${fmt(plusDays(start, 14))}`,
+  )
+  await page.getByRole('button', { name: 'Importer', exact: true }).click()
+  await expect.poll(() => db.meal_items?.length).toBe(4)
+  const byDay = Object.fromEntries(db.meal_items!.map((m) => [m.day, m.name]))
+  expect(byDay).toEqual({
+    [start]: 'Plat B',
+    [plusDays(start, 7)]: 'Plat A',
+    [plusDays(start, 14)]: 'Plat B',
+    [plusDays(start, 21)]: 'Plat A',
+  })
+})

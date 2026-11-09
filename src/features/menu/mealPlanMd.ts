@@ -37,7 +37,13 @@ export type MdRecipe = { name: string; servings: number; items: MdItem[] }
 export type MdDayKey =
   { kind: 'weekday'; weekday: number } | { kind: 'every' } | { kind: 'date'; date: string }
 
-export type MdDay = { key: MdDayKey; label: string; meals: { meal: Meal; items: MdItem[] }[] }
+export type MdDay = {
+  key: MdDayKey
+  label: string
+  meals: { meal: Meal; items: MdItem[] }[]
+  /** Semaine A ou B d'un plan qui alterne ; null = toutes les semaines */
+  cycle: 'A' | 'B' | null
+}
 
 export type MealPlanMd = {
   foods: MdFood[]
@@ -225,12 +231,19 @@ export function parseMealPlanMd(md: string): MealPlanMd {
   let day: MdDay | null = null
   let meal: { meal: Meal; items: MdItem[] } | null = null
   let header: string[] | null = null
+  let cycle: MdDay['cycle'] = null
 
   const problem = (n: number, line: string, why: string) =>
     result.problems.push(`Ligne ${n + 1} : ${why} — « ${line.trim().slice(0, 80)} »`)
 
+  let inComment = false
   lines.forEach((line, n) => {
     const trimmed = line.trim()
+    // commentaires HTML (<!-- … -->) : notes pour qui remplit le fichier, ignorées
+    if (inComment || trimmed.startsWith('<!--')) {
+      inComment = !trimmed.includes('-->')
+      return
+    }
     if (!trimmed || /^[-*_]{3,}$/.test(trimmed) || trimmed.startsWith('>')) return
     const h = heading(trimmed)
 
@@ -240,7 +253,7 @@ export function parseMealPlanMd(md: string): MealPlanMd {
       // un jour peut apparaître sans section « Semaine » au-dessus
       if (key && (section === 'days' || section === null || h.level >= 3)) {
         section = 'days'
-        day = { key, label: h.text, meals: [] }
+        day = { key, label: cycle ? `${h.text} (semaine ${cycle})` : h.text, meals: [], cycle }
         result.days.push(day)
         meal = null
         recipe = null
@@ -251,8 +264,19 @@ export function parseMealPlanMd(md: string): MealPlanMd {
         day.meals.push(meal)
         return
       }
+      // « Semaine A » / « Semaine B » : les jours qui suivent n'ont lieu qu'une semaine sur deux
+      const ab = /^semaine\s+([ab])\b/.exec(fold(h.text).trim())
+      if (ab) {
+        section = 'days'
+        cycle = ab[1]!.toUpperCase() as 'A' | 'B'
+        day = null
+        meal = null
+        recipe = null
+        return
+      }
       const s = sectionOf(h.text)
       if (s && h.level <= 2) {
+        if (s === 'days') cycle = null
         section = s
         recipe = null
         day = null
@@ -400,4 +424,9 @@ Valeurs pour 100 g (ou 100 ml). La portion sert à écrire « 2 Œufs ».
 
 ### Tous les jours
 - ${LABEL.snack} : 1 Banane
+
+<!--
+Semaines qui alternent : remplacez « ## Semaine » par « ## Semaine A », puis ajoutez
+« ## Semaine B » avec ses propres jours. À l'import, choisissez si la semaine de départ est une A ou une B.
+-->
 `
