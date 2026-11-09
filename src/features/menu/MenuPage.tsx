@@ -5,6 +5,7 @@ import { addDays, formatLongDay, formatWeekdayShort, startOfWeek, todayISO } fro
 import { AddFoodForm } from './AddFoodForm'
 import { CopyMenu } from './CopyMenu'
 import { FoodsManager } from './FoodsManager'
+import { MealPlanImport } from './MealPlanImport'
 import { MacroSummary } from './MacroSummary'
 import { MealSection } from './MealSection'
 import { baseName, MEALS, sumMacros } from './nutrition'
@@ -127,6 +128,7 @@ export default function MenuPage() {
       </ul>
 
       <CopyMenu day={day} from={from} to={to} onError={onError} />
+      <MealPlanImport onError={onError} />
       <AddFoodForm day={day} from={from} to={to} onError={onError} />
 
       <MacroSummary

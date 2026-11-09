@@ -68,7 +68,7 @@ test('accueil : l’agenda du jour', async ({ page }) => {
       },
     ],
   })
-  await page.goto('')
+  await page.goto('#/aujourdhui')
   const agenda = page.getByRole('region', { name: 'Agenda' })
   await expect(agenda).toContainText('Dentiste')
   await expect(agenda).toContainText('14h30')

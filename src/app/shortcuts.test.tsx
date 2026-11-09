@@ -42,7 +42,7 @@ async function renderApp() {
       <App />
     </Providers>,
   )
-  await screen.findByRole('heading', { name: "Aujourd'hui" })
+  await screen.findByRole('heading', { name: 'Dashboard' })
 }
 
 describe('raccourcis clavier', () => {

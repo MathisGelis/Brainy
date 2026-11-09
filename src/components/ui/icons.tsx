@@ -119,3 +119,34 @@ export const SearchIcon = (p: P) => (
     <path d="M20 20l-4.2-4.2" />
   </Icon>
 )
+
+export const DashboardIcon = (p: P) => (
+  <Icon {...p}>
+    <rect x="3.5" y="3.5" width="7" height="9" rx="2" />
+    <rect x="13.5" y="3.5" width="7" height="5" rx="2" />
+    <rect x="13.5" y="11.5" width="7" height="9" rx="2" />
+    <rect x="3.5" y="15.5" width="7" height="5" rx="2" />
+  </Icon>
+)
+
+export const PlanIcon = (p: P) => (
+  <Icon {...p}>
+    <path d="M3.5 20.5h17" />
+    <path d="M5 16l4.5-4.5 3.5 3L19.5 8" />
+    <path d="M15 8h4.5v4.5" />
+  </Icon>
+)
+
+export const MoreIcon = (p: P) => (
+  <Icon {...p}>
+    <circle cx="5.5" cy="12" r="1.4" fill="currentColor" stroke="none" />
+    <circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none" />
+    <circle cx="18.5" cy="12" r="1.4" fill="currentColor" stroke="none" />
+  </Icon>
+)
+
+export const CloseIcon = (p: P) => (
+  <Icon {...p}>
+    <path d="M6 6l12 12M18 6L6 18" />
+  </Icon>
+)

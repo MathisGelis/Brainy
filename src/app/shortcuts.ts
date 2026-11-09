@@ -3,7 +3,8 @@ import { useNavigate, type NavigateFunction } from 'react-router-dom'
 
 /** `g` puis une lettre : navigation entre onglets. */
 export const NAV_SHORTCUTS: { key: string; to: string; label: string }[] = [
-  { key: 'a', to: '/', label: "Aujourd'hui" },
+  { key: 'd', to: '/', label: 'Dashboard' },
+  { key: 'a', to: '/aujourdhui', label: "Aujourd'hui" },
   { key: 'o', to: '/objectifs', label: 'Objectifs' },
   { key: 'n', to: '/notes', label: 'Notes' },
   { key: 'h', to: '/habitudes', label: 'Habitudes' },
@@ -13,6 +14,7 @@ export const NAV_SHORTCUTS: { key: string; to: string; label: string }[] = [
   { key: 'c', to: '/calendrier', label: 'Calendrier' },
   { key: 'r', to: '/revue', label: 'Revue de la semaine' },
   { key: 'p', to: '/semaine', label: 'Planifier la semaine' },
+  { key: 'f', to: '/plan', label: 'Plan financier' },
 ]
 
 export const OTHER_SHORTCUTS: { keys: string; label: string }[] = [

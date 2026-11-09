@@ -17,7 +17,7 @@ test('Top 3 : choisir une suggestion, la retrouver après rechargement', async (
   const db = await installFakeSupabase(page, {
     todos: [{ ...todo, id: 'a1', title: 'Payer le loyer', due_date: parisToday() }],
   })
-  await page.goto('')
+  await page.goto('#/aujourdhui')
   await page.getByRole('button', { name: 'Ajouter « Payer le loyer » au Top 3' }).click()
   const top = page.getByRole('region', { name: 'Top 3 du jour' })
   await expect(top.getByRole('checkbox', { name: 'Terminer « Payer le loyer »' })).toBeVisible()
@@ -29,7 +29,7 @@ test('Top 3 : choisir une suggestion, la retrouver après rechargement', async (
 
 test('humeur et énergie en un geste, une seule saisie par jour', async ({ page }) => {
   const db = await installFakeSupabase(page)
-  await page.goto('')
+  await page.goto('#/aujourdhui')
   await page.getByRole('button', { name: 'Humeur : bonne (4 sur 5)' }).click()
   await page.getByRole('button', { name: 'Énergie : moyenne (3 sur 5)' }).click()
   await expect

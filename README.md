@@ -75,7 +75,10 @@ Si tout est à `true` mais que l'erreur persiste, rechargez le cache de PostgRES
   dépenses/revenus récurrents générés automatiquement.
 - **Habitudes** : jours précis, jours off (vacances), objectifs chiffrés.
 - **Notes** : cases `- [ ]` cochables dans l'aperçu, note du jour.
-- **Objectifs** : todos et habitudes liées, prochains jalons sur l'accueil.
+- **Dashboard** (accueil, `#/`) : chiffres clés de la semaine, todos sur 7 jours, carte de chaleur des
+  habitudes, budget par catégorie, courbe humeur/énergie, jalons, épargne. La journée en actions est sur
+  **Aujourd'hui** (`#/aujourdhui`). Sur mobile : 4 onglets et un menu « Plus » pour le reste.
+- **Objectifs** : todos et habitudes liées, prochains jalons sur le Dashboard.
 - **Top 3 du jour** en tête de l'accueil (suggestions ou saisie directe) ; **rituel du soir**
   (`#/rituel`, proposé à partir de 18 h) : humeur, habitudes, reports, Top 3 de demain.
 - **Humeur et énergie** (1 à 5) en un geste sur l'accueil ; **victoire du jour** notée dans le rituel du soir.
@@ -89,6 +92,13 @@ Si tout est à `true` mais que l'erreur persiste, rechargez le cache de PostgRES
   Recettes et repas types (« 2 parts curry soir », « Enregistrer comme repas type »), copie d'un jour
   ou de la semaine précédente ; courses terminées → « Combien avez-vous payé ? » → dépense dans Budget.
   L'accueil affiche les kcal restantes et le prochain repas prévu.
+  **Plan de repas en Markdown** : Menu → « Importer un plan de repas (.md) » (modèle téléchargeable).
+  Format : `## Objectifs` (« Calories : 2200 kcal »…), `## Aliments` (tableau : Aliment | kcal | Protéines |
+  Glucides | Lipides | Portion, valeurs pour 100 g), `## Recettes` (`### Nom (2 parts)` puis les
+  ingrédients en liste), `## Semaine` (`### Lundi`, `### Tous les jours` ou `### 2026-12-24`, puis
+  « - Déjeuner : 150 g Saumon, Poulet riz (1 part), Salade (450 kcal, P 25, G 40, L 18) »).
+  Plusieurs types de semaine : `## Semaine A`, `## Semaine B`…, chacune avec ses jours ; à l'import, on
+  choisit le type de chaque semaine une par une (A, A, B, rien…).
 - **Revue de la semaine** (`#/revue`, ou la carte de l'accueil le dimanche et le lundi), avec humeur,
   énergie et liens simples (« les jours de sport, énergie +0,8 »).
 - **Calendrier** (`#/calendrier`) : vue du mois ; le détail d'un jour permet de cocher, d'ajouter
@@ -122,12 +132,12 @@ Panneaux de verre dépoli sur un fond animé three.js (orbe irisé + aurore), th
 
 ## Raccourcis clavier (desktop)
 
-`⌘K` / `Ctrl+K` palette · `n` ajout rapide (todo, note, dépense) · `/` rechercher dans les notes · `g` puis `a` `o` `n` `h` `t` `b` `m`
-pour changer d'onglet, `c` calendrier, `r` revue, `p` planifier la semaine · `?` liste des raccourcis · `Échap` fermer.
+`⌘K` / `Ctrl+K` palette · `n` ajout rapide (todo, note, dépense) · `/` rechercher dans les notes · `g` puis `d` dashboard, `a` aujourd'hui, `o` `n` `h` `t` `b` `m`
+pour changer d'onglet, `c` calendrier, `r` revue, `p` planifier la semaine, `f` plan financier · `?` liste des raccourcis · `Échap` fermer.
 
 ## Données
 
-- Export : accueil → « Compte et données » → JSON (sauvegarde complète) ou CSV des dépenses
+- Export : Aujourd'hui → « Compte et données » → JSON (sauvegarde complète) ou CSV des dépenses
   (format tableur français : `;` et virgule décimale).
 - Montants stockés en centimes ; jours en `YYYY-MM-DD`, fuseau Europe/Paris.
 

@@ -1,3 +1,4 @@
+import type { ComponentType, ReactNode, SVGProps } from 'react'
 import { Link } from 'react-router-dom'
 import { Checkbox } from '@/components/ui'
 import { currentStreak, isDayDone, isScheduled } from '@/features/habits/habitLogic'
@@ -128,5 +129,46 @@ export function TodayHabits({
         })}
       </ul>
     </>
+  )
+}
+
+/** Widget de l'accueil : une carte par domaine. */
+export function Section({
+  title,
+  to,
+  icon: Icon,
+  className = '',
+  id,
+  children,
+}: {
+  title: string
+  to: string
+  /** Identifiant du titre, quand deux cartes mènent au même écran */
+  id?: string
+  icon: ComponentType<SVGProps<SVGSVGElement>>
+  className?: string
+  children: ReactNode
+}) {
+  return (
+    <section
+      aria-labelledby={id ?? `section-${to}`}
+      className={`card flex flex-col gap-2 p-5 ${className}`}
+    >
+      <div className="flex items-center justify-between">
+        <h2 id={id ?? `section-${to}`} className="flex items-center gap-2 font-semibold">
+          <span className="text-accent">
+            <Icon width={18} height={18} />
+          </span>
+          {title}
+        </h2>
+        <Link
+          to={to}
+          className="flex min-h-11 items-center rounded-full px-3 text-xs text-muted transition-colors hover:bg-surface hover:text-text md:min-h-8"
+        >
+          Tout voir
+        </Link>
+      </div>
+      {children}
+    </section>
   )
 }

@@ -32,7 +32,7 @@ test('hors ligne : l’app s’ouvre, les dernières données restent lisibles, 
   context,
 }) => {
   await installFakeSupabase(page, seed)
-  await page.goto('')
+  await page.goto('#/aujourdhui')
   const loyer = page
     .getByRole('region', { name: 'Top 3 du jour' })
     .getByRole('checkbox', { name: 'Terminer « Payer le loyer »' })

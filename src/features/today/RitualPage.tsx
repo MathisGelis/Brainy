@@ -12,6 +12,7 @@ import { markEveningRitualDone } from '@/lib/ritual'
 import { rowClass, TodayHabits } from './parts'
 import { StepFlow } from './StepFlow'
 import { TopThree } from './TopThree'
+import { TODAY_PATH } from '@/app/navItems'
 
 const small =
   'min-h-11 rounded-full px-3 text-xs text-muted transition-colors hover:bg-surface hover:text-text md:min-h-9'
@@ -92,7 +93,7 @@ export default function RitualPage() {
     markEveningRitualDone(today)
     celebrate(1.2)
     toast.show('Journée bouclée. Bonne soirée !')
-    navigate('/')
+    navigate(TODAY_PATH)
   }
 
   return (
