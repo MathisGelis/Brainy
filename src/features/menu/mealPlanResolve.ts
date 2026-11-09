@@ -53,8 +53,11 @@ export function resolveMealPlan(
   options: {
     monday: string
     weeks: number
-    /** Plan A/B : lettre de la semaine de départ ; les suivantes alternent */
-    startCycle?: 'A' | 'B'
+    /**
+     * Type de chaque semaine (« A », « B »… ; null = aucun) pour les jours rattachés à un type ;
+     * les jours sans type ont lieu toutes les semaines.
+     */
+    weekTypes?: (string | null)[]
   },
 ): ResolvedPlan {
   const now = new Date().toISOString()
@@ -181,12 +184,10 @@ export function resolveMealPlan(
   }
 
   // 3. Les repas, jour par jour
-  const start = options.startCycle ?? 'A'
-  const letterOf = (w: number) => (w % 2 === 0 ? start : start === 'A' ? 'B' : 'A')
-  const dates = (key: MealPlanMd['days'][number]['key'], cycle: 'A' | 'B' | null): string[] => {
+  const dates = (key: MealPlanMd['days'][number]['key'], cycle: string | null): string[] => {
     if (key.kind === 'date') return [key.date]
     const weeks = Array.from({ length: options.weeks }, (_, w) => w)
-      .filter((w) => cycle === null || letterOf(w) === cycle)
+      .filter((w) => cycle === null || options.weekTypes?.[w] === cycle)
       .map((w) => addDays(options.monday, 7 * w))
     if (key.kind === 'every')
       return weeks.flatMap((m) => Array.from({ length: 7 }, (_, i) => addDays(m, i)))

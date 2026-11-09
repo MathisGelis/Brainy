@@ -43,7 +43,8 @@ export function MealPlanImport({ onError }: { onError: (m: string) => void }) {
   const [monday, setMonday] = useState(thisMonday)
   const [weeks, setWeeks] = useState('1')
   const [replace, setReplace] = useState(true)
-  const [startCycle, setStartCycle] = useState<'A' | 'B'>('A')
+  // Type choisi pour chaque semaine (index → lettre, '' = aucun) ; à défaut, A, B, A, B…
+  const [choices, setChoices] = useState<Record<number, string>>({})
   const [saving, setSaving] = useState(false)
 
   const mondays: SelectOption<string>[] = [0, 1, 2, 3].map((w) => {
@@ -65,24 +66,25 @@ export function MealPlanImport({ onError }: { onError: (m: string) => void }) {
     setFile({ name: f.name, md: parseMealPlanMd(await f.text()) })
   }
 
+  // Types de semaine du fichier (« A », « B »…) : chaque semaine importée reçoit le sien
+  const types = [
+    ...new Set(file?.md.days.map((d) => d.cycle).filter((c): c is string => c !== null)),
+  ].sort()
+  const hasCommon = Boolean(file?.md.days.some((d) => d.cycle === null && d.key.kind !== 'date'))
+  const weekTypes = Array.from({ length: Number(weeks) }, (_, w) =>
+    types.length === 0 ? null : (choices[w] ?? types[w % types.length]!) || null,
+  )
+  const typeOptions: SelectOption<string>[] = [
+    ...types.map((t) => ({ value: t, label: `Semaine ${t}` })),
+    { value: '', label: hasCommon ? 'Aucune (jours communs seulement)' : 'Rien cette semaine' },
+  ]
   const plan =
     file &&
     resolveMealPlan(
       file.md,
       { foods, recipes, catalog: CATALOG },
-      { monday, weeks: Number(weeks), startCycle },
+      { monday, weeks: Number(weeks), weekTypes },
     )
-  // Plan A/B : quelles semaines reçoivent A, lesquelles B
-  const cycles = Boolean(file?.md.days.some((d) => d.cycle))
-  const cycleLine = (['A', 'B'] as const)
-    .map((letter) => {
-      const mondaysOf = Array.from({ length: Number(weeks) }, (_, w) => w)
-        .filter((w) => (w % 2 === 0) === (letter === startCycle))
-        .map((w) => formatDayMonth(addDays(monday, 7 * w)))
-      return mondaysOf.length ? `Semaine ${letter} : ${mondaysOf.join(', ')}` : null
-    })
-    .filter(Boolean)
-    .join(' · ')
   const empty =
     plan &&
     plan.mealItems.length === 0 &&
@@ -221,24 +223,29 @@ export function MealPlanImport({ onError }: { onError: (m: string) => void }) {
                   options={repeats}
                   className="field min-h-11 px-3 md:min-h-9"
                 />
-                {cycles && (
-                  <Select
-                    label="Type de la semaine de départ"
-                    value={startCycle}
-                    onChange={setStartCycle}
-                    options={[
-                      { value: 'A', label: 'Commence par une semaine A' },
-                      { value: 'B', label: 'Commence par une semaine B' },
-                    ]}
-                    className="field min-h-11 px-3 md:min-h-9"
-                  />
-                )}
               </div>
             )}
-            {cycles && (
-              <p className="text-xs text-muted" aria-live="polite">
-                {cycleLine}
-              </p>
+            {types.length > 0 && (
+              <fieldset className="flex flex-col gap-1">
+                <legend className="mb-1 text-xs font-semibold text-muted uppercase">
+                  Type de chaque semaine
+                </legend>
+                {weekTypes.map((t, w) => {
+                  const m = addDays(monday, 7 * w)
+                  return (
+                    <div key={m} className="flex flex-wrap items-center justify-between gap-2">
+                      <span>Semaine du {formatDayMonth(m)}</span>
+                      <Select
+                        label={`Type de la semaine du ${formatDayMonth(m)}`}
+                        value={t ?? ''}
+                        onChange={(v) => setChoices((c) => ({ ...c, [w]: v }))}
+                        options={typeOptions}
+                        className="field min-h-11 px-3 md:min-h-9"
+                      />
+                    </div>
+                  )
+                })}
+              </fieldset>
             )}
             <Checkbox
               label="Remplacer les repas déjà prévus ces jours-là"

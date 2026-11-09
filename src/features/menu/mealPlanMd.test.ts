@@ -122,29 +122,42 @@ describe('semaines A et B', () => {
     ])
   })
 
-  it('alterne A et B à partir de la lettre choisie pour la semaine de départ', () => {
+  it('pose chaque type sur les semaines choisies, sans alternance imposée', () => {
     const md = parseMealPlanMd(AB)
     const ctx = { foods: [], recipes: [], catalog: CATALOG }
-    const lunches = (startCycle: 'A' | 'B') =>
-      resolveMealPlan(md, ctx, { monday: '2026-11-16', weeks: 4, startCycle })
-        .mealItems.filter((m) => m.meal === 'lunch')
-        .map((m) => [m.day, m.name])
-    expect(lunches('A')).toEqual([
-      ['2026-11-16', 'Plat A'],
-      ['2026-11-30', 'Plat A'],
-      ['2026-11-23', 'Plat B'],
-      ['2026-12-07', 'Plat B'],
-    ])
+    // A, A, B, puis une semaine sans type : seuls les jours communs (la soupe du mardi)
+    const r = resolveMealPlan(md, ctx, {
+      monday: '2026-11-16',
+      weeks: 4,
+      weekTypes: ['A', 'A', 'B', null],
+    })
     expect(
-      lunches('B')
-        .map(([day, name]) => `${day} ${name}`)
+      r.mealItems
+        .filter((m) => m.meal === 'lunch')
+        .map((m) => `${m.day} ${m.name}`)
         .sort(),
-    ).toEqual(['2026-11-16 Plat B', '2026-11-23 Plat A', '2026-11-30 Plat B', '2026-12-07 Plat A'])
-    const r = resolveMealPlan(md, ctx, { monday: '2026-11-16', weeks: 4, startCycle: 'A' })
-    // collation « tous les jours » de la semaine A seulement : 2 semaines × 7 jours
+    ).toEqual(['2026-11-16 Plat A', '2026-11-23 Plat A', '2026-11-30 Plat B'])
+    // collation « tous les jours » de la semaine A : 2 semaines A × 7 jours
     expect(r.mealItems.filter((m) => m.name === 'Fruit A')).toHaveLength(14)
-    // la soupe du mardi, hors A/B : chaque semaine
+    // la soupe du mardi, sans type : chaque semaine, même la dernière
     expect(r.mealItems.filter((m) => m.name === 'Soupe')).toHaveLength(4)
+  })
+
+  it('accepte plus de deux types de semaine', () => {
+    const md = parseMealPlanMd(`## Semaine C
+### Lundi
+- Dîner : Raclette (900 kcal)`)
+    expect(md.days[0]!.cycle).toBe('C')
+    const r = resolveMealPlan(
+      md,
+      { foods: [], recipes: [], catalog: CATALOG },
+      {
+        monday: '2026-11-16',
+        weeks: 2,
+        weekTypes: [null, 'C'],
+      },
+    )
+    expect(r.mealItems.map((m) => m.day)).toEqual(['2026-11-23'])
   })
 })
 

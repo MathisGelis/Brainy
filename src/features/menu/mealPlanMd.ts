@@ -41,8 +41,8 @@ export type MdDay = {
   key: MdDayKey
   label: string
   meals: { meal: Meal; items: MdItem[] }[]
-  /** Semaine A ou B d'un plan qui alterne ; null = toutes les semaines */
-  cycle: 'A' | 'B' | null
+  /** Type de semaine (« A », « B », « C »…) ; null = toutes les semaines */
+  cycle: string | null
 }
 
 export type MealPlanMd = {
@@ -264,11 +264,11 @@ export function parseMealPlanMd(md: string): MealPlanMd {
         day.meals.push(meal)
         return
       }
-      // « Semaine A » / « Semaine B » : les jours qui suivent n'ont lieu qu'une semaine sur deux
-      const ab = /^semaine\s+([ab])\b/.exec(fold(h.text).trim())
+      // « Semaine A », « Semaine B »… : les jours qui suivent n'ont lieu que les semaines de ce type
+      const ab = /^semaine\s+([a-z])$/.exec(fold(h.text).trim())
       if (ab) {
         section = 'days'
-        cycle = ab[1]!.toUpperCase() as 'A' | 'B'
+        cycle = ab[1]!.toUpperCase()
         day = null
         meal = null
         recipe = null
@@ -426,7 +426,7 @@ Valeurs pour 100 g (ou 100 ml). La portion sert à écrire « 2 Œufs ».
 - ${LABEL.snack} : 1 Banane
 
 <!--
-Semaines qui alternent : remplacez « ## Semaine » par « ## Semaine A », puis ajoutez
-« ## Semaine B » avec ses propres jours. À l'import, choisissez si la semaine de départ est une A ou une B.
+Plusieurs types de semaine : remplacez « ## Semaine » par « ## Semaine A », puis ajoutez
+« ## Semaine B » (C, D…) avec leurs propres jours. À l'import, choisissez le type de chaque semaine.
 -->
 `

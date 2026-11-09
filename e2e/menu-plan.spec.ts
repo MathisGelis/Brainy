@@ -125,7 +125,7 @@ for (const theme of ['light', 'dark'] as const)
     ).toEqual([])
   })
 
-test('menu : plan à semaines A et B, en commençant par une semaine B', async ({ page }) => {
+test('menu : semaines A et B choisies une par une (A, A, B, rien)', async ({ page }) => {
   const db = await installFakeSupabase(page)
   await page.goto('#/menu')
   await page.getByText('Importer un plan de repas (.md)').click()
@@ -142,23 +142,30 @@ test('menu : plan à semaines A et B, en commençant par une semaine B', async (
   })
   await page.getByRole('combobox', { name: 'Nombre de semaines' }).click()
   await page.getByRole('option', { name: '4 semaines' }).click()
-  await page.getByRole('combobox', { name: 'Type de la semaine de départ' }).click()
-  await page.getByRole('option', { name: 'Commence par une semaine B' }).click()
   const start = monday(0)
   const fmt = (iso: string) =>
     new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short', timeZone: 'UTC' }).format(
       new Date(`${iso}T12:00:00Z`),
     )
-  await expect(page.getByText(/^Semaine A : /)).toHaveText(
-    `Semaine A : ${fmt(plusDays(start, 7))}, ${fmt(plusDays(start, 21))} · Semaine B : ${fmt(start)}, ${fmt(plusDays(start, 14))}`,
-  )
+  const pick = async (iso: string, option: string) => {
+    await page.getByRole('combobox', { name: `Type de la semaine du ${fmt(iso)}` }).click()
+    await page.getByRole('option', { name: option }).click()
+  }
+  // par défaut A, B, A, B : on choisit A, A, B, rien
+  await expect(
+    page.getByRole('combobox', { name: `Type de la semaine du ${fmt(plusDays(start, 7))}` }),
+  ).toHaveText(/Semaine B/)
+  await pick(plusDays(start, 7), 'Semaine A')
+  await pick(plusDays(start, 14), 'Semaine B')
+  await pick(plusDays(start, 21), 'Rien cette semaine')
+  const axe = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()
+  expect(axe.violations.map((v) => v.id)).toEqual([])
   await page.getByRole('button', { name: 'Importer', exact: true }).click()
-  await expect.poll(() => db.meal_items?.length).toBe(4)
+  await expect.poll(() => db.meal_items?.length).toBe(3)
   const byDay = Object.fromEntries(db.meal_items!.map((m) => [m.day, m.name]))
   expect(byDay).toEqual({
-    [start]: 'Plat B',
+    [start]: 'Plat A',
     [plusDays(start, 7)]: 'Plat A',
     [plusDays(start, 14)]: 'Plat B',
-    [plusDays(start, 21)]: 'Plat A',
   })
 })

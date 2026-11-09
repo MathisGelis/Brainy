@@ -130,7 +130,7 @@ _Lighthouse (mobile, build de prod) sur la page de connexion : performance 97, a
 - [x] Format .md (aliments et macros, recettes, jours, objectifs) et modèle téléchargeable
 - [x] Rapprochement des aliments (fichier, mes aliments, base courante) et des recettes ; quantités en g/ml, portions, parts, valeurs données sur la ligne
 - [x] Import dans l'onglet Menu : aperçu, semaine de départ, 1 à 8 semaines, remplacement
-- [x] Semaines A et B qui alternent (un fichier, la lettre de départ au choix)
+- [x] Types de semaine (A, B…) dans un même fichier, choisis semaine par semaine à l'import
 - [x] Tests (unitaires, e2e, axe dans les deux thèmes)
 
 ## Backlog (idées, ne pas implémenter sans validation)

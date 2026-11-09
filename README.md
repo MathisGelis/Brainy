@@ -97,8 +97,8 @@ Si tout est à `true` mais que l'erreur persiste, rechargez le cache de PostgRES
   Glucides | Lipides | Portion, valeurs pour 100 g), `## Recettes` (`### Nom (2 parts)` puis les
   ingrédients en liste), `## Semaine` (`### Lundi`, `### Tous les jours` ou `### 2026-12-24`, puis
   « - Déjeuner : 150 g Saumon, Poulet riz (1 part), Salade (450 kcal, P 25, G 40, L 18) »).
-  Semaines qui alternent : `## Semaine A` et `## Semaine B`, chacune avec ses jours ; à l'import, on
-  choisit si la semaine de départ est une A ou une B.
+  Plusieurs types de semaine : `## Semaine A`, `## Semaine B`…, chacune avec ses jours ; à l'import, on
+  choisit le type de chaque semaine une par une (A, A, B, rien…).
 - **Revue de la semaine** (`#/revue`, ou la carte de l'accueil le dimanche et le lundi), avec humeur,
   énergie et liens simples (« les jours de sport, énergie +0,8 »).
 - **Calendrier** (`#/calendrier`) : vue du mois ; le détail d'un jour permet de cocher, d'ajouter
