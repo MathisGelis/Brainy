@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { parisHour, todayISO } from '@/lib/dates'
 import { saveErrorMessage } from '@/lib/schemaErrors'
 import { useOptimisticMutation } from '@/lib/useOptimisticMutation'
 import {
@@ -21,7 +22,7 @@ import {
   removeRecipeItem,
   upsertTargets,
 } from './menuApi'
-import { normalizeName } from './nutrition'
+import { eatenByDefault, normalizeName } from './nutrition'
 import type {
   Food,
   FoodPatch,
@@ -91,7 +92,12 @@ export function useFoods({ onError }: Options = {}) {
   }
 }
 
-export type NewMealItemInput = Omit<MealItem, 'id' | 'created_at' | 'position'>
+/** Sans `eaten` : déduit du jour et de l'heure (voir eatenByDefault) ; sans `plan_id` : ajout à la main. */
+export type NewMealItemInput = Omit<
+  MealItem,
+  'id' | 'created_at' | 'position' | 'plan_id' | 'eaten'
+> &
+  Partial<Pick<MealItem, 'plan_id' | 'eaten'>>
 
 /** Repas d'une période (une semaine), avec ajout, modification et suppression annulable. */
 export function useMealItems(from: string, to: string, { onError }: Options = {}) {
@@ -170,6 +176,8 @@ export function useMealItems(from: string, to: string, { onError }: Options = {}
         position: sameMeal.reduce((max, i) => Math.max(max, i.position), -1) + 1,
         created_at: new Date().toISOString(),
         ...input,
+        plan_id: input.plan_id ?? null,
+        eaten: input.eaten ?? eatenByDefault(input.day, input.meal, todayISO(), parisHour()),
       }
       add.mutate({ item, newFood })
       return item

@@ -58,6 +58,10 @@ export function resolveMealPlan(
      * les jours sans type ont lieu toutes les semaines.
      */
     weekTypes?: (string | null)[]
+    /** Plan d'origine des repas posés */
+    planId?: string
+    /** Ne pose rien avant ce jour (on ne réécrit pas les jours passés) */
+    fromDay?: string
   },
 ): ResolvedPlan {
   const now = new Date().toISOString()
@@ -200,7 +204,10 @@ export function resolveMealPlan(
       for (const it of items) {
         // une recette (du fichier ou de l'app), des valeurs données sur la ligne, ou un aliment
         const recipe = !it.macros ? (recipesByKey.get(keyOf(it.name)) ?? null) : null
-        let values: Omit<MealItem, 'id' | 'day' | 'meal' | 'position' | 'created_at'>
+        let values: Omit<
+          MealItem,
+          'id' | 'day' | 'meal' | 'position' | 'created_at' | 'plan_id' | 'eaten'
+        >
         if (recipe) {
           const perPart = recipeTotals(recipe.items).grams / recipe.servings
           const parts =
@@ -240,10 +247,20 @@ export function resolveMealPlan(
           }
         }
         for (const day of dates(d.key, d.cycle)) {
+          if (options.fromDay && day < options.fromDay) continue
           const slot = `${day}|${meal}`
           const position = positions.get(slot) ?? 0
           positions.set(slot, position + 1)
-          out.mealItems.push({ id: id(), day, meal, position, created_at: now, ...values })
+          out.mealItems.push({
+            id: id(),
+            day,
+            meal,
+            position,
+            created_at: now,
+            plan_id: options.planId ?? null,
+            eaten: false,
+            ...values,
+          })
         }
       }
     }

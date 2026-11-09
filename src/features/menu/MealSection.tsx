@@ -1,4 +1,4 @@
-import { Select } from '@/components/ui'
+import { Checkbox, Select } from '@/components/ui'
 import { useState, type FormEvent } from 'react'
 import { grams as g, MEALS, rescaleItem } from './nutrition'
 import type { Meal, MealItem, MealItemPatch } from './types'
@@ -23,6 +23,12 @@ function MealItemRow({ item, missing, onUpdate, onDelete, onShop }: RowProps) {
   if (!editing) {
     return (
       <li className="flex items-center gap-1 border-b border-border last:border-b-0">
+        <Checkbox
+          hideLabel
+          label={`« ${item.name} » mangé`}
+          checked={item.eaten}
+          onChange={() => onUpdate(item.id, { eaten: !item.eaten })}
+        />
         <button
           type="button"
           onClick={() => setEditing(true)}
@@ -38,7 +44,9 @@ function MealItemRow({ item, missing, onUpdate, onDelete, onShop }: RowProps) {
               {item.grams} g · P {g(item.protein_dg)} · G {g(item.carbs_dg)} · L {g(item.fat_dg)}
             </span>
           </span>
-          <span className="text-sm font-semibold tabular-nums">{item.kcal} kcal</span>
+          <span className={`text-sm tabular-nums ${item.eaten ? 'font-semibold' : 'text-muted'}`}>
+            {item.kcal} kcal
+          </span>
         </button>
         {missing.length > 0 && (
           <button
