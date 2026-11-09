@@ -5,15 +5,17 @@ import { addDays, formatLongDay, formatWeekdayShort, startOfWeek, todayISO } fro
 import { AddFoodForm } from './AddFoodForm'
 import { CopyMenu } from './CopyMenu'
 import { FoodsManager } from './FoodsManager'
-import { MealPlanImport } from './MealPlanImport'
 import { MacroSummary } from './MacroSummary'
+import { MealPlans } from './MealPlans'
 import { MealSection } from './MealSection'
 import { baseName, MEALS, sumMacros } from './nutrition'
 import { RecipesManager } from './RecipesManager'
 import { ingredientsFromMeal, shoppingNames } from './recipeLogic'
 import { ShoppingCard } from './ShoppingCard'
-import type { MealItem } from './types'
+import { ingredientGrams, needsOf } from './shopping'
+import type { MealItem, MealItemPatch } from './types'
 import { useMacroTargets, useMealItems, useRecipes } from './useMenu'
+import { usePantry } from './useMealPlans'
 import { useShoppingList } from './useShoppingList'
 
 const nav =
@@ -35,17 +37,29 @@ export default function MenuPage() {
   const { targets, hasTargets, saveTargets } = useMacroTargets({ onError })
   const shopping = useShoppingList({ onError })
   const { recipes, createRecipe, deleteRecipe } = useRecipes({ onError })
+  const { adjust } = usePantry({ onError })
 
   const dayItems = items.filter((i) => i.day === day)
-  const totals = sumMacros(dayItems)
+  const totals = sumMacros(dayItems.filter((i) => i.eaten))
+  const planned = sumMacros(dayItems)
   const kcalOf = (d: string) => items.filter((i) => i.day === d).reduce((s, i) => s + i.kcal, 0)
-  // Pour les courses : ce qui est prévu à partir d'aujourd'hui (ingrédients pour une recette)
-  const weekFoods = shoppingNames(
-    items.filter((i) => i.day >= today),
+  // Pour les courses : ce qui reste à manger cette semaine (ingrédients pour une recette)
+  const needs = needsOf(
+    items.filter((i) => i.day >= today && !i.eaten),
     recipes,
   )
   const missingOf = (item: MealItem) =>
     item.day >= today ? shopping.missing(shoppingNames([item], recipes)) : []
+
+  /** Cocher « mangé » sort ses aliments du stock à la maison ; décocher les y remet. */
+  function onUpdate(id: string, patch: MealItemPatch) {
+    const item = items.find((i) => i.id === id)
+    updateItem(id, patch)
+    if (item && patch.eaten !== undefined && patch.eaten !== item.eaten) {
+      const sign = patch.eaten ? -1 : 1
+      adjust(ingredientGrams(item, recipes).map((q) => ({ ...q, grams: sign * q.grams })))
+    }
+  }
 
   function onShop(names: string[]) {
     const { added, undo } = shopping.add(names)
@@ -128,11 +142,12 @@ export default function MenuPage() {
       </ul>
 
       <CopyMenu day={day} from={from} to={to} onError={onError} />
-      <MealPlanImport onError={onError} />
+      <MealPlans onError={onError} />
       <AddFoodForm day={day} from={from} to={to} onError={onError} />
 
       <MacroSummary
         totals={totals}
+        planned={planned}
         targets={targets}
         hasTargets={hasTargets}
         onSaveTargets={saveTargets}
@@ -160,7 +175,7 @@ export default function MenuPage() {
               label={m.label}
               items={dayItems.filter((i) => i.meal === m.id)}
               missingOf={missingOf}
-              onUpdate={updateItem}
+              onUpdate={onUpdate}
               onDelete={(item) =>
                 toast.show(`« ${baseName(item.name)} » retiré du menu`, deleteItem(item))
               }
@@ -171,7 +186,7 @@ export default function MenuPage() {
         </div>
       )}
 
-      <ShoppingCard weekFoods={weekFoods} onError={onError} />
+      <ShoppingCard needs={needs} onError={onError} />
       <RecipesManager onError={onError} />
       <FoodsManager onError={onError} />
     </>

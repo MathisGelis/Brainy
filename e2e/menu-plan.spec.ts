@@ -41,66 +41,66 @@ const plusDays = (iso: string, n: number) => {
   return d.toISOString().slice(0, 10)
 }
 
-async function openImport(page: Page) {
-  await page.goto('#/menu')
-  await page.getByText('Importer un plan de repas (.md)').click()
+const fmt = (iso: string) =>
+  new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short', timeZone: 'UTC' }).format(
+    new Date(`${iso}T12:00:00Z`),
+  )
+
+async function addPlan(page: Page, name: string, content: string) {
   await page.getByLabel('Fichier du plan de repas').setInputFiles({
-    name: 'plan.md',
+    name,
     mimeType: 'text/markdown',
-    buffer: Buffer.from(PLAN),
+    buffer: Buffer.from(content),
   })
 }
 
-test('menu : importer un plan .md, répété sur 2 semaines à partir de la semaine prochaine', async ({
-  page,
-}) => {
+async function openPlans(page: Page) {
+  await page.goto('#/menu')
+  await page.getByText('Plans de repas', { exact: true }).click()
+}
+
+async function pick(page: Page, monday: string, option: string) {
+  await page.getByRole('combobox', { name: `Plan de la semaine du ${fmt(monday)}` }).click()
+  await page.getByRole('option', { name: option, exact: true }).click()
+}
+
+test('menu : ajouter un plan .md puis le suivre la semaine prochaine', async ({ page }) => {
   const next = monday(1)
-  const db = await installFakeSupabase(page, {
-    // un repas déjà prévu le lundi suivant : remplacé
-    meal_items: [
-      {
-        id: 'old',
-        day: next,
-        meal: 'lunch',
-        food_id: null,
-        recipe_id: null,
-        name: 'Ancien repas',
-        grams: 100,
-        kcal: 500,
-        protein_dg: 0,
-        carbs_dg: 0,
-        fat_dg: 0,
-        position: 0,
-        created_at: '2026-01-01T00:00:00Z',
-      },
-    ],
+  const meal = (id: string, plan_id: string | null) => ({
+    id,
+    day: next,
+    meal: 'lunch',
+    food_id: null,
+    recipe_id: null,
+    name: id,
+    grams: 100,
+    kcal: 500,
+    protein_dg: 0,
+    carbs_dg: 0,
+    fat_dg: 0,
+    plan_id,
+    eaten: false,
+    position: 0,
+    created_at: '2026-01-01T00:00:00Z',
   })
-  await openImport(page)
+  // un repas posé par un ancien plan (remplacé) et un ajout à la main (gardé)
+  const db = await installFakeSupabase(page, {
+    meal_items: [meal('Ancien plan', 'old-plan'), meal('À la main', null)],
+  })
+  await openPlans(page)
+  await addPlan(page, 'plan.md', PLAN)
 
   const summary = page.getByRole('list', { name: 'Contenu du plan' })
+  await expect(summary).toContainText('2 jours de repas')
   await expect(summary).toContainText('1 recette')
   await expect(summary).toContainText('3 aliments ajoutés')
   await expect(summary).toContainText('Objectifs : 2100 kcal, P 140 g')
   await expect(page.getByRole('alert')).toContainText('aliment inconnu « Zorglub »')
+  await page.getByLabel('Nom du plan').fill('Sèche')
+  await page.getByRole('button', { name: 'Ajouter aux plans' }).click()
 
-  await page.getByRole('combobox', { name: 'Semaine de départ' }).click()
-  await page.getByRole('option', { name: /^Semaine prochaine/ }).click()
-  await page.getByRole('combobox', { name: 'Nombre de semaines' }).click()
-  await page.getByRole('option', { name: '2 semaines' }).click()
-  await expect(summary).toContainText('6 éléments de repas sur 4 jours')
-  await page.getByRole('button', { name: 'Importer', exact: true }).click()
-
-  await expect(page.getByText(/^Plan importé : 6 éléments sur 4 jours/)).toBeVisible()
-  await expect.poll(() => db.meal_items?.length).toBe(6)
-  expect(db.meal_items!.some((m) => m.id === 'old')).toBe(false)
-  const days = [...new Set(db.meal_items!.map((m) => m.day))].sort()
-  expect(days).toEqual([next, plusDays(next, 3), plusDays(next, 7), plusDays(next, 10)])
-  const lunch = db.meal_items!.find((m) => m.day === next && m.meal === 'lunch')!
-  expect(lunch).toMatchObject({ name: 'Poulet riz', grams: 350, kcal: 440 })
-  expect(db.meal_items!.find((m) => m.day === next && m.meal === 'breakfast')).toMatchObject({
-    name: 'Skyr',
-    grams: 150,
-  })
+  await expect(page.getByText('Plan « Sèche » ajouté : choisissez ses semaines')).toBeVisible()
+  await expect.poll(() => db.meal_plans?.length).toBe(1)
   expect(db.foods?.map((f) => f.name).sort()).toEqual([
     'Poulet (filet cru)',
     'Riz basmati (cuit)',
@@ -109,14 +109,37 @@ test('menu : importer un plan .md, répété sur 2 semaines à partir de la sema
   expect(db.recipes).toHaveLength(1)
   expect(db.recipe_items).toHaveLength(2)
   expect(db.macro_targets?.[0]).toMatchObject({ kcal: 2100, protein_g: 140 })
+  expect(db.meal_items).toHaveLength(2) // rien posé tant qu'aucune semaine n'est choisie
+
+  await pick(page, next, 'Sèche')
+  await expect(page.getByText(`Semaine du ${fmt(next)} : 3 repas prévus`)).toBeVisible()
+  await expect.poll(() => db.meal_items?.length).toBe(4)
+  const names = db.meal_items!.map((m) => m.name).sort()
+  expect(names).toEqual(['Poulet riz', 'Skyr', 'Soupe maison', 'À la main'])
+  const lunch = db.meal_items!.find((m) => m.name === 'Poulet riz')!
+  expect(lunch).toMatchObject({ day: next, grams: 350, kcal: 440, position: 1, eaten: false })
+  expect(lunch.plan_id).toBe(db.meal_plans![0]!.id)
+  expect(db.meal_items!.find((m) => m.name === 'Soupe maison')!.day).toBe(plusDays(next, 3))
+  expect(db.meal_plan_weeks).toEqual([
+    expect.objectContaining({ monday: next, plan_id: db.meal_plans![0]!.id, week_type: null }),
+  ])
+  expect(db.foods).toHaveLength(3) // les aliments du fichier ne sont pas recréés
 })
 
 for (const theme of ['light', 'dark'] as const)
-  test(`aucune violation axe (WCAG A/AA, ${theme}) : aperçu d’un plan .md`, async ({ page }) => {
+  test(`aucune violation axe (WCAG A/AA, ${theme}) : aperçu et plans de la semaine`, async ({
+    page,
+  }) => {
     await page.addInitScript((t) => localStorage.setItem('brainy.theme', t), theme)
-    await installFakeSupabase(page)
-    await openImport(page)
+    await installFakeSupabase(page, {
+      meal_plans: [{ id: 'p1', name: 'Sèche', content: PLAN, created_at: '' }],
+    })
+    await openPlans(page)
+    await addPlan(page, 'plan.md', PLAN)
     await expect(page.getByRole('list', { name: 'Contenu du plan' })).toBeVisible()
+    await expect(
+      page.getByRole('combobox', { name: `Plan de la semaine du ${fmt(monday(0))}` }),
+    ).toBeVisible()
     const results = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
       .analyze()
@@ -125,47 +148,40 @@ for (const theme of ['light', 'dark'] as const)
     ).toEqual([])
   })
 
-test('menu : semaines A et B choisies une par une (A, A, B, rien)', async ({ page }) => {
-  const db = await installFakeSupabase(page)
-  await page.goto('#/menu')
-  await page.getByText('Importer un plan de repas (.md)').click()
-  await page.getByLabel('Fichier du plan de repas').setInputFiles({
-    name: 'ab.md',
-    mimeType: 'text/markdown',
-    buffer: Buffer.from(`## Semaine A
+test('menu : deux plans, semaine A puis B choisies une par une, puis aucun plan', async ({
+  page,
+}) => {
+  const AB = `## Semaine A
 ### Lundi
 - Déjeuner : Plat A (500 kcal, P 30, G 50, L 15)
 ## Semaine B
 ### Lundi
 - Déjeuner : Plat B (600 kcal, P 35, G 60, L 20)
-`),
+`
+  const db = await installFakeSupabase(page, {
+    meal_plans: [{ id: 'p1', name: 'Sèche', content: PLAN, created_at: '2026-01-01T00:00:00Z' }],
   })
-  await page.getByRole('combobox', { name: 'Nombre de semaines' }).click()
-  await page.getByRole('option', { name: '4 semaines' }).click()
-  const start = monday(0)
-  const fmt = (iso: string) =>
-    new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short', timeZone: 'UTC' }).format(
-      new Date(`${iso}T12:00:00Z`),
-    )
-  const pick = async (iso: string, option: string) => {
-    await page.getByRole('combobox', { name: `Type de la semaine du ${fmt(iso)}` }).click()
-    await page.getByRole('option', { name: option }).click()
-  }
-  // par défaut A, B, A, B : on choisit A, A, B, rien
-  await expect(
-    page.getByRole('combobox', { name: `Type de la semaine du ${fmt(plusDays(start, 7))}` }),
-  ).toHaveText(/Semaine B/)
-  await pick(plusDays(start, 7), 'Semaine A')
-  await pick(plusDays(start, 14), 'Semaine B')
-  await pick(plusDays(start, 21), 'Rien cette semaine')
-  const axe = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()
-  expect(axe.violations.map((v) => v.id)).toEqual([])
-  await page.getByRole('button', { name: 'Importer', exact: true }).click()
-  await expect.poll(() => db.meal_items?.length).toBe(3)
-  const byDay = Object.fromEntries(db.meal_items!.map((m) => [m.day, m.name]))
-  expect(byDay).toEqual({
-    [start]: 'Plat A',
-    [plusDays(start, 7)]: 'Plat A',
-    [plusDays(start, 14)]: 'Plat B',
+  await openPlans(page)
+  await addPlan(page, 'ab.md', AB)
+  await page.getByRole('button', { name: 'Ajouter aux plans' }).click()
+  await expect.poll(() => db.meal_plans?.length).toBe(2)
+
+  const w1 = monday(1)
+  const w2 = monday(2)
+  await pick(page, w1, 'ab · Semaine A')
+  await expect.poll(() => db.meal_items?.length).toBe(1)
+  await pick(page, w2, 'ab · Semaine B')
+  await expect.poll(() => db.meal_items?.length).toBe(2)
+  expect(Object.fromEntries(db.meal_items!.map((m) => [m.day, m.name]))).toEqual({
+    [w1]: 'Plat A',
+    [w2]: 'Plat B',
   })
+  // changer de plan remplace les repas posés par l'ancien
+  await pick(page, w2, 'Sèche')
+  await expect.poll(() => db.meal_items?.some((m) => m.day === w2 && m.plan_id === 'p1')).toBe(true)
+  expect(db.meal_items!.some((m) => m.name === 'Plat B')).toBe(false)
+  await pick(page, w2, 'Aucun plan')
+  await expect.poll(() => db.meal_items?.filter((m) => m.day === w2).length).toBe(0)
+  expect(db.meal_items).toHaveLength(1)
+  expect(db.meal_plan_weeks?.map((w) => [w.monday, w.week_type])).toEqual([[w1, 'A']])
 })

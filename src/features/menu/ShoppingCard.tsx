@@ -6,6 +6,16 @@ import type { Todo } from '@/features/todos/types'
 import { monthOf, todayISO } from '@/lib/dates'
 import { formatCents, parseAmountToCents } from '@/lib/money'
 import { fold } from '@/lib/naturalDate'
+import {
+  formatGrams,
+  pantryKey,
+  parseShoppingTitle,
+  shoppingNeeds,
+  shoppingTitle,
+  type NeedLine,
+  type Quantity,
+} from './shopping'
+import { usePantry } from './useMealPlans'
 import { useShoppingList } from './useShoppingList'
 
 /** « Combien avez-vous payé ? » : la dépense part dans Budget, catégorie Courses si elle existe. */
@@ -81,32 +91,83 @@ function PaymentPrompt({ onDone, onError }: { onDone: () => void; onError: (m: s
   )
 }
 
+/** Quantité à la maison, enregistrée en quittant le champ (ou Entrée). */
+function StockInput({ line, onSave }: { line: NeedLine; onSave: (grams: number) => void }) {
+  const [invalid, setInvalid] = useState(false)
+  function commit(text: string) {
+    const t = text.trim().replace(',', '.')
+    if (t === '' && line.stock === null) return
+    const n = t === '' ? 0 : Number(t)
+    if (!Number.isFinite(n) || n < 0) {
+      setInvalid(true)
+      return
+    }
+    setInvalid(false)
+    if (Math.round(n) !== line.stock) onSave(n)
+  }
+  return (
+    <input
+      defaultValue={line.stock ?? ''}
+      inputMode="numeric"
+      enterKeyHint="done"
+      aria-label={`${line.name} à la maison, en grammes`}
+      aria-invalid={invalid}
+      placeholder="0"
+      onBlur={(e) => commit(e.target.value)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') e.currentTarget.blur()
+      }}
+      className={`field min-h-11 w-20 px-2 text-right tabular-nums md:min-h-9 ${invalid ? '!border-danger' : ''}`}
+    />
+  )
+}
+
 /** Liste de courses (liste de todos « Courses ») : cocher en magasin, ajouter, compléter depuis le menu. */
 export function ShoppingCard({
-  weekFoods,
+  needs,
   onError,
 }: {
-  /** Aliments prévus cette semaine (à partir d'aujourd'hui) */
-  weekFoods: string[]
+  /** Ce que demandent les repas pas encore mangés de la semaine (à partir d'aujourd'hui) */
+  needs: Quantity[]
   onError: (m: string) => void
 }) {
   const toast = useToast()
   const shopping = useShoppingList({ onError })
+  const { pantry, setStock, adjust } = usePantry({ onError })
   const [text, setText] = useState('')
   const [paying, setPaying] = useState(false)
-  const missing = shopping.missing(weekFoods)
+  const lines = shoppingNeeds(needs, pantry)
+  const toBuy = lines.filter((l) => l.toBuy > 0)
+  const missing = shopping.missing(toBuy.map((l) => shoppingTitle(l.name, l.toBuy)))
+
+  /** Un article avec quantité (« Riz — 400 g ») entre dans le stock une fois acheté. */
+  const bought = (todos: Todo[], sign: 1 | -1) =>
+    adjust(
+      todos.flatMap((todo) => {
+        const { name, grams } = parseShoppingTitle(todo.title)
+        return grams ? [{ key: pantryKey(name), name, grams: sign * grams }] : []
+      }),
+    )
 
   function check(todo: Todo) {
     const last = shopping.items.length === 1
-    toast.show(`« ${todo.title} » acheté`, shopping.check(todo))
+    const undo = shopping.check(todo)
+    bought([todo], 1)
+    toast.show(`« ${todo.title} » acheté`, () => {
+      undo()
+      bought([todo], -1)
+    })
     if (last) setPaying(true)
   }
 
   function checkAll() {
-    const undos = shopping.items.map((todo) => shopping.check(todo))
-    toast.show(`${undos.length} article${undos.length > 1 ? 's' : ''} cochés`, () =>
-      undos.forEach((undo) => undo()),
-    )
+    const todos = shopping.items
+    const undos = todos.map((todo) => shopping.check(todo))
+    bought(todos, 1)
+    toast.show(`${undos.length} article${undos.length > 1 ? 's' : ''} cochés`, () => {
+      undos.forEach((undo) => undo())
+      bought(todos, -1)
+    })
     setPaying(true)
   }
 
@@ -147,8 +208,8 @@ export function ShoppingCard({
         <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-surface px-3 py-2 text-sm">
           <span className="min-w-0 flex-1">
             {missing.length === 1
-              ? `« ${missing[0]} » est au menu mais pas sur la liste.`
-              : `${missing.length} aliments du menu de la semaine ne sont pas sur la liste : ${missing.slice(0, 4).join(', ')}${missing.length > 4 ? '…' : ''}`}
+              ? `À acheter pour les repas prévus : ${missing[0]}.`
+              : `${missing.length} aliments à acheter pour les repas prévus : ${missing.slice(0, 4).join(', ')}${missing.length > 4 ? '…' : ''}`}
           </span>
           <button
             type="button"
@@ -158,6 +219,57 @@ export function ShoppingCard({
             {missing.length === 1 ? 'Ajouter' : 'Tout ajouter'}
           </button>
         </div>
+      )}
+      {lines.length > 0 && (
+        <details className="text-sm">
+          <summary className="flex min-h-11 cursor-pointer items-center text-xs text-muted md:min-h-8">
+            Quantités pour les repas prévus
+            {toBuy.length === 0 ? ' · tout est à la maison' : ` · ${toBuy.length} à acheter`}
+          </summary>
+          <table className="mt-1 w-full text-sm">
+            <caption className="sr-only">
+              Besoin des repas prévus, quantité à la maison et reste à acheter
+            </caption>
+            <thead>
+              <tr className="text-left text-xs text-muted">
+                <th scope="col" className="py-1 font-normal">
+                  Aliment
+                </th>
+                <th scope="col" className="py-1 text-right font-normal">
+                  Il faut
+                </th>
+                <th scope="col" className="py-1 text-right font-normal">
+                  À la maison (g)
+                </th>
+                <th scope="col" className="py-1 text-right font-normal">
+                  À acheter
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {lines.map((l) => (
+                <tr key={l.key} className="border-t border-border">
+                  <th scope="row" className="py-1 pr-2 text-left font-normal">
+                    {l.name}
+                  </th>
+                  <td className="py-1 text-right tabular-nums">{formatGrams(l.grams)}</td>
+                  <td className="py-1 text-right">
+                    <StockInput
+                      key={`${l.key}:${l.stock ?? ''}`}
+                      line={l}
+                      onSave={(grams) => setStock(l.name, grams)}
+                    />
+                  </td>
+                  <td
+                    className={`py-1 text-right tabular-nums ${l.toBuy > 0 ? 'font-semibold' : 'text-muted'}`}
+                  >
+                    {l.toBuy > 0 ? formatGrams(l.toBuy) : 'Assez'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </details>
       )}
       {paying && <PaymentPrompt onDone={() => setPaying(false)} onError={onError} />}
       {shopping.items.length === 0 ? (

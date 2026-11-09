@@ -427,6 +427,6 @@ Valeurs pour 100 g (ou 100 ml). La portion sert à écrire « 2 Œufs ».
 
 <!--
 Plusieurs types de semaine : remplacez « ## Semaine » par « ## Semaine A », puis ajoutez
-« ## Semaine B » (C, D…) avec leurs propres jours. À l'import, choisissez le type de chaque semaine.
+« ## Semaine B » (C, D…) avec leurs propres jours. Dans l'app, choisissez ensuite le type de chaque semaine.
 -->
 `
